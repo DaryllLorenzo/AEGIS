@@ -28,6 +28,11 @@
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.8.0" />
   </ItemGroup>
 
+  <!-- API documentation. -->
+  <ItemGroup>
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.17.2" />
+  </ItemGroup>
+
   <!-- OpenTelemetry, wired up by Aegis.ServiceDefaults. -->
   <ItemGroup>
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />

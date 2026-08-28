@@ -25,6 +25,8 @@ development; Docker Compose runs the stack everywhere else.
 .
 ├── apps/                             # Deployable applications
 │   ├── api/                          # Aegis.Api — ASP.NET Core minimal API (backend)
+│   │   ├── Configuration/
+│   │   │   └── ScalarConfiguration.cs    # OpenAPI + Scalar UI setup and its options
 │   │   ├── Data/
 │   │   │   ├── AegisDbContext.cs     # EF Core context
 │   │   │   ├── AegisDbContextFactory.cs  # Design-time factory for `dotnet ef`
@@ -105,7 +107,8 @@ Deleting them only recreates the diff on the next run, so keep them committed.
 | ASP.NET Core | 10.0 | Minimal APIs |
 | Entity Framework Core | 10.0.11 | Code-first, migrations applied on startup |
 | Npgsql | via `Aspire.Npgsql.EntityFrameworkCore.PostgreSQL` 13.5.3 | Adds health checks, tracing and metrics for free |
-| OpenAPI | `Microsoft.AspNetCore.OpenApi` 10.0.11 | Served at `/openapi/v1.json` in Development |
+| OpenAPI | `Microsoft.AspNetCore.OpenApi` 10.0.11 | Document served at `/openapi/v1.json` |
+| Scalar | `Scalar.AspNetCore` 2.17.2 | Interactive API reference at `/scalar` |
 | OpenTelemetry | 1.15.x | Traces, metrics and logs via `Aegis.ServiceDefaults` |
 
 ### Frontend
@@ -246,7 +249,7 @@ The CLI prints the dashboard URL. Five resources start:
 | `postgres` | Container | Random host port (internal use) |
 | `aegisdb` | Database | — |
 | `web-installer` | Process | Runs `npm install`, then exits |
-| `api` | Process | http://localhost:5180 |
+| `api` | Process | http://localhost:5180 — the dashboard also links its `/scalar` reference |
 | `web` | Process | http://localhost:3000 |
 
 **Timings.** The first run is slow — it pulls `postgres:18-alpine`, downloads NuGet
@@ -363,6 +366,8 @@ docker compose down -v            # Stop and DELETE the database volume
   requires `docker compose up -d --build web`, not just a restart.
 - `/health` and `/alive` are unauthenticated. Keep them off the public ingress or put auth
   in front of them.
+- The Scalar reference is off in Production. If you enable it with `Scalar__Enabled=true`,
+  remember it publishes every route the API exposes.
 
 ---
 
@@ -434,7 +439,47 @@ Ports flow through to everything downstream. `API_URL`, `NEXT_PUBLIC_API_URL` an
 origin the API receives are all derived from `AppHost:Ports`, so changing a port needs no
 other edit anywhere.
 
-### 5.3 How the services find each other
+### 5.3 API documentation (Scalar)
+
+The OpenAPI document and the [Scalar](https://scalar.com/) reference UI are configured in
+`apps/api/Configuration/ScalarConfiguration.cs` and driven by the `Scalar` section of the
+API's appsettings:
+
+```jsonc
+{
+  "Scalar": {
+    "Enabled": false,               // appsettings.Development.json overrides this to true
+    "RoutePrefix": "/scalar",
+    "Title": "AEGIS API",
+    "Theme": "Purple",              // any name from Scalar's ScalarTheme enum
+    "DefaultClientTarget": "CSharp",
+    "DefaultClient": "HttpClient",
+    "PersistAuthentication": true
+  }
+}
+```
+
+| Endpoint | Serves |
+|---|---|
+| `/openapi/v1.json` | The generated OpenAPI document |
+| `/scalar` | The interactive reference UI |
+
+In development the Aspire dashboard shows a **Scalar** link on the `api` resource, next to
+its endpoint URL, so it is one click away.
+
+**`Enabled` is `false` in `appsettings.json` and `true` in `appsettings.Development.json`.**
+A production deployment therefore has to opt in before publishing its API surface. Turn it
+on for a Compose deployment with `Scalar__Enabled=true`, and consider putting it behind
+authentication first — the document lists every route the API exposes.
+
+Everything else is a plain configuration value, so the theme or the route can be changed per
+environment without touching code:
+
+```bash
+Scalar__Theme=Moon Scalar__RoutePrefix=/docs dotnet aspire run
+```
+
+### 5.4 How the services find each other
 
 The API reads a single connection string named **`aegisdb`**. Aspire injects it in
 development; Compose passes it as `ConnectionStrings__aegisdb`. The application code is
@@ -450,7 +495,7 @@ The frontend reads two variables:
 CORS is configured from `Cors:AllowedOrigins`, which the AppHost and Compose both set to the
 frontend origin.
 
-### 5.4 Performance choices
+### 5.5 Performance choices
 
 | Choice | Why |
 |---|---|
@@ -465,7 +510,7 @@ Turbo and pnpm workspaces are deliberately absent: they pay off in JavaScript mo
 shared internal packages, and `apps/web` is currently a single package with no internal
 dependencies. They are worth revisiting when a second JavaScript package appears.
 
-### 5.5 Design decisions
+### 5.6 Design decisions
 
 **PostgreSQL cannot be switched off.** There is no `Services:Postgres` flag. The API applies
 its migrations on startup and cannot run without a database, so the toggle would only

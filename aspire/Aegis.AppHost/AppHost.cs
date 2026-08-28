@@ -69,6 +69,13 @@ if (enableApi)
         .WaitFor(database)
         .WithHttpHealthCheck("/health")
         .WithExternalHttpEndpoints()
+        // Surface the Scalar API reference as its own link on the api resource in the
+        // dashboard, next to the endpoint URL.
+        .WithUrlForEndpoint("http", endpoint => new ResourceUrlAnnotation
+        {
+            Url = $"{endpoint.Url}/scalar",
+            DisplayText = "Scalar"
+        })
         // Let the browser call the API directly from the frontend origin.
         .WithEnvironment("Cors__AllowedOrigins__0", webUrl);
 }

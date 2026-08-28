@@ -1,3 +1,4 @@
+using Aegis.Api.Configuration;
 using Aegis.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +12,9 @@ builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<AegisDbContext>("aegisdb");
 
 builder.Services.AddProblemDetails();
-builder.Services.AddOpenApi();
+
+// OpenAPI document + Scalar reference UI. See Configuration/ScalarConfiguration.cs.
+builder.AddScalarDocumentation();
 
 // The browser talks to the API directly, so the web origin needs an explicit grant.
 // Origins come from Cors:AllowedOrigins (the AppHost and docker-compose both set it).
@@ -28,10 +31,8 @@ var app = builder.Build();
 app.UseExceptionHandler();
 app.UseCors(WebCorsPolicy);
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+// Serves /openapi/v1.json and the Scalar UI when the "Scalar" section enables them.
+app.MapScalarDocumentation();
 
 // Apply pending migrations on startup. Fine for a single API instance; move this to a
 // dedicated migration step before running more than one replica.
