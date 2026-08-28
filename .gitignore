@@ -55,3 +55,30 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+## --- Monorepo additions ---
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local environment files (see .env.example)
+.env
+.env.local
+.env.*.local
+
+# Aspire
+.aspire/
+aspire-output/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user

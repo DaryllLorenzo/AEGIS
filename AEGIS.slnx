@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/apps/">
+    <Project Path="apps/api/Aegis.Api.csproj" />
+  </Folder>
+  <Folder Name="/aspire/">
+    <Project Path="aspire/Aegis.AppHost/Aegis.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/libs/">
+    <Project Path="libs/Aegis.ServiceDefaults/Aegis.ServiceDefaults.csproj" />
+  </Folder>
+</Solution>

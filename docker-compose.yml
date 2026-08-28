@@ -1,0 +1,75 @@
+# Runtime stack for non-development environments.
+# Aspire (`dotnet aspire run`) is the local development orchestrator and is not used here.
+#
+#   cp .env.example .env   # then edit the secrets
+#   docker compose up -d --build
+
+name: aegis
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      # Exposed for debugging. Drop this mapping when the database must stay internal.
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Scripts here run once, only when the data volume is first created.
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  api:
+    build:
+      # Root context: the API also compiles libs/Aegis.ServiceDefaults.
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      # Same key the Aspire AppHost injects, so the code path is identical.
+      ConnectionStrings__aegisdb: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      # Origin the browser loads the frontend from, needed for CORS.
+      Cors__AllowedOrigins__0: ${WEB_PUBLIC_URL:-http://localhost:3000}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/alive || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  web:
+    build:
+      # Scoped context: the frontend is self-contained.
+      context: ./apps/web
+      dockerfile: Dockerfile
+      args:
+        # Baked into the client bundle at build time, so it must be the public URL.
+        NEXT_PUBLIC_API_URL: ${API_PUBLIC_URL:-http://localhost:8080}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      # Server-side calls stay inside the compose network.
+      API_URL: http://api:8080
+      NEXT_PUBLIC_API_URL: ${API_PUBLIC_URL:-http://localhost:8080}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
+volumes:
+  postgres-data:

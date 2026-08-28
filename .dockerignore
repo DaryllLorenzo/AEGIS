@@ -1,0 +1,13 @@
+# Keeps the root build context (used by apps/api/Dockerfile) small.
+**/bin
+**/obj
+**/node_modules
+**/.next
+.git
+.github
+.vs
+.vscode
+.idea
+**/.env
+**/.env.*.local
+docker-compose*.yml

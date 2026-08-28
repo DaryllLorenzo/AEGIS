@@ -1,0 +1,25 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.5.3">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsAspireHost>true</IsAspireHost>
+    <RootNamespace>Aegis.AppHost</RootNamespace>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
+    <UserSecretsId>56e0d906-3d3c-471e-b84c-870b9620f794</UserSecretsId>
+    <!-- AddNextJsApp is still marked experimental by Aspire.Hosting.JavaScript. Revisit
+         this suppression when the API stabilises. -->
+    <NoWarn>$(NoWarn);ASPIREJAVASCRIPT001</NoWarn>
+  </PropertyGroup>
+
+  <!-- Required for AddProject<Projects.Aegis_Api>. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\apps\api\Aegis.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.JavaScript" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+  </ItemGroup>
+
+</Project>
