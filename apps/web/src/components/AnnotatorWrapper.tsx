@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-const PdfAnnotator = dynamic(() => import("./PdfAnnotator"), {
+const PdfAnnotator = dynamic(() => import("./pdf-annotator/PdfAnnotator"), {
   ssr: false,
   loading: () => (
     <div className="annotator-status">Loading annotation tool...</div>

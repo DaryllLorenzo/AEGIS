@@ -1,0 +1,72 @@
+/* ---------------------------------------------------------------------------
+   Annotator layout
+   --------------------------------------------------------------------------- */
+
+.annotator {
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.annotator-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.annotator-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.annotator-empty {
+  height: 24rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.annotator-empty h2 {
+  margin: 0 0 0.25rem;
+}
+
+.annotator-empty p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.annotator-body {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.annotator-canvas-wrapper {
+  position: relative;
+  display: inline-block;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  background: var(--background);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.annotator-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.annotator-status {
+  padding: 2.5rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.annotator-status--error {
+  color: var(--error);
+}

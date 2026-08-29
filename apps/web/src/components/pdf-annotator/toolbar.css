@@ -1,0 +1,105 @@
+/* ---------------------------------------------------------------------------
+   Toolbar + buttons
+   --------------------------------------------------------------------------- */
+
+.annotator-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.annotator-toolbar-spacer {
+  flex: 1;
+}
+
+.annotator-page-info {
+  font-size: 0.875rem;
+  color: var(--muted);
+  min-width: 6rem;
+  text-align: center;
+}
+
+/* -- Buttons ---------------------------------------------------------------- */
+
+.btn {
+  padding: 0.625rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--foreground);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.btn:hover {
+  background: var(--border);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  background: var(--background);
+}
+
+.btn-sm {
+  padding: 0.375rem 0.625rem;
+}
+
+.btn-tool {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--foreground);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.btn-tool:hover {
+  background: var(--border);
+}
+
+.btn-tool--active {
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
+}
+
+.btn-tool--active:hover {
+  opacity: 0.85;
+}
+
+.btn-icon {
+  padding: 0.25rem 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.btn-icon:hover {
+  color: var(--error);
+}
+
+.btn-danger {
+  background: var(--error);
+  color: #fff;
+  border-color: var(--error);
+}
+
+.btn-danger:hover {
+  opacity: 0.85;
+}
