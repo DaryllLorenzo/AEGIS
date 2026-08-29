@@ -190,6 +190,8 @@ code {
   margin-bottom: 0.5rem;
   border: 1px solid var(--border);
   border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .annotator-card-header {
@@ -290,4 +292,32 @@ code {
 
 .btn-icon:hover {
   color: var(--error);
+}
+
+.btn-danger {
+  background: var(--error);
+  color: #fff;
+  border-color: var(--error);
+}
+
+.btn-danger:hover {
+  opacity: 0.85;
+}
+
+/* ---------------------------------------------------------------------------
+   Annotation card selection
+   --------------------------------------------------------------------------- */
+
+.annotator-card--selected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0.1em 0.4em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8em;
+  background: var(--border);
+  border-radius: 4px;
 }
