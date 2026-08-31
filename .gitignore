@@ -82,3 +82,6 @@ aspire-output/
 .vscode/
 .idea/
 *.user
+
+# Local browser profiles used for web checks
+apps/web/.edge-profile*/

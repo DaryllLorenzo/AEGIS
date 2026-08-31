@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AEGIS",
-  description: "Academic Editorial & Graduate Integration System",
+  title: "AEGIS | Academic Research Group",
+  description: "Collaborative academic review and research workspace.",
 };
 
 export default function RootLayout({
