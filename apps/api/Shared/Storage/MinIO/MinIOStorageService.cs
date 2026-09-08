@@ -86,23 +86,6 @@ public sealed class MinIOStorageService : IStorageService
         return buffer;
     }
 
-    public async Task<Uri> GetPresignedDownloadUrlAsync(
-        string bucketName,
-        string objectKey,
-        TimeSpan? expiry = null,
-        CancellationToken cancellationToken = default)
-    {
-        int expirySeconds = (int)(expiry ?? _options.DefaultPresignedUrlExpiry).TotalSeconds;
-
-        var presignArgs = new PresignedGetObjectArgs()
-            .WithBucket(bucketName)
-            .WithObject(objectKey)
-            .WithExpiry(expirySeconds);
-
-        string url = await _client.PresignedGetObjectAsync(presignArgs);
-        return new Uri(url);
-    }
-
     public async Task<StoredObject?> StatAsync(
         string bucketName,
         string objectKey,

@@ -37,11 +37,11 @@ public static class MinIOTestEndpoints
             .WithDescription("Lists all objects under the given prefix inside 'aegis-test'.");
 
         // GET /api/test/minio/download/{*objectKey}
-        // Returns a pre-signed URL valid for 1 hour.
-        group.MapGet("/download/{*objectKey}", GetDownloadUrlAsync)
-            .WithName("TestMinIO.PresignedUrl")
-            .WithSummary("Get a presigned download URL")
-            .WithDescription("Returns a time-limited presigned URL to download the object directly from MinIO.");
+        // Downloads the file directly from MinIO and serves it to the client.
+        group.MapGet("/download/{*objectKey}", DownloadAsync)
+            .WithName("TestMinIO.Download")
+            .WithSummary("Download a file")
+            .WithDescription("Downloads the file directly from MinIO and serves it with proper Content-Disposition header.");
 
         // GET /api/test/minio/stat/{*objectKey}
         // Returns metadata for one object without downloading it.
@@ -103,16 +103,14 @@ public static class MinIOTestEndpoints
             mimeType: "application/pdf",
             cancellationToken: cancellationToken);
 
-        return Results.Created($"/api/test/minio/stat/{objectKey}", new
+        return Results.Created($"/api/test/minio/stat/{objectKey}", new StoredObject
         {
-            stored.BucketName,
-            stored.ObjectKey,
-            stored.FileSize,
-            stored.MimeType,
-            stored.Checksum,
-            stored.LastModified,
-            StatUrl = $"/api/test/minio/stat/{objectKey}",
-            PresignedUrlEndpoint = $"/api/test/minio/download/{objectKey}"
+            BucketName = BucketName,
+            ObjectKey = objectKey,
+            FileSize = file.Length,
+            MimeType = "application/pdf",
+            Checksum = stored.Checksum,
+            LastModified = DateTimeOffset.UtcNow
         });
     }
 
@@ -139,30 +137,39 @@ public static class MinIOTestEndpoints
         return Results.Ok(new { BucketName, Prefix = prefix, Count = objects.Count, Objects = objects });
     }
 
-    private static async Task<IResult> GetDownloadUrlAsync(
+    private static async Task<IResult> DownloadAsync(
         string objectKey,
         IStorageService storage,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [FromQuery] string? fileName = null)
     {
         // URL-decode the objectKey in case the client encoded slashes.
         objectKey = Uri.UnescapeDataString(objectKey);
 
-        // Verify the object exists before issuing a URL.
+        // Verify the object exists before downloading.
         var stat = await storage.StatAsync(BucketName, objectKey, cancellationToken);
         if (stat is null)
         {
             return Results.NotFound(new { Message = $"Object '{objectKey}' not found in bucket '{BucketName}'." });
         }
 
-        var url = await storage.GetPresignedDownloadUrlAsync(
-            BucketName, objectKey, expiry: TimeSpan.FromHours(1), cancellationToken);
+        // Download the file from MinIO.
+        var stream = await storage.DownloadAsync(BucketName, objectKey, cancellationToken);
 
-        return Results.Ok(new
+        // Use provided fileName or extract from objectKey (format: prefix/timestamp_filename)
+        var downloadFileName = fileName;
+        if (string.IsNullOrEmpty(downloadFileName))
         {
-            ObjectKey = objectKey,
-            Url = url.ToString(),
-            ExpiresIn = "1 hour"
-        });
+            var fileNameWithTimestamp = Path.GetFileName(objectKey);
+            var underscoreIndex = fileNameWithTimestamp.IndexOf('_');
+            downloadFileName = underscoreIndex >= 0 ? fileNameWithTimestamp.Substring(underscoreIndex + 1) : fileNameWithTimestamp;
+        }
+
+        return Results.File(
+            stream,
+            contentType: stat.MimeType,
+            fileDownloadName: downloadFileName,
+            enableRangeProcessing: true);
     }
 
     private static async Task<IResult> StatAsync(

@@ -17,12 +17,6 @@ public interface IStorageService
         string objectKey,
         CancellationToken cancellationToken = default);
 
-    Task<Uri> GetPresignedDownloadUrlAsync(
-        string bucketName,
-        string objectKey,
-        TimeSpan? expiry = null,
-        CancellationToken cancellationToken = default);
-
     Task<StoredObject?> StatAsync(
         string bucketName,
         string objectKey,
