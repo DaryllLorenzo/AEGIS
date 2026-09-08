@@ -14,11 +14,14 @@ var configuration = builder.Configuration;
 var enableApi = configuration.GetValue("AppHost:Services:Api", true);
 var enableWeb = configuration.GetValue("AppHost:Services:Web", true);
 var enablePgAdmin = configuration.GetValue("AppHost:Services:PgAdmin", false);
+var enableMinIO = configuration.GetValue("AppHost:Services:MinIO", true);
 
 // Pinned host ports. Aspire assigns random ones by default, which moves URLs on every
 // restart, breaks open browser tabs and changes the CORS origin the API is told about.
 var apiPort = configuration.GetValue("AppHost:Ports:Api", 5180);
 var webPort = configuration.GetValue("AppHost:Ports:Web", 3000);
+var minioPort = configuration.GetValue("AppHost:Ports:MinIO", 9000);
+var minioConsolePort = configuration.GetValue("AppHost:Ports:MinIOConsole", 9001);
 
 // "dev" runs the Next.js dev server as a host process with hot reload. "container" builds
 // apps/web/Dockerfile and runs the production image instead, which needs Docker buildx.
@@ -50,6 +53,39 @@ if (enablePgAdmin)
 var database = postgres.AddDatabase("aegisdb");
 
 // ---------------------------------------------------------------------------
+// Object storage (MinIO)
+// ---------------------------------------------------------------------------
+// Runs as a container, same as Postgres. Data persists in a named volume across
+// restarts. The API port (9000) is the S3-compatible endpoint; the console port
+// (9001) is the browser UI — http://localhost:9001 with the credentials below.
+// Credentials are development-only: override with AppHost:MinIO:* or user-secrets.
+//
+// The AppHost injects the real endpoint and credentials into the API via environment
+// variables (Storage__MinIO__*) so the API always finds MinIO regardless of which
+// host port Aspire assigned.
+IResourceBuilder<ContainerResource>? minio = null;
+
+if (enableMinIO)
+{
+    var minioUser = configuration.GetValue("AppHost:MinIO:RootUser", "minioadmin");
+    var minioPassword = configuration.GetValue("AppHost:MinIO:RootPassword", "minioadmin");
+
+    minio = builder.AddContainer("minio", "minio/minio")
+        .WithImageTag("latest")
+        .WithArgs("server", "/data", "--console-address", $":{minioConsolePort}")
+        .WithEnvironment("MINIO_ROOT_USER", minioUser)
+        .WithEnvironment("MINIO_ROOT_PASSWORD", minioPassword)
+        .WithHttpEndpoint(port: minioPort, targetPort: 9000, name: "api")
+        .WithHttpEndpoint(port: minioConsolePort, targetPort: minioConsolePort, name: "console")
+        .WithVolume("aegis-minio-data", "/data")
+        .WithUrlForEndpoint("console", endpoint => new ResourceUrlAnnotation
+        {
+            Url = endpoint.Url,
+            DisplayText = "MinIO Console"
+        });
+}
+
+// ---------------------------------------------------------------------------
 // Backend
 // ---------------------------------------------------------------------------
 // Runs as a host process: fast restarts, attachable from a debugger, and no image build.
@@ -78,6 +114,23 @@ if (enableApi)
         })
         // Let the browser call the API directly from the frontend origin.
         .WithEnvironment("Cors__AllowedOrigins__0", webUrl);
+
+    // Inject MinIO connection details into the API so the MinIOStorageService can connect.
+    // Use GetEndpoint so Aspire's proxy port is used (not the pinned container port).
+    if (minio is not null)
+    {
+        var minioUser = configuration.GetValue("AppHost:MinIO:RootUser", "minioadmin");
+        var minioPassword = configuration.GetValue("AppHost:MinIO:RootPassword", "minioadmin");
+        var minioEndpoint = minio.GetEndpoint("api");
+
+        api
+            .WithEnvironment("Storage__MinIO__Endpoint", minioEndpoint)
+            .WithEnvironment("Storage__MinIO__AccessKey", minioUser)
+            .WithEnvironment("Storage__MinIO__SecretKey", minioPassword)
+            .WithEnvironment("Storage__MinIO__UseSsl", "false");
+
+        api.WaitFor(minio);
+    }
 }
 
 // ---------------------------------------------------------------------------

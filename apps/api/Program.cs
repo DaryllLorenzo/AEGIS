@@ -1,6 +1,11 @@
 using Aegis.Api.Configuration;
 using Aegis.Api.Data;
+using Aegis.Api.Endpoints;
+using Aegis.Api.Storage;
+using Aegis.Api.Storage.MinIO;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Minio;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +20,51 @@ builder.Services.AddProblemDetails();
 
 // OpenAPI document + Scalar reference UI. See Configuration/ScalarConfiguration.cs.
 builder.AddScalarDocumentation();
+
+// ---------------------------------------------------------------------------
+// Object storage — MinIO
+// ---------------------------------------------------------------------------
+// Bind options from "Storage:MinIO" and register the MinIO SDK client as a singleton.
+// The IStorageService abstraction means the rest of the code never references MinIO
+// directly; swap the registration here to switch providers.
+builder.Services.AddOptions<MinIOOptions>()
+    .BindConfiguration(MinIOOptions.SectionName)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddSingleton<IMinioClient>(sp =>
+{
+    var opts = sp.GetRequiredService<IOptions<MinIOOptions>>().Value;
+    var logger = sp.GetRequiredService<ILogger<MinIOStorageService>>();
+
+    // Aspire may inject the endpoint as a full URL (http://localhost:PORT).
+    // MinioClient.WithEndpoint expects only "host:port", so strip the scheme if present.
+    var endpoint = opts.Endpoint;
+    if (Uri.TryCreate(endpoint, UriKind.Absolute, out var uri))
+    {
+        endpoint = uri.IsDefaultPort ? uri.Host : $"{uri.Host}:{uri.Port}";
+    }
+
+    logger.LogInformation(
+        "Building MinIO client — Endpoint: {Endpoint}, AccessKey: {AccessKey}, UseSsl: {UseSsl}",
+        endpoint, opts.AccessKey, opts.UseSsl);
+
+    var clientBuilder = new MinioClient()
+        .WithEndpoint(endpoint)
+        .WithCredentials(opts.AccessKey, opts.SecretKey)
+        .WithRegion("us-east-1");  // MinIO default region — required for correct request signing.
+
+    // WithSSL(false) is not the same as not calling it in some SDK versions.
+    // Only enable SSL explicitly when requested.
+    if (opts.UseSsl)
+    {
+        clientBuilder = clientBuilder.WithSSL();
+    }
+
+    return clientBuilder.Build();
+});
+
+builder.Services.AddScoped<IStorageService, MinIOStorageService>();
 
 // The browser talks to the API directly, so the web origin needs an explicit grant.
 // Origins come from Cors:AllowedOrigins (the AppHost and docker-compose both set it).
@@ -42,40 +92,10 @@ await using (var scope = app.Services.CreateAsyncScope())
     await database.Database.MigrateAsync();
 }
 
-// Sample vertical slice. Replace with the real AEGIS endpoints.
-var notes = app.MapGroup("/api/notes");
-
-notes.MapGet("/", async (AegisDbContext database, CancellationToken cancellationToken) =>
-    await database.Notes
-        .OrderByDescending(note => note.CreatedAt)
-        .ToListAsync(cancellationToken));
-
-notes.MapPost("/", async (CreateNoteRequest request, AegisDbContext database, CancellationToken cancellationToken) =>
-{
-    if (string.IsNullOrWhiteSpace(request.Title))
-    {
-        return Results.ValidationProblem(new Dictionary<string, string[]>
-        {
-            ["title"] = ["Title is required."]
-        });
-    }
-
-    var note = new Note
-    {
-        Id = Guid.CreateVersion7(),
-        Title = request.Title.Trim(),
-        CreatedAt = DateTimeOffset.UtcNow
-    };
-
-    database.Notes.Add(note);
-    await database.SaveChangesAsync(cancellationToken);
-
-    return Results.Created($"/api/notes/{note.Id}", note);
-});
-
 // "/health" and "/alive" from Aegis.ServiceDefaults.
 app.MapDefaultEndpoints();
 
-app.Run();
+// Test endpoints — remove before going to production.
+app.MapMinIOTestEndpoints();
 
-internal record CreateNoteRequest(string Title);
+app.Run();
