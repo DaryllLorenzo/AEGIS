@@ -1,5 +1,6 @@
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Faculties.Dtos;
+using Aegis.Api.Endpoints.Faculties.Mappings;
 using Aegis.Api.Endpoints.Faculties.Services;
 using Aegis.Api.Shared.Paging;
 using MediatR;
@@ -27,16 +28,7 @@ public sealed class GetFacultiesHandler : IRequestHandler<GetFacultiesRequest, P
         var totalCount = await paged.CountAsync(ct);
 
         var items = await paged
-            .Select(f => new FacultyDto
-            {
-                Id = f.Id,
-                Name = f.Name,
-                Code = f.Code,
-                Description = f.Description,
-                IsActive = f.IsActive,
-                CreatedAt = f.CreatedAt,
-                UpdatedAt = f.UpdatedAt,
-            })
+            .Select(f => f.ToDto())
             .ToListAsync(ct);
 
         return new PaginatedList<FacultyDto>

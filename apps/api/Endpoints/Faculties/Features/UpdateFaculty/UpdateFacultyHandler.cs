@@ -1,6 +1,7 @@
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Faculties.Dtos;
 using Aegis.Api.Endpoints.Faculties.Exceptions;
+using Aegis.Api.Endpoints.Faculties.Mappings;
 using MediatR;
 
 namespace Aegis.Api.Endpoints.Faculties.Features.UpdateFaculty;
@@ -26,15 +27,6 @@ public sealed class UpdateFacultyHandler : IRequestHandler<UpdateFacultyRequest,
 
         await _db.SaveChangesAsync(ct);
 
-        return new FacultyDto
-        {
-            Id = faculty.Id,
-            Name = faculty.Name,
-            Code = faculty.Code,
-            Description = faculty.Description,
-            IsActive = faculty.IsActive,
-            CreatedAt = faculty.CreatedAt,
-            UpdatedAt = faculty.UpdatedAt,
-        };
+        return faculty.ToDto();
     }
 }

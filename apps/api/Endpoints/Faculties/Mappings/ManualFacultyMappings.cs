@@ -1,6 +1,5 @@
 using Aegis.Api.Endpoints.Faculties.Data;
 using Aegis.Api.Endpoints.Faculties.Dtos;
-using Aegis.Api.Shared.Paging;
 
 namespace Aegis.Api.Endpoints.Faculties.Mappings;
 

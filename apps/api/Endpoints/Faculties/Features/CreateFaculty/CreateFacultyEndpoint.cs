@@ -1,5 +1,4 @@
 using Aegis.Api.Endpoints.Faculties.Dtos;
-using Aegis.Api.Shared.Paging;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;

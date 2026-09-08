@@ -1,6 +1,7 @@
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Faculties.Data;
 using Aegis.Api.Endpoints.Faculties.Dtos;
+using Aegis.Api.Endpoints.Faculties.Mappings;
 using Aegis.Api.Shared.Paging;
 using MediatR;
 
@@ -30,15 +31,6 @@ public sealed class CreateFacultyHandler : IRequestHandler<CreateFacultyRequest,
         _db.Faculties.Add(faculty);
         await _db.SaveChangesAsync(ct);
 
-        return new FacultyDto
-        {
-            Id = faculty.Id,
-            Name = faculty.Name,
-            Code = faculty.Code,
-            Description = faculty.Description,
-            IsActive = faculty.IsActive,
-            CreatedAt = faculty.CreatedAt,
-            UpdatedAt = faculty.UpdatedAt,
-        };
+        return faculty.ToDto();
     }
 }

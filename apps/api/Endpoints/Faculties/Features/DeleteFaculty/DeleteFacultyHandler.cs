@@ -1,7 +1,6 @@
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Faculties.Exceptions;
 using MediatR;
-using Aegis.Api.Shared.Paging;
 
 namespace Aegis.Api.Endpoints.Faculties.Features.DeleteFaculty;
 
