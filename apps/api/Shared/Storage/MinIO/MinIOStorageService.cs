@@ -4,13 +4,8 @@ using Minio;
 using Minio.DataModel.Args;
 using Minio.Exceptions;
 
-namespace Aegis.Api.Storage.MinIO;
+namespace Aegis.Api.Shared.Storage.MinIO;
 
-/// <summary>
-/// <see cref="IStorageService"/> implementation backed by MinIO (or any S3-compatible
-/// endpoint). All MinIO SDK details are contained here; nothing outside this file
-/// references the Minio package.
-/// </summary>
 public sealed class MinIOStorageService : IStorageService
 {
     private readonly IMinioClient _client;
@@ -27,11 +22,6 @@ public sealed class MinIOStorageService : IStorageService
         _logger = logger;
     }
 
-    // -------------------------------------------------------------------------
-    // Bucket management
-    // -------------------------------------------------------------------------
-
-    /// <inheritdoc/>
     public async Task EnsureBucketExistsAsync(
         string bucketName,
         CancellationToken cancellationToken = default)
@@ -47,11 +37,6 @@ public sealed class MinIOStorageService : IStorageService
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Write
-    // -------------------------------------------------------------------------
-
-    /// <inheritdoc/>
     public async Task<StoredObject> UploadAsync(
         string bucketName,
         string objectKey,
@@ -79,17 +64,11 @@ public sealed class MinIOStorageService : IStorageService
             ObjectKey = objectKey,
             FileSize = fileSize,
             MimeType = mimeType,
-            // PutObjectResponse carries the ETag which we use as the checksum.
             Checksum = response.Etag,
             LastModified = DateTimeOffset.UtcNow
         };
     }
 
-    // -------------------------------------------------------------------------
-    // Read
-    // -------------------------------------------------------------------------
-
-    /// <inheritdoc/>
     public async Task<Stream> DownloadAsync(
         string bucketName,
         string objectKey,
@@ -107,7 +86,6 @@ public sealed class MinIOStorageService : IStorageService
         return buffer;
     }
 
-    /// <inheritdoc/>
     public async Task<Uri> GetPresignedDownloadUrlAsync(
         string bucketName,
         string objectKey,
@@ -125,7 +103,6 @@ public sealed class MinIOStorageService : IStorageService
         return new Uri(url);
     }
 
-    /// <inheritdoc/>
     public async Task<StoredObject?> StatAsync(
         string bucketName,
         string objectKey,
@@ -157,11 +134,6 @@ public sealed class MinIOStorageService : IStorageService
         }
     }
 
-    // -------------------------------------------------------------------------
-    // List
-    // -------------------------------------------------------------------------
-
-    /// <inheritdoc/>
     public async IAsyncEnumerable<StoredObject> ListAsync(
         string bucketName,
         string prefix = "",
@@ -179,7 +151,7 @@ public sealed class MinIOStorageService : IStorageService
                 BucketName = bucketName,
                 ObjectKey = item.Key,
                 FileSize = (long)item.Size,
-                MimeType = string.Empty,   // MinIO list responses do not include Content-Type.
+                MimeType = string.Empty,
                 Checksum = item.ETag,
                 LastModified = item.LastModifiedDateTime.HasValue
                     ? new DateTimeOffset(DateTime.SpecifyKind(item.LastModifiedDateTime.Value, DateTimeKind.Utc), TimeSpan.Zero)
@@ -188,11 +160,6 @@ public sealed class MinIOStorageService : IStorageService
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Delete
-    // -------------------------------------------------------------------------
-
-    /// <inheritdoc/>
     public async Task DeleteAsync(
         string bucketName,
         string objectKey,
@@ -208,7 +175,6 @@ public sealed class MinIOStorageService : IStorageService
             "Deleted object '{Key}' from bucket '{Bucket}'.", objectKey, bucketName);
     }
 
-    /// <inheritdoc/>
     public async Task DeleteManyAsync(
         string bucketName,
         IEnumerable<string> objectKeys,
@@ -224,7 +190,6 @@ public sealed class MinIOStorageService : IStorageService
             .WithBucket(bucketName)
             .WithObjects(keyList);
 
-        // RemoveObjectsAsync returns the list of delete errors (objects that could not be removed).
         var deleteErrors = await _client.RemoveObjectsAsync(removeArgs, cancellationToken);
 
         var errors = new List<string>();

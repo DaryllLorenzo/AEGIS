@@ -1,11 +1,10 @@
 using Aegis.Api.Configuration;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints;
-using Aegis.Api.Storage;
-using Aegis.Api.Storage.MinIO;
+using Aegis.Api.Endpoints.Faculties;
+using Aegis.Api.Shared.Storage.MinIO;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Minio;
+using Sieve.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,50 +20,12 @@ builder.Services.AddProblemDetails();
 // OpenAPI document + Scalar reference UI. See Configuration/ScalarConfiguration.cs.
 builder.AddScalarDocumentation();
 
-// ---------------------------------------------------------------------------
-// Object storage — MinIO
-// ---------------------------------------------------------------------------
-// Bind options from "Storage:MinIO" and register the MinIO SDK client as a singleton.
-// The IStorageService abstraction means the rest of the code never references MinIO
-// directly; swap the registration here to switch providers.
-builder.Services.AddOptions<MinIOOptions>()
-    .BindConfiguration(MinIOOptions.SectionName)
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+// Faculties module services — MediatR, FluentValidation, Sieve.
+builder.AddFacultiesModuleServices();
+builder.Services.Configure<SieveOptions>(builder.Configuration.GetSection("Sieve"));
 
-builder.Services.AddSingleton<IMinioClient>(sp =>
-{
-    var opts = sp.GetRequiredService<IOptions<MinIOOptions>>().Value;
-    var logger = sp.GetRequiredService<ILogger<MinIOStorageService>>();
-
-    // Aspire may inject the endpoint as a full URL (http://localhost:PORT).
-    // MinioClient.WithEndpoint expects only "host:port", so strip the scheme if present.
-    var endpoint = opts.Endpoint;
-    if (Uri.TryCreate(endpoint, UriKind.Absolute, out var uri))
-    {
-        endpoint = uri.IsDefaultPort ? uri.Host : $"{uri.Host}:{uri.Port}";
-    }
-
-    logger.LogInformation(
-        "Building MinIO client — Endpoint: {Endpoint}, AccessKey: {AccessKey}, UseSsl: {UseSsl}",
-        endpoint, opts.AccessKey, opts.UseSsl);
-
-    var clientBuilder = new MinioClient()
-        .WithEndpoint(endpoint)
-        .WithCredentials(opts.AccessKey, opts.SecretKey)
-        .WithRegion("us-east-1");  // MinIO default region — required for correct request signing.
-
-    // WithSSL(false) is not the same as not calling it in some SDK versions.
-    // Only enable SSL explicitly when requested.
-    if (opts.UseSsl)
-    {
-        clientBuilder = clientBuilder.WithSSL();
-    }
-
-    return clientBuilder.Build();
-});
-
-builder.Services.AddScoped<IStorageService, MinIOStorageService>();
+// Object storage — MinIO (extracted to Shared/Storage/MinIO extension).
+builder.Services.AddMinIOStorage(builder.Configuration);
 
 // The browser talks to the API directly, so the web origin needs an explicit grant.
 // Origins come from Cors:AllowedOrigins (the AppHost and docker-compose both set it).
@@ -97,5 +58,8 @@ app.MapDefaultEndpoints();
 
 // Test endpoints — remove before going to production.
 app.MapMinIOTestEndpoints();
+
+// Faculties module endpoints.
+app.MapFacultiesModuleEndpoints();
 
 app.Run();

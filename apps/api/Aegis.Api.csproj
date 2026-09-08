@@ -12,6 +12,9 @@
   <ItemGroup>
     <!-- Registers the DbContext, health check, tracing and metrics for PostgreSQL. -->
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <!-- Design-time only: required by `dotnet ef migrations`, not shipped in the container. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
@@ -20,6 +23,7 @@
     </PackageReference>
     <PackageReference Include="Minio" />
     <PackageReference Include="Scalar.AspNetCore" />
+    <PackageReference Include="Sieve" />
   </ItemGroup>
 
 </Project>
