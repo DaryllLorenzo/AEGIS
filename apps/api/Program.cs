@@ -1,8 +1,10 @@
 using Aegis.Api.Configuration;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints;
+using Aegis.Api.Endpoints.Annotations;
 using Aegis.Api.Endpoints.Documents;
 using Aegis.Api.Endpoints.Faculties;
+using Aegis.Api.Endpoints.Reviews;
 using Aegis.Api.Shared.Storage.MinIO;
 using Microsoft.EntityFrameworkCore;
 using Sieve.Models;
@@ -26,6 +28,12 @@ builder.AddFacultiesModuleServices();
 
 // Documents module services — MediatR, FluentValidation, Sieve.
 builder.AddDocumentsModuleServices();
+
+// Reviews module services — MediatR, FluentValidation, Sieve.
+builder.AddReviewsModuleServices();
+
+// Annotations module services — MediatR, FluentValidation, Sieve.
+builder.AddAnnotationsModuleServices();
 builder.Services.Configure<SieveOptions>(builder.Configuration.GetSection("Sieve"));
 
 // Object storage — MinIO (extracted to Shared/Storage/MinIO extension).
@@ -68,5 +76,11 @@ app.MapFacultiesModuleEndpoints();
 
 // Documents module endpoints.
 app.MapDocumentsModuleEndpoints();
+
+// Reviews module endpoints.
+app.MapReviewsModuleEndpoints();
+
+// Annotations module endpoints.
+app.MapAnnotationsModuleEndpoints();
 
 app.Run();
