@@ -31,6 +31,7 @@ internal static class DocumentsConfiguration
 
         documents.MapGetDocumentsEndpoint();
         documents.MapGetDocumentByIdEndpoint();
+        documents.MapGetDocumentDownloadEndpoint();
         documents.MapCreateDocumentEndpoint();
         documents.MapUpdateDocumentEndpoint();
         documents.MapDeleteDocumentEndpoint();
