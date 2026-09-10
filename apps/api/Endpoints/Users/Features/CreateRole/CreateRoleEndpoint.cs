@@ -13,7 +13,7 @@ internal static class CreateRoleEndpoint
     {
         return endpoints
             .MapPost("/", Handle)
-            .WithTags(UsersConfigurations.Tag)
+            .WithTags(UsersConfigurations.RolesTag)
             .WithName(Name)
             .WithSummary("Creates a new role.");
 

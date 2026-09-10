@@ -13,7 +13,7 @@ internal static class GetGroupByIdEndpoint
     {
         return endpoints
             .MapGet("/{id:guid}", Handle)
-            .WithTags(UsersConfigurations.Tag)
+            .WithTags(UsersConfigurations.GroupsTag)
             .WithName(Name)
             .WithSummary("Returns a group by its ID.")
             .RequireAuthorization();

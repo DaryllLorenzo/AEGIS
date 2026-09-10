@@ -13,7 +13,7 @@ internal static class GetGroupsEndpoint
     {
         return endpoints
             .MapGet("/", Handle)
-            .WithTags(UsersConfigurations.Tag)
+            .WithTags(UsersConfigurations.GroupsTag)
             .WithName(Name)
             .WithSummary("Returns a paginated list of groups.")
             .RequireAuthorization();

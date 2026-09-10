@@ -13,7 +13,7 @@ internal static class GetRoleByIdEndpoint
     {
         return endpoints
             .MapGet("/{id:guid}", Handle)
-            .WithTags(UsersConfigurations.Tag)
+            .WithTags(UsersConfigurations.RolesTag)
             .WithName(Name)
             .WithSummary("Returns a role by its ID.")
             .RequireAuthorization();

@@ -13,7 +13,7 @@ internal static class CreateGroupEndpoint
     {
         return endpoints
             .MapPost("/", Handle)
-            .WithTags(UsersConfigurations.Tag)
+            .WithTags(UsersConfigurations.GroupsTag)
             .WithName(Name)
             .WithSummary("Creates a new group.")
             .RequireAuthorization();

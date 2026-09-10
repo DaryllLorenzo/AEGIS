@@ -13,7 +13,7 @@ internal static class GetRolesEndpoint
     {
         return endpoints
             .MapGet("/", Handle)
-            .WithTags(UsersConfigurations.Tag)
+            .WithTags(UsersConfigurations.RolesTag)
             .WithName(Name)
             .WithSummary("Returns a paginated list of roles.")
             .RequireAuthorization();

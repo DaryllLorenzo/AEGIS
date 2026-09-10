@@ -19,6 +19,8 @@ namespace Aegis.Api.Endpoints.Users;
 internal static class UsersConfigurations
 {
     public const string Tag = "Users";
+    public const string RolesTag = "Roles";
+    public const string GroupsTag = "Groups";
     public const string UsersPrefixUri = "api/users";
 
     internal static WebApplicationBuilder AddUsersModuleServices(this WebApplicationBuilder builder)
@@ -56,15 +58,17 @@ internal static class UsersConfigurations
         users.MapUpdateUserEndpoint();
         users.MapDeleteUserEndpoint();
 
-        // Roles
-        users.MapGetRolesEndpoint();
-        users.MapGetRoleByIdEndpoint();
-        users.MapCreateRoleEndpoint();
+        // Roles — sub-group
+        var roles = users.MapGroup("/roles");
+        roles.MapGetRolesEndpoint();
+        roles.MapGetRoleByIdEndpoint();
+        roles.MapCreateRoleEndpoint();
 
-        // Groups
-        users.MapGetGroupsEndpoint();
-        users.MapGetGroupByIdEndpoint();
-        users.MapCreateGroupEndpoint();
+        // Groups — sub-group
+        var groups = users.MapGroup("/groups");
+        groups.MapGetGroupsEndpoint();
+        groups.MapGetGroupByIdEndpoint();
+        groups.MapCreateGroupEndpoint();
 
         return endpoints;
     }
