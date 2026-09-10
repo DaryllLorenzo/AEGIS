@@ -2238,6 +2238,63 @@ textarea:focus-visible {
   font-weight: 600;
 }
 
+.annotation-card {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--annotation-color, #888);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.annotation-card__header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.annotation-card__type {
+  align-items: center;
+  background: color-mix(in srgb, var(--annotation-color, #888) 15%, transparent);
+  border-radius: 4px;
+  color: var(--annotation-color, #888);
+  display: flex;
+  font-size: 0.85rem;
+  font-weight: 700;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
+}
+
+.annotation-card__page {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.annotation-card__preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  opacity: 0.6;
+}
+
+.annotation-card__svg {
+  height: 100%;
+  width: auto;
+  color: var(--annotation-color, #888);
+}
+
+.annotation-card__highlight {
+  background: var(--annotation-color, #4caf50);
+  border-radius: 2px;
+  height: 8px;
+  width: 40px;
+  opacity: 0.5;
+}
+
 .discussion-panel {
   display: flex;
   flex-direction: column;

@@ -7,9 +7,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Grid2X2,
-  Menu,
   MessageSquarePlus,
   MoreHorizontal,
+  Menu,
   Settings2,
   Download,
   Eye,
@@ -28,6 +28,7 @@ import { getReviewById, getDocumentById, getDocumentDownloadUrl, type Review, ty
 import Avatar from "./Avatar";
 import Brand from "./Brand";
 import PdfAnnotator from "../pdf-annotator/PdfAnnotator";
+import type { Annotation } from "../pdf-annotator/types";
 
 type Props = {
   reviewId: string;
@@ -43,8 +44,57 @@ export default function ReviewWorkspace({ reviewId }: Props) {
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
 
-  const openComments = 0;
+  const openComments = annotations.length;
+
+  function getAnnotationColor(a: Annotation): string {
+    const colors: Record<string, string> = {
+      rectangle: "#e0be58",
+      circle: "#5b8def",
+      ellipse: "#9b6def",
+      highlight: "#4caf50",
+    };
+    return colors[a.type] ?? "#888";
+  }
+
+  function getAnnotationIcon(a: Annotation): string {
+    const icons: Record<string, string> = {
+      rectangle: "▭",
+      circle: "○",
+      ellipse: "⬮",
+      highlight: "▲",
+    };
+    return icons[a.type] ?? "?";
+  }
+
+  function renderMiniPreview(a: Annotation) {
+    if (a.type === "highlight") {
+      return <span className="annotation-card__highlight" />;
+    }
+    if (a.type === "rectangle") {
+      return (
+        <svg viewBox="0 0 24 16" className="annotation-card__svg">
+          <rect x="1" y="1" width="22" height="14" rx="2" stroke="currentColor" fill="none" strokeWidth="2" />
+        </svg>
+      );
+    }
+    if (a.type === "circle") {
+      return (
+        <svg viewBox="0 0 24 24" className="annotation-card__svg">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" fill="none" strokeWidth="2" />
+        </svg>
+      );
+    }
+    if (a.type === "ellipse") {
+      return (
+        <svg viewBox="0 0 24 16" className="annotation-card__svg">
+          <ellipse cx="12" cy="8" rx="11" ry="7" stroke="currentColor" fill="none" strokeWidth="2" />
+        </svg>
+      );
+    }
+    return null;
+  }
 
   useEffect(() => {
     if (!reviewId) return;
@@ -193,6 +243,7 @@ export default function ReviewWorkspace({ reviewId }: Props) {
           <PdfAnnotator
             documentId={review?.documentId}
             file={pdfFile}
+            onAnnotationsChange={setAnnotations}
           />
         </section>
 
@@ -224,10 +275,32 @@ export default function ReviewWorkspace({ reviewId }: Props) {
 
           {activeTab === "annotations" ? (
             <div className="comments-list">
-              <div className="annotation-empty">
-                <MessageSquarePlus size={24} />
-                <p>Select text to add an annotation</p>
-              </div>
+              {annotations.length === 0 ? (
+                <div className="annotation-empty">
+                  <MessageSquarePlus size={24} />
+                  <p>Select text to add an annotation</p>
+                </div>
+              ) : (
+                [...annotations]
+                  .sort((a, b) => a.page - b.page)
+                  .map((a) => (
+                    <article
+                      key={a.id}
+                      className="annotation-card"
+                      style={{ "--annotation-color": getAnnotationColor(a) } as React.CSSProperties}
+                    >
+                      <div className="annotation-card__header">
+                        <span className="annotation-card__type">{getAnnotationIcon(a)}</span>
+                        <span className="annotation-card__page">Page {a.page}</span>
+                      </div>
+                      {a.geometry && (
+                        <div className="annotation-card__preview">
+                          {renderMiniPreview(a)}
+                        </div>
+                      )}
+                    </article>
+                  ))
+              )}
             </div>
           ) : (
             <div className="discussion-panel">

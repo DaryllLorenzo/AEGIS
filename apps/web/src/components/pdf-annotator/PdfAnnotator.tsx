@@ -82,13 +82,15 @@ type Props = {
   documentId?: string;
   /** The PDF file to render, or a URL string to fetch the PDF. */
   file?: File | string | null;
+  /** Called whenever annotations change (after load and after each update). */
+  onAnnotationsChange?: (annotations: Annotation[]) => void;
 };
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export default function PdfAnnotator({ documentId, file: initialFile }: Props) {
+export default function PdfAnnotator({ documentId, file: initialFile, onAnnotationsChange }: Props) {
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [tool, setTool] = useState<Tool>("rectangle");
@@ -137,7 +139,9 @@ export default function PdfAnnotator({ documentId, file: initialFile }: Props) {
       try {
         const dtos = await getAnnotationsByDocumentId(documentId);
         if (!cancelled) {
-          setAnnotations(dtos.map(dtoToAnnotation));
+          const next = dtos.map(dtoToAnnotation);
+          setAnnotations(next);
+          onAnnotationsChange?.(next);
         }
       } catch (err) {
         console.error("Failed to load annotations:", err);
@@ -147,7 +151,7 @@ export default function PdfAnnotator({ documentId, file: initialFile }: Props) {
     })();
 
     return () => { cancelled = true; };
-  }, [documentId]);
+  }, [documentId, onAnnotationsChange]);
 
   // -- Sync annotations to BE (debounced) ----------------------------------
 
@@ -173,10 +177,11 @@ export default function PdfAnnotator({ documentId, file: initialFile }: Props) {
       setAnnotations((prev) => {
         const next = typeof updater === "function" ? updater(prev) : updater;
         syncToBE(next);
+        onAnnotationsChange?.(next);
         return next;
       });
     },
-    [syncToBE],
+    [syncToBE, onAnnotationsChange],
   );
 
   // -- File handling --------------------------------------------------------
@@ -193,8 +198,9 @@ export default function PdfAnnotator({ documentId, file: initialFile }: Props) {
       setAnnotations([]);
       setSelectedId(null);
       setFile(selected);
+      onAnnotationsChange?.([]);
     },
-    [setFile],
+    [setFile, onAnnotationsChange],
   );
 
   // -- PDF callbacks --------------------------------------------------------
