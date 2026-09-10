@@ -6,6 +6,7 @@ type Props = {
   pageWidth: number;
   pageHeight: number;
   isSelected: boolean;
+  isSelectTool: boolean;
   onSelect: () => void;
 };
 
@@ -14,6 +15,7 @@ export default function HighlightAnnotation({
   pageWidth,
   pageHeight,
   isSelected,
+  isSelectTool,
   onSelect,
 }: Props) {
   return (
@@ -31,7 +33,7 @@ export default function HighlightAnnotation({
           fill="rgba(255, 235, 59, 0.4)"
           stroke={isSelected ? "#2563eb" : undefined}
           strokeWidth={isSelected ? 1 : 0}
-          listening={false}
+          listening={isSelectTool}
         />
       ))}
     </Group>

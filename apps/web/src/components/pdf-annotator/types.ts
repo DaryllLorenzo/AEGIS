@@ -29,4 +29,5 @@ export type Annotation = {
   page: number;
   type: Tool;
   geometry: RectangleGeometry | CircleGeometry | EllipseGeometry | HighlightGeometry;
+  content: string | null;
 };

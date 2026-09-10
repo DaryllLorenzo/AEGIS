@@ -28,6 +28,7 @@ import { getReviewById, getDocumentById, getDocumentDownloadUrl, type Review, ty
 import Avatar from "./Avatar";
 import Brand from "./Brand";
 import PdfAnnotator from "../pdf-annotator/PdfAnnotator";
+import type { PdfAnnotatorHandle } from "../pdf-annotator/PdfAnnotator";
 import type { Annotation } from "../pdf-annotator/types";
 
 type Props = {
@@ -45,6 +46,7 @@ export default function ReviewWorkspace({ reviewId }: Props) {
   const [message, setMessage] = useState("");
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const annotatorRef = useRef<PdfAnnotatorHandle>(null);
 
   const openComments = annotations.length;
 
@@ -241,6 +243,7 @@ export default function ReviewWorkspace({ reviewId }: Props) {
         {/* Annotation canvas — delegates to PdfAnnotator */}
         <section className="document-stage">
           <PdfAnnotator
+            ref={annotatorRef}
             documentId={review?.documentId}
             file={pdfFile}
             onAnnotationsChange={setAnnotations}
@@ -298,6 +301,9 @@ export default function ReviewWorkspace({ reviewId }: Props) {
                           {renderMiniPreview(a)}
                         </div>
                       )}
+                      {a.content ? (
+                        <p className="annotation-card__comment">{a.content}</p>
+                      ) : null}
                     </article>
                   ))
               )}

@@ -72,3 +72,42 @@
 .annotator-status--error {
   color: var(--error);
 }
+
+/* ---------------------------------------------------------------------------
+   Comment overlay (on-canvas)
+   --------------------------------------------------------------------------- */
+
+.annotation-comment-overlay {
+  position: absolute;
+  z-index: 10;
+}
+
+.annotation-comment-input {
+  width: 280px;
+  min-width: 140px;
+  min-height: 48px;
+  max-width: 500px;
+  max-height: 300px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  border: 1px solid #2563eb;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: #1a1a1a;
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  padding: 6px 8px;
+  resize: both;
+  overflow: auto;
+}
+
+.annotation-comment-input::placeholder {
+  color: #999;
+}
+
+.annotation-comment-input:focus {
+  outline: none;
+  border-color: #1d4ed8;
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.25);
+}

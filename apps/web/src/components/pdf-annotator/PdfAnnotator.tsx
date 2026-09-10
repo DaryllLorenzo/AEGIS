@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { Stage, Layer } from "react-konva";
 
@@ -52,6 +52,57 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 // ---------------------------------------------------------------------------
+// Geometry helpers
+// ---------------------------------------------------------------------------
+
+function getAnnotationBounds(
+  a: Annotation,
+  pageWidth: number,
+  pageHeight: number,
+): { x: number; y: number; width: number; height: number } {
+  const g = a.geometry;
+  if ("x" in g) {
+    return {
+      x: (g as RectangleGeometry).x * pageWidth,
+      y: (g as RectangleGeometry).y * pageHeight,
+      width: (g as RectangleGeometry).width * pageWidth,
+      height: (g as RectangleGeometry).height * pageHeight,
+    };
+  }
+  if ("radius" in g && "cx" in g) {
+    const c = g as CircleGeometry;
+    return {
+      x: c.cx * pageWidth - c.radius * pageWidth,
+      y: c.cy * pageHeight - c.radius * pageWidth,
+      width: c.radius * pageWidth * 2,
+      height: c.radius * pageWidth * 2,
+    };
+  }
+  if ("radiusX" in g) {
+    const e = g as EllipseGeometry;
+    return {
+      x: e.cx * pageWidth - e.radiusX * pageWidth,
+      y: e.cy * pageHeight - e.radiusY * pageHeight,
+      width: e.radiusX * pageWidth * 2,
+      height: e.radiusY * pageHeight * 2,
+    };
+  }
+  if ("lines" in g) {
+    const lines = (g as HighlightGeometry).lines;
+    if (lines.length === 0) return { x: 0, y: 0, width: 0, height: 0 };
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const l of lines) {
+      minX = Math.min(minX, l.x * pageWidth);
+      minY = Math.min(minY, l.y * pageHeight);
+      maxX = Math.max(maxX, (l.x + l.width) * pageWidth);
+      maxY = Math.max(maxY, (l.y + l.height) * pageHeight);
+    }
+    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+  }
+  return { x: 0, y: 0, width: 0, height: 0 };
+}
+
+// ---------------------------------------------------------------------------
 // Mapping helpers — FE annotation <-> BE annotation DTO
 // ---------------------------------------------------------------------------
 
@@ -61,6 +112,7 @@ function dtoToAnnotation(dto: AnnotationDto): Annotation {
     page: dto.pageNumber,
     type: dto.type as Tool,
     geometry: JSON.parse(dto.geometry),
+    content: dto.content,
   };
 }
 
@@ -70,12 +122,17 @@ function annotationToPayload(a: Annotation): AnnotationPayload {
     pageNumber: a.page,
     type: a.type,
     geometry: a.geometry,
+    content: a.content,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Props
+// Props & Ref Handle
 // ---------------------------------------------------------------------------
+
+export type PdfAnnotatorHandle = {
+  setAnnotationContent: (id: string, content: string | null) => void;
+};
 
 type Props = {
   /** When provided, annotations are loaded/saved to the BE. */
@@ -90,7 +147,10 @@ type Props = {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function PdfAnnotator({ documentId, file: initialFile, onAnnotationsChange }: Props) {
+const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator(
+  { documentId, file: initialFile, onAnnotationsChange },
+  ref,
+) {
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [tool, setTool] = useState<Tool>("rectangle");
@@ -183,6 +243,16 @@ export default function PdfAnnotator({ documentId, file: initialFile, onAnnotati
     },
     [syncToBE, onAnnotationsChange],
   );
+
+  // -- Expose methods via ref ------------------------------------------------
+
+  useImperativeHandle(ref, () => ({
+    setAnnotationContent(id: string, content: string | null) {
+      updateAnnotations((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, content } : a)),
+      );
+    },
+  }));
 
   // -- File handling --------------------------------------------------------
 
@@ -379,6 +449,7 @@ export default function PdfAnnotator({ documentId, file: initialFile, onAnnotati
           page: pageNumber,
           type: "highlight",
           geometry,
+          content: null,
         };
 
         updateAnnotations((prev) => [...prev, annotation]);
@@ -426,6 +497,7 @@ export default function PdfAnnotator({ documentId, file: initialFile, onAnnotati
         page: pageNumber,
         type: tool,
         geometry,
+        content: null,
       };
 
       updateAnnotations((prev) => [...prev, annotation]);
@@ -475,6 +547,13 @@ export default function PdfAnnotator({ documentId, file: initialFile, onAnnotati
 
   const scaledHeight = pageSize.height * (800 / pageSize.width);
   const isSelect = tool === "select";
+
+  const selectedAnnotation = selectedId
+    ? annotations.find((a) => a.id === selectedId && a.page === pageNumber)
+    : null;
+  const selectedAnnotationBounds = selectedAnnotation
+    ? getAnnotationBounds(selectedAnnotation, pageSize.width, pageSize.height)
+    : null;
 
   return (
     <main className="annotator">
@@ -617,6 +696,7 @@ export default function PdfAnnotator({ documentId, file: initialFile, onAnnotati
                             pageWidth={pageSize.width}
                             pageHeight={pageSize.height}
                             isSelected={isSelected}
+                            isSelectTool={isSelect}
                             onSelect={onSelect}
                           />
                         );
@@ -649,6 +729,32 @@ export default function PdfAnnotator({ documentId, file: initialFile, onAnnotati
                   )}
                 </Layer>
               </Stage>
+
+              {/* Comment overlay for selected annotation */}
+              {selectedAnnotation && selectedAnnotationBounds && (
+                <div
+                  className="annotation-comment-overlay"
+                  style={{
+                    top: selectedAnnotationBounds.y + selectedAnnotationBounds.height + 6,
+                    left: selectedAnnotationBounds.x,
+                  }}
+                >
+                  <textarea
+                    className="annotation-comment-input"
+                    placeholder="Add a comment..."
+                    value={selectedAnnotation.content ?? ""}
+                    onChange={(e) => {
+                      const value = e.target.value || null;
+                      updateAnnotations((prev) =>
+                        prev.map((an) =>
+                          an.id === selectedAnnotation.id ? { ...an, content: value } : an,
+                        ),
+                      );
+                    }}
+                    rows={3}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -656,4 +762,6 @@ export default function PdfAnnotator({ documentId, file: initialFile, onAnnotati
       )}
     </main>
   );
-}
+});
+
+export default PdfAnnotator;

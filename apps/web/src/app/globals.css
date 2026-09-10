@@ -2295,6 +2295,31 @@ textarea:focus-visible {
   opacity: 0.5;
 }
 
+.annotation-card__comment {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-style: italic;
+  line-height: 1.4;
+  margin: 0;
+  padding: 6px 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.annotation-card__comment::before {
+  content: "\201C";
+  color: var(--muted);
+}
+
+.annotation-card__comment::after {
+  content: "\201D";
+  color: var(--muted);
+}
+
 .discussion-panel {
   display: flex;
   flex-direction: column;
