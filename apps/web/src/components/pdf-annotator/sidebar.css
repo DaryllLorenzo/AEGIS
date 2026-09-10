@@ -3,7 +3,9 @@
    --------------------------------------------------------------------------- */
 
 .annotator-sidebar {
-  width: 350px;
+  width: 20%;
+  min-width: 250px;
+  max-width: 400px;
   flex-shrink: 0;
   background: var(--background);
   border: 1px solid var(--border);

@@ -23,7 +23,7 @@ internal static class CreateDocumentEndpoint
             IFormFile file,
             [FromForm] string name,
             [FromForm] string? parentId,
-            [FromForm] int totalPages,
+            [FromForm] int? totalPages,
             ISender sender,
             IValidator<CreateDocumentRequest> validator,
             CancellationToken cancellationToken)

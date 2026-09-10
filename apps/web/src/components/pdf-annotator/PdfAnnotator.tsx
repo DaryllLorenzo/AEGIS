@@ -39,18 +39,78 @@ import {
   HighlightPreview,
 } from "./previews";
 
+import {
+  getAnnotationsByDocumentId,
+  bulkUpdateAnnotations,
+  type AnnotationDto,
+  type AnnotationPayload,
+} from "@/lib/api";
+
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url,
 ).toString();
 
-export default function PdfAnnotator() {
-  const [file, setFile] = useState<File | null>(null);
+// ---------------------------------------------------------------------------
+// Mapping helpers — FE annotation <-> BE annotation DTO
+// ---------------------------------------------------------------------------
+
+function dtoToAnnotation(dto: AnnotationDto): Annotation {
+  return {
+    id: dto.id,
+    page: dto.pageNumber,
+    type: dto.type as Tool,
+    geometry: JSON.parse(dto.geometry),
+  };
+}
+
+function annotationToPayload(a: Annotation): AnnotationPayload {
+  return {
+    id: a.id,
+    pageNumber: a.page,
+    type: a.type,
+    geometry: a.geometry,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
+
+type Props = {
+  /** When provided, annotations are loaded/saved to the BE. */
+  documentId?: string;
+  /** The PDF file to render, or a URL string to fetch the PDF. */
+  file?: File | string | null;
+};
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+export default function PdfAnnotator({ documentId, file: initialFile }: Props) {
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [tool, setTool] = useState<Tool>("rectangle");
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState<File | string | null>(initialFile ?? null);
+
+  console.log("PdfAnnotator mounted with:", { documentId, initialFile, file });
+
+  // Sync file state when initialFile changes
+  useEffect(() => {
+    if (initialFile) {
+      console.log("Setting file from initialFile:", initialFile);
+      setFile(initialFile);
+    }
+  }, [initialFile]);
+
+  // Log when file changes
+  useEffect(() => {
+    console.log("File changed:", file);
+  }, [file]);
 
   const [isDrawing, setIsDrawing] = useState(false);
   const startPoint = useRef<{ x: number; y: number } | null>(null);
@@ -62,6 +122,63 @@ export default function PdfAnnotator() {
   const pageContainerRef = useRef<HTMLDivElement>(null);
   const cachedWords = useRef<WordBox[]>([]);
 
+  // Debounce timer for BE sync
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadedOnce = useRef(false);
+
+  // -- Load annotations from BE on mount -----------------------------------
+
+  useEffect(() => {
+    if (!documentId || loadedOnce.current) return;
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      try {
+        const dtos = await getAnnotationsByDocumentId(documentId);
+        if (!cancelled) {
+          setAnnotations(dtos.map(dtoToAnnotation));
+        }
+      } catch (err) {
+        console.error("Failed to load annotations:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [documentId]);
+
+  // -- Sync annotations to BE (debounced) ----------------------------------
+
+  const syncToBE = useCallback(
+    (next: Annotation[]) => {
+      if (!documentId) return;
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(async () => {
+        try {
+          const payloads = next.map(annotationToPayload);
+          await bulkUpdateAnnotations(documentId, payloads);
+        } catch (err) {
+          console.error("Failed to save annotations:", err);
+        }
+      }, 600);
+    },
+    [documentId],
+  );
+
+  // Wrap setAnnotations to also trigger BE sync
+  const updateAnnotations = useCallback(
+    (updater: Annotation[] | ((prev: Annotation[]) => Annotation[])) => {
+      setAnnotations((prev) => {
+        const next = typeof updater === "function" ? updater(prev) : updater;
+        syncToBE(next);
+        return next;
+      });
+    },
+    [syncToBE],
+  );
+
   // -- File handling --------------------------------------------------------
 
   const handleFileChange = useCallback(
@@ -72,12 +189,12 @@ export default function PdfAnnotator() {
         alert("Please select a PDF file.");
         return;
       }
-      setFile(selected);
       setPageNumber(1);
       setAnnotations([]);
       setSelectedId(null);
+      setFile(selected);
     },
-    [],
+    [setFile],
   );
 
   // -- PDF callbacks --------------------------------------------------------
@@ -107,10 +224,13 @@ export default function PdfAnnotator() {
 
   // -- Delete ----------------------------------------------------------------
 
-  const deleteAnnotation = useCallback((id: string) => {
-    setAnnotations((prev) => prev.filter((a) => a.id !== id));
-    setSelectedId(null);
-  }, []);
+  const deleteAnnotation = useCallback(
+    (id: string) => {
+      updateAnnotations((prev) => prev.filter((a) => a.id !== id));
+      setSelectedId(null);
+    },
+    [updateAnnotations],
+  );
 
   const deleteSelected = useCallback(() => {
     if (selectedId) deleteAnnotation(selectedId);
@@ -255,12 +375,7 @@ export default function PdfAnnotator() {
           geometry,
         };
 
-        setAnnotations((prev) => {
-          const next = [...prev, annotation];
-          console.log("New annotation:", annotation);
-          console.log("All annotations:", next);
-          return next;
-        });
+        updateAnnotations((prev) => [...prev, annotation]);
 
         setIsDrawing(false);
         startPoint.current = null;
@@ -307,26 +422,14 @@ export default function PdfAnnotator() {
         geometry,
       };
 
-      setAnnotations((prev) => {
-        const next = [...prev, annotation];
-        console.log("New annotation:", annotation);
-        console.log("All annotations:", next);
-        return next;
-      });
+      updateAnnotations((prev) => [...prev, annotation]);
 
       setIsDrawing(false);
       startPoint.current = null;
       setCurrentPointer(null);
     },
-    [isDrawing, tool, pageNumber, normalizeX, normalizeY],
+    [isDrawing, tool, pageNumber, normalizeX, normalizeY, updateAnnotations],
   );
-
-  // -- Log on every change ---------------------------------------------------
-
-  useEffect(() => {
-    console.log("=== GEOMETRIES ===");
-    console.log(JSON.stringify(annotations, null, 2));
-  }, [annotations]);
 
   // -- Derived preview coords ------------------------------------------------
 
@@ -372,19 +475,24 @@ export default function PdfAnnotator() {
       {/* Header */}
       <div className="annotator-header">
         <h1>PDF Annotation POC</h1>
-        <button
-          className="btn"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          Load PDF
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/pdf"
-          onChange={handleFileChange}
-          hidden
-        />
+        {!documentId && (
+          <>
+            <button
+              className="btn"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Load PDF
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf"
+              onChange={handleFileChange}
+              hidden
+            />
+          </>
+        )}
+        {loading && <span className="muted">Loading annotations...</span>}
       </div>
 
       {/* Toolbar */}
@@ -538,13 +646,6 @@ export default function PdfAnnotator() {
             </div>
           </div>
 
-          {/* Sidebar */}
-          <Sidebar
-            annotations={annotations}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-            onDelete={deleteAnnotation}
-          />
         </div>
       )}
     </main>

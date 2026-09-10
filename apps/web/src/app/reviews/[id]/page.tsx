@@ -2,18 +2,18 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowRight, ClipboardList, Files, History } from "lucide-react";
+import { ArrowRight, ClipboardList } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import AppShell from "@/components/aegis/AppShell";
-import Avatar from "@/components/aegis/Avatar";
 import { getReviewById, type Review } from "@/lib/api";
 
 export default function ReviewOverviewPage() {
   const params = useParams();
-  const reviewId = params?.id as string | undefined;
+  const reviewId = params?.id as string;
 
   const [review, setReview] = useState<Review | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!reviewId) return;
@@ -24,12 +24,23 @@ export default function ReviewOverviewPage() {
         const r = await getReviewById(reviewId);
         if (!cancelled) setReview(r);
       } catch (err) {
-        console.error("Failed to load review:", err);
+        if (!cancelled) setError("Failed to load review.");
       }
     })();
 
     return () => { cancelled = true; };
   }, [reviewId]);
+
+  if (error) {
+    return (
+      <AppShell>
+        <div className="page-container">
+          <p>{error}</p>
+          <Link href="/reviews">Back to reviews</Link>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell searchPlaceholder="Search reviews...">
@@ -45,7 +56,7 @@ export default function ReviewOverviewPage() {
             {review?.version && <code>{review.version}</code>}
           </div>
           <h1 className="serif-title">{review?.title ?? "Loading..."}</h1>
-          {review?.assignee && <p>Uploaded by <strong>{review.assignee}</strong></p>}
+          {review?.assignee && <p>Assigned to <strong>{review.assignee}</strong></p>}
         </div>
 
         <div className="review-overview-grid">
@@ -57,7 +68,7 @@ export default function ReviewOverviewPage() {
                 <h2>Review instructions</h2>
               </div>
             </div>
-            <blockquote>"Please focus on methodology, references, and statistical analysis. Flag claims that require stronger evidence."</blockquote>
+            <blockquote>&ldquo;Please focus on methodology, references, and statistical analysis. Flag claims that require stronger evidence.&rdquo;</blockquote>
             <div className="review-focus">
               <span>Methodology</span>
               <span>References</span>
@@ -67,23 +78,6 @@ export default function ReviewOverviewPage() {
               Start review <ArrowRight size={17} />
             </Link>
           </section>
-
-          <aside className="content-panel reviewers-panel">
-            <div className="panel-title">
-              <h2>Review details</h2>
-            </div>
-            <div className="reviewer-list">
-              {review?.assignee && (
-                <div className="reviewer-row">
-                  <span className="avatar-status">
-                    <Avatar initials={review.assignee.split(" ").map((n) => n[0]).join("").slice(0, 2)} tone="blue" />
-                  </span>
-                  <strong>{review.assignee}</strong>
-                  <span>{review.status}</span>
-                </div>
-              )}
-            </div>
-          </aside>
         </div>
       </div>
     </AppShell>

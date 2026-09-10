@@ -38,11 +38,13 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
 
         foreach (var item in request.Annotations)
         {
+            var geometryJson = item.Geometry.ToString();
+
             if (item.Id.HasValue && existingDict.TryGetValue(item.Id.Value, out var found))
             {
                 found.PageNumber = item.PageNumber;
                 found.Type = item.Type;
-                found.Geometry = item.Geometry;
+                found.Geometry = geometryJson;
                 found.Content = item.Content;
                 found.Color = item.Color;
                 found.UpdatedAt = now;
@@ -56,7 +58,7 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
                     DocumentId = request.DocumentId,
                     PageNumber = item.PageNumber,
                     Type = item.Type,
-                    Geometry = item.Geometry,
+                    Geometry = geometryJson,
                     Content = item.Content,
                     Color = item.Color,
                     IsActive = true,

@@ -1,18 +1,41 @@
-import { FilePenLine, Files } from "lucide-react";
+import { FilePenLine, Files, Plus } from "lucide-react";
+import Link from "next/link";
 
 import NavigationPage from "@/components/aegis/NavigationPage";
+import { getReviews, type Review } from "@/lib/api";
 
-export default function SubmissionsPage() {
+async function fetchReviews(): Promise<Review[]> {
+  try {
+    const result = await getReviews(1, 50);
+    return result.items;
+  } catch {
+    return [];
+  }
+}
+
+export default async function SubmissionsPage() {
+  const reviews = await fetchReviews();
+
+  const items = reviews.map((review) => ({
+    href: `/reviews/${review.id}`,
+    title: review.title,
+    description: review.kind ?? "Document review",
+    meta: `${review.status}${review.version ? ` · Version ${review.version}` : ""}`,
+    icon: review.status === "Completed" ? FilePenLine : Files,
+  }));
+
   return (
     <NavigationPage
       eyebrow="Research objects"
       title="My submissions"
       description="Track the documents and versions you have submitted to your research groups."
       searchPlaceholder="Search submissions..."
-      items={[
-        { href: "/groups/ai-in-education/documents", title: "Adaptive Learning Thesis", description: "The latest version is currently under review by three collaborators.", meta: "Version 1.4 - under review", icon: Files },
-        { href: "/groups/ai-in-education/documents/research-paper", title: "Research Paper", description: "A scientific article in drafting with two previous review rounds.", meta: "Version 2.1 - draft", icon: FilePenLine },
-      ]}
+      items={items}
+      action={
+        <Link className="button button--primary" href="/submissions/new">
+          <Plus size={16} /> New submission
+        </Link>
+      }
     />
   );
 }

@@ -12,22 +12,33 @@ import {
 import AppShell from "@/components/aegis/AppShell";
 import Avatar from "@/components/aegis/Avatar";
 import StatusPill from "@/components/aegis/StatusPill";
-import { pendingReviews } from "@/lib/mock-data";
+import { getReviews, type Review } from "@/lib/api";
 
-const metrics = [
-  { label: "Pending reviews", value: 4, note: "Requires action", icon: ClipboardCheck, tone: "blue" },
-  { label: "Due soon", value: 2, note: "Next 48 hours", icon: Clock3, tone: "amber" },
-  { label: "Completed this month", value: 7, note: "On track", icon: CheckCircle2, tone: "green" },
-];
+async function fetchReviews(): Promise<Review[]> {
+  try {
+    const result = await getReviews(1, 20);
+    return result.items;
+  } catch {
+    return [];
+  }
+}
 
-export default function Home() {
+export default async function Home() {
+  const reviews = await fetchReviews();
+
+  const metrics = [
+    { label: "Pending reviews", value: reviews.filter((r) => r.status !== "Completed").length, note: "Requires action", icon: ClipboardCheck, tone: "blue" },
+    { label: "Due soon", value: reviews.filter((r) => r.dueDate && new Date(r.dueDate).getTime() - Date.now() < 48 * 60 * 60 * 1000).length, note: "Next 48 hours", icon: Clock3, tone: "amber" },
+    { label: "Completed this month", value: reviews.filter((r) => r.status === "Completed").length, note: "On track", icon: CheckCircle2, tone: "green" },
+  ];
+
   return (
     <AppShell>
       <div className="page-container dashboard-page">
         <div className="page-heading page-heading--split">
           <div>
-            <p className="eyebrow">Sunday, August 30</p>
-            <h1>Good morning, María</h1>
+            <p className="eyebrow">Dashboard</p>
+            <h1>Good morning</h1>
             <p>Here is the status of your research reviews.</p>
           </div>
           <div className="status-legend" aria-label="Review status legend">
@@ -58,34 +69,36 @@ export default function Home() {
           </div>
 
           <div className="review-grid">
-            {pendingReviews.map((review) => (
+            {reviews.map((review) => (
               <article className={`review-card review-card--${review.status.toLowerCase().replace(" ", "-")}`} key={review.id}>
                 <div className="review-card__topline">
-                  <span className="review-card__group"><i />{review.group}</span>
+                  <span className="review-card__group"><i />{review.kind ?? "Review"}</span>
                   <StatusPill status={review.status} />
                 </div>
                 <h3>{review.kind} <span>—</span> {review.title}</h3>
                 <div className="review-card__metadata">
-                  <code>Review #{review.id}</code>
-                  <span className={review.dueTone === "urgent" ? "is-urgent" : ""}>
-                    <CalendarDays size={15} /> Due {review.due}
+                  <code>Review #{review.id.slice(0, 8)}</code>
+                  <span>
+                    <CalendarDays size={15} /> Due {review.dueDate ? new Date(review.dueDate).toLocaleDateString() : "TBD"}
                   </span>
                 </div>
                 <div className="review-card__footer">
                   <div>
-                    <span><UserRoundPlus size={15} /> Assigned by {review.assignee}</span>
-                    <span><MessageSquareText size={15} /> {review.annotations} annotations</span>
+                    {review.assignee && (
+                      <span><UserRoundPlus size={15} /> Assigned by {review.assignee}</span>
+                    )}
                   </div>
-                  <div className="avatar-stack" aria-label={`${review.reviewers.length} reviewers`}>
-                    {review.reviewers.map((reviewer, index) => <Avatar key={reviewer} initials={reviewer} tone={index === 1 ? "blue" : "sage"} size="sm" />)}
-                  </div>
-                  <Link className={`button ${review.status === "Open" ? "button--primary" : "button--secondary"}`} href={review.id === 4 ? "/reviews/adaptive-learning" : "/reviews/image-segmentation"}>
+                  <Link className={`button ${review.status === "Open" ? "button--primary" : "button--secondary"}`} href={`/reviews/${review.id}`}>
                     {review.status === "Open" ? "Start review" : "Continue"}
                     <ArrowRight size={16} />
                   </Link>
                 </div>
               </article>
             ))}
+
+            {reviews.length === 0 && (
+              <p className="muted">No reviews found. Create one to get started.</p>
+            )}
           </div>
         </section>
       </div>

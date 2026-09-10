@@ -45,11 +45,13 @@
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
+  width: 100%;
 }
 
 .annotator-canvas-wrapper {
   position: relative;
-  display: inline-block;
+  flex: 1;
+  min-width: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   background: var(--background);
   border-radius: 4px;

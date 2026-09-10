@@ -1820,8 +1820,13 @@ textarea:focus-visible {
 
 .workspace-body {
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr) 330px;
+  grid-template-columns: minmax(0, 4fr) 1fr;
   height: calc(100vh - 68px);
+}
+
+.document-stage {
+  flex: 1;
+  width: 100%;
 }
 
 .pages-panel,
