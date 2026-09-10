@@ -22,7 +22,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Minio" />
-    <PackageReference Include="PdfSharpCore" />
+    <PackageReference Include="PDFsharp" />
     <PackageReference Include="Scalar.AspNetCore" />
     <PackageReference Include="Sieve" />
   </ItemGroup>

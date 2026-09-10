@@ -4,7 +4,7 @@ using Aegis.Api.Endpoints.Documents.Dtos;
 using Aegis.Api.Endpoints.Documents.Mappings;
 using Aegis.Api.Shared.Storage;
 using MediatR;
-using PdfSharpCore.Pdf.IO;
+using PdfSharp.Pdf.IO;
 
 namespace Aegis.Api.Endpoints.Documents.Features.CreateDocument;
 
