@@ -1,3 +1,4 @@
+using System.Text;
 using Aegis.Api.Configuration;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints;
@@ -5,8 +6,11 @@ using Aegis.Api.Endpoints.Annotations;
 using Aegis.Api.Endpoints.Documents;
 using Aegis.Api.Endpoints.Faculties;
 using Aegis.Api.Endpoints.Reviews;
+using Aegis.Api.Endpoints.Users;
 using Aegis.Api.Shared.Storage.MinIO;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Sieve.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,20 +24,33 @@ builder.AddNpgsqlDbContext<AegisDbContext>("aegisdb");
 
 builder.Services.AddProblemDetails();
 
+// JWT Authentication
+var jwtKey = builder.Configuration["Jwt:Key"]!;
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        };
+    });
+builder.Services.AddAuthorization();
+
 // OpenAPI document + Scalar reference UI. See Configuration/ScalarConfiguration.cs.
 builder.AddScalarDocumentation();
 
-// Faculties module services — MediatR, FluentValidation, Sieve.
+// Module services
 builder.AddFacultiesModuleServices();
-
-// Documents module services — MediatR, FluentValidation, Sieve.
 builder.AddDocumentsModuleServices();
-
-// Reviews module services — MediatR, FluentValidation, Sieve.
 builder.AddReviewsModuleServices();
-
-// Annotations module services — MediatR, FluentValidation, Sieve.
 builder.AddAnnotationsModuleServices();
+builder.AddUsersModuleServices();
 builder.Services.Configure<SieveOptions>(builder.Configuration.GetSection("Sieve"));
 
 // Object storage — MinIO (extracted to Shared/Storage/MinIO extension).
@@ -54,6 +71,10 @@ var app = builder.Build();
 app.UseExceptionHandler();
 app.UseCors(WebCorsPolicy);
 
+// Authentication & Authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
 // Serves /openapi/v1.json and the Scalar UI when the "Scalar" section enables them.
 app.MapScalarDocumentation();
 
@@ -63,6 +84,9 @@ await using (var scope = app.Services.CreateAsyncScope())
 {
     var database = scope.ServiceProvider.GetRequiredService<AegisDbContext>();
     await database.Database.MigrateAsync();
+
+    // Seed default roles and admin/student users.
+    await AegisUserSeed.SeedAsync(scope.ServiceProvider);
 }
 
 // "/health" and "/alive" from Aegis.ServiceDefaults.
@@ -71,16 +95,11 @@ app.MapDefaultEndpoints();
 // Test endpoints — remove before going to production.
 app.MapMinIOTestEndpoints();
 
-// Faculties module endpoints.
+// Module endpoints
 app.MapFacultiesModuleEndpoints();
-
-// Documents module endpoints.
 app.MapDocumentsModuleEndpoints();
-
-// Reviews module endpoints.
 app.MapReviewsModuleEndpoints();
-
-// Annotations module endpoints.
 app.MapAnnotationsModuleEndpoints();
+app.MapUsersModuleEndpoints();
 
 app.Run();

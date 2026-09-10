@@ -15,7 +15,8 @@ development; Docker Compose runs the stack everywhere else.
 3. [Local development](#3-local-development)
 4. [Self-hosting with Docker Compose](#4-self-hosting-with-docker-compose)
 5. [Configuration](#5-configuration)
-6. [Troubleshooting](#6-troubleshooting)
+6. [Test users](#7-test-users)
+7. [Troubleshooting](#8-troubleshooting)
 
 ---
 
@@ -535,7 +536,34 @@ prove the Web → API → PostgreSQL path end to end. Replace them with the real
 
 ---
 
-## 6. Troubleshooting
+## 7. Test users
+
+On first startup, the API seeds the following users and roles automatically. They are not
+recreated if they already exist in the database.
+
+| Email | Password | Role | Notes |
+|---|---|---|---|
+| `admin@aegis.com` | `Admin1234!` | Admin | Full system access |
+| `student@aegis.com` | `Student1234!` | Student | Limited access |
+
+Roles seeded: **Admin**, **Professor**, **Student**.
+
+### Quick test
+
+```bash
+# 1. Login — get a JWT token
+curl -X POST http://localhost:5180/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@aegis.com","password":"Admin1234!"}'
+
+# 2. Access a protected endpoint — use the token from step 1
+curl http://localhost:5180/api/users/protected \
+  -H "Authorization: Bearer <token>"
+```
+
+---
+
+## 8. Troubleshooting
 
 **`unknown flag: --progress` when a service image builds**
 Docker's legacy builder is being used. Aspire builds with BuildKit.
