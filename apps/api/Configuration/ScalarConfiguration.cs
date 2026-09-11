@@ -77,7 +77,12 @@ public static class ScalarConfiguration
             scalar
                 .WithTitle(options.Title)
                 .WithTheme(options.Theme)
-                .WithDefaultHttpClient(options.DefaultClientTarget, options.DefaultClient);
+                .WithDefaultHttpClient(options.DefaultClientTarget, options.DefaultClient)
+                .AddHttpAuthentication("Bearer", httpBearer =>
+                {
+                    httpBearer.Token = string.Empty;
+                })
+                .AddPreferredSecuritySchemes(["Bearer"]);
 
             if (options.PersistAuthentication)
             {
