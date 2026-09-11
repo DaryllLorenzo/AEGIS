@@ -1,3 +1,5 @@
+using Aegis.Api.Endpoints.Groups.Data;
+using Aegis.Api.Endpoints.Roles.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

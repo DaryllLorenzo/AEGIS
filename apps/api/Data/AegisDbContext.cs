@@ -1,7 +1,9 @@
 using Aegis.Api.Endpoints.Annotations.Data;
 using Aegis.Api.Endpoints.Documents.Data;
 using Aegis.Api.Endpoints.Faculties.Data;
+using Aegis.Api.Endpoints.Groups.Data;
 using Aegis.Api.Endpoints.Reviews.Data;
+using Aegis.Api.Endpoints.Roles.Data;
 using Aegis.Api.Endpoints.Users.Data;
 using Microsoft.EntityFrameworkCore;
 

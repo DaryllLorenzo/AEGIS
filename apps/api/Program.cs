@@ -5,7 +5,9 @@ using Aegis.Api.Endpoints;
 using Aegis.Api.Endpoints.Annotations;
 using Aegis.Api.Endpoints.Documents;
 using Aegis.Api.Endpoints.Faculties;
+using Aegis.Api.Endpoints.Groups;
 using Aegis.Api.Endpoints.Reviews;
+using Aegis.Api.Endpoints.Roles;
 using Aegis.Api.Endpoints.Users;
 using Aegis.Api.Shared.Storage.MinIO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -51,6 +53,8 @@ builder.AddDocumentsModuleServices();
 builder.AddReviewsModuleServices();
 builder.AddAnnotationsModuleServices();
 builder.AddUsersModuleServices();
+builder.AddRolesModuleServices();
+builder.AddGroupsModuleServices();
 builder.Services.Configure<SieveOptions>(builder.Configuration.GetSection("Sieve"));
 
 // Object storage — MinIO (extracted to Shared/Storage/MinIO extension).
@@ -101,5 +105,7 @@ app.MapDocumentsModuleEndpoints();
 app.MapReviewsModuleEndpoints();
 app.MapAnnotationsModuleEndpoints();
 app.MapUsersModuleEndpoints();
+app.MapRolesModuleEndpoints();
+app.MapGroupsModuleEndpoints();
 
 app.Run();

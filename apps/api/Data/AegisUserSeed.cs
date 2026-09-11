@@ -1,3 +1,5 @@
+using Aegis.Api.Endpoints.Groups.Data;
+using Aegis.Api.Endpoints.Roles.Data;
 using Aegis.Api.Endpoints.Users.Data;
 using Microsoft.EntityFrameworkCore;
 
