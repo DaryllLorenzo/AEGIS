@@ -22,8 +22,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { discussionMessages } from "@/lib/mock-data";
-import { getReviewById, getDocumentById, getDocumentDownloadUrl, type Review, type DocumentDto } from "@/lib/api";
+import { getReviewById, getDocumentById, getDocumentDownloadUrl, getAuthToken, updateReview, reviewStatusLabel, type Review, type DocumentDto } from "@/lib/api";
 
 import Avatar from "./Avatar";
 import Brand from "./Brand";
@@ -35,13 +34,18 @@ type Props = {
   reviewId: string;
 };
 
+const discussionMessages = [
+  { initials: "CR", author: "Carlos R.", time: "10:42", body: "I finished the statistical review. The methodology is sound, but the sample-size limitation should be explicit." },
+  { initials: "AM", author: "Ana M.", time: "11:08", body: "I'll add that limitation to the next version and link it to the discussion section." },
+];
+
 export default function ReviewWorkspace({ reviewId }: Props) {
   const [review, setReview] = useState<Review | null>(null);
   const [document, setDocument] = useState<DocumentDto | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState<"annotations" | "discussion">("annotations");
-  const [resolvedIds, setResolvedIds] = useState<number[]>([]);
-  const [complete, setComplete] = useState(false);
+  const [resolvedIds, setResolvedIds] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -114,7 +118,10 @@ export default function ReviewWorkspace({ reviewId }: Props) {
         // Fetch the PDF blob and create a File object
         const downloadUrl = getDocumentDownloadUrl(r.documentId);
         console.log("Fetching PDF from:", downloadUrl);
-        const response = await fetch(downloadUrl);
+        const headers: Record<string, string> = {};
+        const token = getAuthToken();
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        const response = await fetch(downloadUrl, { headers });
         if (response.ok && !cancelled) {
           const blob = await response.blob();
           const file = new File([blob], doc.name, { type: doc.mimeType });
@@ -136,6 +143,29 @@ export default function ReviewWorkspace({ reviewId }: Props) {
     );
   }
 
+  const isCompleted = review?.status === "Completed";
+  const isInProgress = review?.status === "InProgress";
+
+  async function handleStatusToggle() {
+    if (!review || saving) return;
+    setSaving(true);
+    try {
+      const newStatus = isCompleted ? "InProgress" : isInProgress ? "Completed" : "InProgress";
+      const updated = await updateReview(review.id, {
+        title: review.title,
+        kind: review.kind ?? undefined,
+        version: review.version ?? undefined,
+        status: newStatus,
+        assignee: review.assignee ?? undefined,
+      });
+      setReview(updated);
+    } catch (err) {
+      console.error("Failed to update review status:", err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <main className="workspace">
       <header className="workspace-header">
@@ -149,20 +179,29 @@ export default function ReviewWorkspace({ reviewId }: Props) {
           <strong>{review?.title ?? "Loading..."}</strong>
         </div>
         <div className="workspace-header__right">
-          <span className={`workspace-status${complete ? " workspace-status--complete" : ""}`}>
+          <span className={`workspace-status${isCompleted ? " workspace-status--complete" : ""}`}>
             <i />
-            {complete
+            {isCompleted
               ? "Your review · Completed"
-              : `Review · ${review?.status ?? "Loading"}`}
+              : `Review · ${review ? reviewStatusLabel(review.status) : "Loading"}`}
           </span>
           <button
-            className={`button ${complete ? "button--secondary" : "button--primary"}`}
+            className={`button ${isCompleted ? "button--secondary" : "button--primary"}`}
             type="button"
-            onClick={() => setComplete((v) => !v)}
+            onClick={handleStatusToggle}
+            disabled={saving}
           >
             <CheckCircle2 size={17} />
-            {complete ? "Reopen review" : "Complete review"}
+            {saving ? "Saving..." : isCompleted ? "Reopen review" : "Complete review"}
           </button>
+          {isCompleted && document && (
+            <Link
+              className="button button--primary"
+              href={`/reviews/new?parentId=${document.id}&groupId=${document.groupId}`}
+            >
+              New version
+            </Link>
+          )}
           <button
             className="icon-button workspace-panel-toggle"
             type="button"

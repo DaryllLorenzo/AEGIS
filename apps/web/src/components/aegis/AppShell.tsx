@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Bell,
   FileText,
@@ -15,10 +15,13 @@ import {
   Users,
   UserRound,
   X,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
 
 import Brand from "./Brand";
+import { useAuth } from "@/lib/auth-context";
+import { initialsFromName } from "@/lib/api";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -34,8 +37,18 @@ const navItems = [
 
 export default function AppShell({ children, searchPlaceholder = "Search..." }: AppShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
+
+  const initials = user ? initialsFromName(user.displayName) : "??";
+  const displayName = user?.displayName ?? "Guest";
+
+  function handleLogout() {
+    logout();
+    router.push("/login");
+  }
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
@@ -87,10 +100,9 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
 
         <div className="sidebar__groups">
           <span>My groups</span>
-          <Link href="/groups/ai-in-education" onClick={() => setMobileOpen(false)}>
-            <i className="group-dot group-dot--green" /> AI in Education
+          <Link href="/groups" onClick={() => setMobileOpen(false)}>
+            View all groups
           </Link>
-          <Link href="/groups/computer-vision" onClick={() => setMobileOpen(false)}><i className="group-dot group-dot--blue" /> Computer Vision</Link>
         </div>
 
         <div className="sidebar__footer">
@@ -111,7 +123,7 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
               <span />
             </Link>
             <Link className="profile-button" href="/profile" aria-label="Open profile">
-              <span>MG</span>
+              <span>{initials}</span>
             </Link>
             <div className="shell-options-wrap">
               <button className={`icon-button shell-options-button${optionsOpen ? " is-active" : ""}`} type="button" aria-label="Open options" aria-expanded={optionsOpen} onClick={() => setOptionsOpen((value) => !value)}>
@@ -119,12 +131,14 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
               </button>
               {optionsOpen && (
                 <nav className="shell-options" aria-label="Account and workspace options">
-                  <div className="shell-options__title"><span>Options</span><small>María González</small></div>
+                  <div className="shell-options__title"><span>Options</span><small>{displayName}</small></div>
                   <Link href="/profile" onClick={() => setOptionsOpen(false)}><UserRound size={17} /><span><strong>Profile</strong><small>Account and identity</small></span></Link>
                   <Link href="/notifications" onClick={() => setOptionsOpen(false)}><Bell size={17} /><span><strong>Notifications</strong><small>3 unread updates</small></span></Link>
                   <Link href="/settings" onClick={() => setOptionsOpen(false)}><Settings size={17} /><span><strong>Settings</strong><small>Workspace preferences</small></span></Link>
                   <div className="shell-options__divider" />
-                  <Link href="/login" onClick={() => setOptionsOpen(false)}>Sign out</Link>
+                  <button type="button" onClick={() => { setOptionsOpen(false); handleLogout(); }} className="shell-options__logout">
+                    <LogOut size={17} /><span>Sign out</span>
+                  </button>
                 </nav>
               )}
             </div>

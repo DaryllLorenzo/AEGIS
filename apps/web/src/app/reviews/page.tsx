@@ -1,35 +1,39 @@
+"use client";
+
 import { CheckCircle2, Clock3 } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import AppShell from "@/components/aegis/AppShell";
+import AuthGuard from "@/components/aegis/AuthGuard";
 import NavigationPage from "@/components/aegis/NavigationPage";
-import { getReviews, type Review } from "@/lib/api";
+import { getReviews, reviewStatusLabel, type Review } from "@/lib/api";
 
-async function fetchReviews(): Promise<Review[]> {
-  try {
-    const result = await getReviews(1, 50);
-    return result.items;
-  } catch {
-    return [];
-  }
-}
+export default function ReviewsPage() {
+  const [reviews, setReviews] = useState<Review[]>([]);
 
-export default async function ReviewsPage() {
-  const reviews = await fetchReviews();
+  useEffect(() => {
+    getReviews(1, 50)
+      .then((r) => setReviews(r.items))
+      .catch(() => setReviews([]));
+  }, []);
 
   const items = reviews.map((review) => ({
     href: `/reviews/${review.id}`,
     title: `${review.kind ?? "Review"} — ${review.title}`,
     description: `Review for ${review.version ?? "latest version"}.`,
-    meta: `${review.status}${review.dueDate ? ` — due ${new Date(review.dueDate).toLocaleDateString()}` : ""}`,
+    meta: `${reviewStatusLabel(review.status)}${review.dueDate ? ` — due ${new Date(review.dueDate).toLocaleDateString()}` : ""}`,
     icon: review.status === "Completed" ? CheckCircle2 : Clock3,
   }));
 
   return (
-    <NavigationPage
-      eyebrow="Review queue"
-      title="My reviews"
-      description="Open, continue, and revisit the review rounds assigned to you."
-      searchPlaceholder="Search reviews..."
-      items={items}
-    />
+    <AuthGuard>
+      <NavigationPage
+        eyebrow="Review queue"
+        title="My reviews"
+        description="Open, continue, and revisit the review rounds assigned to you."
+        searchPlaceholder="Search reviews..."
+        items={items}
+      />
+    </AuthGuard>
   );
 }

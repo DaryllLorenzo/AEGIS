@@ -18,16 +18,20 @@ type NavigationPageProps = {
   description: string;
   searchPlaceholder?: string;
   items: NavigationItem[];
+  action?: React.ReactNode;
 };
 
-export default function NavigationPage({ eyebrow, title, description, searchPlaceholder, items }: NavigationPageProps) {
+export default function NavigationPage({ eyebrow, title, description, searchPlaceholder, items, action }: NavigationPageProps) {
   return (
     <AppShell searchPlaceholder={searchPlaceholder}>
       <div className="page-container route-page">
-        <div className="page-heading">
-          <p className="eyebrow">{eyebrow}</p>
-          <h1>{title}</h1>
-          <p>{description}</p>
+        <div className="page-heading page-heading--split">
+          <div>
+            <p className="eyebrow">{eyebrow}</p>
+            <h1>{title}</h1>
+            <p>{description}</p>
+          </div>
+          {action && <div className="heading-actions">{action}</div>}
         </div>
         <div className="navigation-grid">
           {items.map(({ href, title: itemTitle, description: itemDescription, meta, icon: Icon }) => (

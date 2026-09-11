@@ -1,25 +1,31 @@
 import Link from "next/link";
 
 type GroupTabsProps = {
+  groupId: string;
   active: "overview" | "documents" | "reviews" | "discussion" | "members";
 };
 
-const tabs = [
-  { id: "overview", label: "Overview", href: "/groups/ai-in-education" },
-  { id: "documents", label: "Documents", href: "/groups/ai-in-education/documents" },
-  { id: "reviews", label: "Reviews", href: "/groups/ai-in-education/reviews" },
-  { id: "discussion", label: "Discussion", href: "/groups/ai-in-education/discussion" },
-  { id: "members", label: "Members", href: "/groups/ai-in-education/members" },
-] as const;
+const tabIds = ["overview", "documents", "reviews", "discussion", "members"] as const;
 
-export default function GroupTabs({ active }: GroupTabsProps) {
+const tabLabels: Record<string, string> = {
+  overview: "Overview",
+  documents: "Documents",
+  reviews: "Reviews",
+  discussion: "Discussion",
+  members: "Members",
+};
+
+export default function GroupTabs({ groupId, active }: GroupTabsProps) {
   return (
     <nav className="group-tabs" aria-label="Group sections">
-      {tabs.map((tab) => (
-        <Link key={tab.id} href={tab.href} className={tab.id === active ? "is-active" : ""}>
-          {tab.label}
-        </Link>
-      ))}
+      {tabIds.map((id) => {
+        const href = id === "overview" ? `/groups/${groupId}` : `/groups/${groupId}/${id}`;
+        return (
+          <Link key={id} href={href} className={id === active ? "is-active" : ""}>
+            {tabLabels[id]}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

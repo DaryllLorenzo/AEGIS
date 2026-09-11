@@ -1,41 +1,45 @@
+"use client";
+
 import { FilePenLine, Files, Plus } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
+import AppShell from "@/components/aegis/AppShell";
+import AuthGuard from "@/components/aegis/AuthGuard";
 import NavigationPage from "@/components/aegis/NavigationPage";
-import { getReviews, type Review } from "@/lib/api";
+import { getReviews, reviewStatusLabel, type Review } from "@/lib/api";
 
-async function fetchReviews(): Promise<Review[]> {
-  try {
-    const result = await getReviews(1, 50);
-    return result.items;
-  } catch {
-    return [];
-  }
-}
+export default function SubmissionsPage() {
+  const [reviews, setReviews] = useState<Review[]>([]);
 
-export default async function SubmissionsPage() {
-  const reviews = await fetchReviews();
+  useEffect(() => {
+    getReviews(1, 50)
+      .then((r) => setReviews(r.items))
+      .catch(() => setReviews([]));
+  }, []);
 
   const items = reviews.map((review) => ({
     href: `/reviews/${review.id}`,
     title: review.title,
     description: review.kind ?? "Document review",
-    meta: `${review.status}${review.version ? ` · Version ${review.version}` : ""}`,
+    meta: `${reviewStatusLabel(review.status)}${review.version ? ` · Version ${review.version}` : ""}`,
     icon: review.status === "Completed" ? FilePenLine : Files,
   }));
 
   return (
-    <NavigationPage
-      eyebrow="Research objects"
-      title="My submissions"
-      description="Track the documents and versions you have submitted to your research groups."
-      searchPlaceholder="Search submissions..."
-      items={items}
-      action={
-        <Link className="button button--primary" href="/submissions/new">
-          <Plus size={16} /> New submission
-        </Link>
-      }
-    />
+    <AuthGuard>
+      <NavigationPage
+        eyebrow="Research objects"
+        title="My submissions"
+        description="Track the documents and versions you have submitted to your research groups."
+        searchPlaceholder="Search submissions..."
+        items={items}
+        action={
+          <Link className="button button--primary" href="/reviews/new">
+            <Plus size={16} /> New submission
+          </Link>
+        }
+      />
+    </AuthGuard>
   );
 }

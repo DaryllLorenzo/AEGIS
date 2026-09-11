@@ -1,7 +1,7 @@
-import type { ReviewStatus } from "@/lib/mock-data";
+import type { ReviewStatus } from "@/lib/api";
 
 type StatusPillProps = {
-  status: ReviewStatus | "Under review" | "Draft";
+  status: ReviewStatus | "Under review" | "Draft" | string;
 };
 
 export default function StatusPill({ status }: StatusPillProps) {
