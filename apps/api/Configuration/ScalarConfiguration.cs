@@ -54,7 +54,10 @@ public static class ScalarConfiguration
 
         // Generates the OpenAPI document Scalar renders. Registering the services is cheap;
         // the endpoint itself is only mapped when the options enable it.
-        builder.Services.AddOpenApi();
+        builder.Services.AddOpenApi(options =>
+        {
+            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        });
 
         return builder;
     }

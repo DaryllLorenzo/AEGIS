@@ -11,14 +11,16 @@ namespace Aegis.Api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
+            migrationBuilder.DropColumn(
+                name: "Status",
+                table: "Reviews");
+
+            migrationBuilder.AddColumn<int>(
                 name: "Status",
                 table: "Reviews",
                 type: "integer",
                 nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(50)",
-                oldMaxLength: 50);
+                defaultValue: 0);
 
             migrationBuilder.AddColumn<Guid>(
                 name: "UserId",

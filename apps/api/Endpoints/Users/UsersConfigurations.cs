@@ -5,6 +5,7 @@ using Aegis.Api.Endpoints.Users.Features.GetUserById;
 using Aegis.Api.Endpoints.Users.Features.GetUsers;
 using Aegis.Api.Endpoints.Users.Features.Login;
 using Aegis.Api.Endpoints.Users.Features.UpdateUser;
+using Aegis.Api.Endpoints.Users.Features.WhoAmI;
 using Aegis.Api.Endpoints.Users.Services;
 using FluentValidation;
 
@@ -38,6 +39,9 @@ internal static class UsersConfigurations
 
         // Test endpoint (requires auth)
         users.MapGetProtectedResourceEndpoint();
+
+        // Current user
+        users.MapWhoAmIEndpoint();
 
         // Users CRUD
         users.MapGetUsersEndpoint();
