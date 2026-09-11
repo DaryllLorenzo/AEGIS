@@ -1,4 +1,5 @@
 using Aegis.Api.Endpoints.Documents.Data;
+using Aegis.Api.Endpoints.Users.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -23,8 +24,7 @@ public sealed class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .HasMaxLength(50);
 
         builder.Property(r => r.Status)
-            .HasMaxLength(50)
-            .IsRequired();
+            .HasConversion<int>();
 
         builder.Property(r => r.Assignee)
             .HasMaxLength(200);
@@ -34,7 +34,13 @@ public sealed class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .HasForeignKey(r => r.DocumentId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasIndex(r => r.DocumentId);
+        builder.HasIndex(r => r.UserId);
         builder.HasIndex(r => r.Status);
         builder.HasIndex(r => r.IsActive);
         builder.HasIndex(r => r.CreatedAt);

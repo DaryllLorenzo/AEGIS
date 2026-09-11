@@ -3,6 +3,7 @@ namespace Aegis.Api.Endpoints.Documents.Dtos;
 public sealed record DocumentDto
 {
     public Guid Id { get; init; }
+    public Guid GroupId { get; init; }
     public Guid? ParentId { get; init; }
     public int TotalPages { get; init; }
     public required string Name { get; init; }

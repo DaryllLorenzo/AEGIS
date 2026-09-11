@@ -8,6 +8,7 @@ public static class ManualDocumentMappings
     public static DocumentDto ToDto(this Document document) => new()
     {
         Id = document.Id,
+        GroupId = document.GroupId,
         ParentId = document.ParentId,
         TotalPages = document.TotalPages,
         Name = document.Name,

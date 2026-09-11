@@ -5,6 +5,7 @@ namespace Aegis.Api.Endpoints.Documents.Features.CreateDocument;
 
 public sealed record CreateDocumentRequest : IRequest<DocumentDto>
 {
+    public Guid GroupId { get; init; }
     public Guid? ParentId { get; init; }
     public required string Name { get; init; }
     public int? TotalPages { get; init; }

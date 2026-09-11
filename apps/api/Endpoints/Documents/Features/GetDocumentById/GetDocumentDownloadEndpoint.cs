@@ -16,7 +16,8 @@ internal static class GetDocumentDownloadEndpoint
             .MapGet("/{id:guid}/download", Handle)
             .WithTags(DocumentsConfiguration.Tag)
             .WithName(Name)
-            .WithSummary("Streams the raw file for a document from object storage.");
+            .WithSummary("Streams the raw file for a document from object storage.")
+            .RequireAuthorization();
 
         static async Task<Results<FileStreamHttpResult, NotFound>> Handle(
             Guid id,

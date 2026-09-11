@@ -1,3 +1,4 @@
+using Aegis.Api.Endpoints.Reviews.Data;
 using Aegis.Api.Endpoints.Reviews.Dtos;
 using MediatR;
 
@@ -9,7 +10,7 @@ public sealed record UpdateReviewRequest : IRequest<ReviewDto>
     public required string Title { get; init; }
     public string? Kind { get; init; }
     public string? Version { get; init; }
-    public required string Status { get; init; }
+    public ReviewStatus Status { get; init; }
     public DateTimeOffset? DueDate { get; init; }
     public string? Assignee { get; init; }
 }

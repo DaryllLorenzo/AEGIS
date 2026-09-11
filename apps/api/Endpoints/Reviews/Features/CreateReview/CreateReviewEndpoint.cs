@@ -15,7 +15,8 @@ internal static class CreateReviewEndpoint
             .MapPost("/", Handle)
             .WithTags(ReviewsConfigurations.Tag)
             .WithName(Name)
-            .WithSummary("Creates a new review.");
+            .WithSummary("Creates a new review for a document.")
+            .RequireAuthorization();
 
         static async Task<Results<Created<ReviewDto>, ValidationProblem>> Handle(
             CreateReviewBody body,
@@ -29,7 +30,6 @@ internal static class CreateReviewEndpoint
                 Title = body.Title,
                 Kind = body.Kind,
                 Version = body.Version,
-                Status = body.Status,
                 DueDate = body.DueDate,
                 Assignee = body.Assignee,
             };
@@ -56,7 +56,6 @@ internal sealed record CreateReviewBody
     public required string Title { get; init; }
     public string? Kind { get; init; }
     public string? Version { get; init; }
-    public required string Status { get; init; }
     public DateTimeOffset? DueDate { get; init; }
     public string? Assignee { get; init; }
 }

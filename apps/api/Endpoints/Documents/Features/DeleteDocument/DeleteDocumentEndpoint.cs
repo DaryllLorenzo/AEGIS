@@ -14,7 +14,8 @@ internal static class DeleteDocumentEndpoint
             .MapDelete("/{id:guid}", Handle)
             .WithTags(DocumentsConfiguration.Tag)
             .WithName(Name)
-            .WithSummary("Deletes a document.");
+            .WithSummary("Deletes a document.")
+            .RequireAuthorization();
 
         static async Task<Results<NoContent, NotFound>> Handle(
             Guid id,

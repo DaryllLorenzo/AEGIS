@@ -4,4 +4,7 @@ using MediatR;
 
 namespace Aegis.Api.Endpoints.Documents.Features.GetDocuments;
 
-public sealed record GetDocumentsRequest : SieveRequest, IRequest<PaginatedList<DocumentDto>>;
+public sealed record GetDocumentsRequest : SieveRequest, IRequest<PaginatedList<DocumentDto>>
+{
+    public Guid? GroupId { get; init; }
+}

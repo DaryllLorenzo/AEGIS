@@ -15,7 +15,8 @@ internal static class GetDocumentByIdEndpoint
             .MapGet("/{id:guid}", Handle)
             .WithTags(DocumentsConfiguration.Tag)
             .WithName(Name)
-            .WithSummary("Returns a document by its ID.");
+            .WithSummary("Returns a document by its ID.")
+            .RequireAuthorization();
 
         static async Task<Results<Ok<DocumentDto>, NotFound>> Handle(
             Guid id,

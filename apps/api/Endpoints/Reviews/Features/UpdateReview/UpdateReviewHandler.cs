@@ -1,4 +1,5 @@
 using Aegis.Api.Data;
+using Aegis.Api.Endpoints.Reviews.Data;
 using Aegis.Api.Endpoints.Reviews.Dtos;
 using Aegis.Api.Endpoints.Reviews.Exceptions;
 using Aegis.Api.Endpoints.Reviews.Mappings;
@@ -17,10 +18,32 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
         var review = await _db.Reviews.FindAsync([request.Id], ct)
             ?? throw new ReviewNotFoundException(request.Id);
 
+        if (review.Status == ReviewStatus.Completed)
+        {
+            throw new ReviewAlreadyCompletedException(request.Id);
+        }
+
+        var newStatus = request.Status;
+        if (newStatus != review.Status)
+        {
+            var isValidTransition = (review.Status, newStatus) switch
+            {
+                (ReviewStatus.Pending, ReviewStatus.InProgress) => true,
+                (ReviewStatus.InProgress, ReviewStatus.Completed) => true,
+                _ => false,
+            };
+
+            if (!isValidTransition)
+            {
+                throw new InvalidReviewTransitionException(
+                    review.Status.ToString(), newStatus.ToString());
+            }
+        }
+
         review.Title = request.Title;
         review.Kind = request.Kind;
         review.Version = request.Version;
-        review.Status = request.Status;
+        review.Status = newStatus;
         review.DueDate = request.DueDate;
         review.Assignee = request.Assignee;
         review.UpdatedAt = DateTimeOffset.UtcNow;

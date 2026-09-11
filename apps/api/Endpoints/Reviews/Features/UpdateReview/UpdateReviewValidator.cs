@@ -11,8 +11,7 @@ public sealed class UpdateReviewValidator : AbstractValidator<UpdateReviewReques
             .MaximumLength(300).WithMessage("Title must not exceed 300 characters.");
 
         RuleFor(x => x.Status)
-            .NotEmpty().WithMessage("Status is required.")
-            .MaximumLength(50).WithMessage("Status must not exceed 50 characters.");
+            .IsInEnum().WithMessage("Invalid review status.");
 
         RuleFor(x => x.Kind)
             .MaximumLength(100).WithMessage("Kind must not exceed 100 characters.");

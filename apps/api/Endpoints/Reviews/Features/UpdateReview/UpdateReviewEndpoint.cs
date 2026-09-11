@@ -1,3 +1,4 @@
+using Aegis.Api.Endpoints.Reviews.Data;
 using Aegis.Api.Endpoints.Reviews.Dtos;
 using Aegis.Api.Endpoints.Reviews.Exceptions;
 using FluentValidation;
@@ -16,7 +17,8 @@ internal static class UpdateReviewEndpoint
             .MapPut("/{id:guid}", Handle)
             .WithTags(ReviewsConfigurations.Tag)
             .WithName(Name)
-            .WithSummary("Updates an existing review.");
+            .WithSummary("Updates an existing review.")
+            .RequireAuthorization();
 
         static async Task<Results<Ok<ReviewDto>, NotFound, ValidationProblem>> Handle(
             Guid id,
@@ -52,6 +54,20 @@ internal static class UpdateReviewEndpoint
             {
                 return TypedResults.NotFound();
             }
+            catch (ReviewAlreadyCompletedException)
+            {
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["status"] = ["This review is completed and cannot be modified."]
+                });
+            }
+            catch (InvalidReviewTransitionException ex)
+            {
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["status"] = [ex.Message]
+                });
+            }
         }
     }
 }
@@ -61,7 +77,7 @@ internal sealed record UpdateReviewBody
     public required string Title { get; init; }
     public string? Kind { get; init; }
     public string? Version { get; init; }
-    public required string Status { get; init; }
+    public ReviewStatus Status { get; init; }
     public DateTimeOffset? DueDate { get; init; }
     public string? Assignee { get; init; }
 }

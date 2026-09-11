@@ -9,7 +9,6 @@ public sealed record CreateReviewRequest : IRequest<ReviewDto>
     public required string Title { get; init; }
     public string? Kind { get; init; }
     public string? Version { get; init; }
-    public required string Status { get; init; }
     public DateTimeOffset? DueDate { get; init; }
     public string? Assignee { get; init; }
 }

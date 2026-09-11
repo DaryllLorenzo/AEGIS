@@ -6,6 +6,9 @@ public sealed class CreateDocumentValidator : AbstractValidator<CreateDocumentRe
 {
     public CreateDocumentValidator()
     {
+        RuleFor(x => x.GroupId)
+            .NotEmpty().WithMessage("Group ID is required.");
+
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Document name is required.")
             .MaximumLength(300).WithMessage("Name must not exceed 300 characters.");

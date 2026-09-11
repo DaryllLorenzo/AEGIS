@@ -23,6 +23,11 @@ public sealed class GetDocumentsHandler : IRequestHandler<GetDocumentsRequest, P
     {
         var query = _db.Documents.AsQueryable();
 
+        if (request.GroupId.HasValue)
+        {
+            query = query.Where(d => d.GroupId == request.GroupId.Value);
+        }
+
         var paged = _sieve.Apply(request.Sieve, query);
 
         var totalCount = await paged.CountAsync(ct);

@@ -15,7 +15,8 @@ internal static class GetReviewByIdEndpoint
             .MapGet("/{id:guid}", Handle)
             .WithTags(ReviewsConfigurations.Tag)
             .WithName(Name)
-            .WithSummary("Returns a review by its ID.");
+            .WithSummary("Returns a review by its ID.")
+            .RequireAuthorization();
 
         static async Task<Results<Ok<ReviewDto>, NotFound>> Handle(
             Guid id,

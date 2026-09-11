@@ -23,6 +23,12 @@ public sealed class GetReviewsHandler : IRequestHandler<GetReviewsRequest, Pagin
     {
         var query = _db.Reviews.AsQueryable();
 
+        if (request.GroupId.HasValue)
+        {
+            query = query.Where(r => _db.Documents
+                .Any(d => d.Id == r.DocumentId && d.GroupId == request.GroupId.Value));
+        }
+
         var paged = _sieve.Apply(request.Sieve, query);
 
         var totalCount = await paged.CountAsync(ct);

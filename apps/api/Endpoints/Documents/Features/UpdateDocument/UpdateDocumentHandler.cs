@@ -2,8 +2,10 @@ using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Documents.Dtos;
 using Aegis.Api.Endpoints.Documents.Exceptions;
 using Aegis.Api.Endpoints.Documents.Mappings;
+using Aegis.Api.Endpoints.Reviews.Data;
 using Aegis.Api.Shared.Storage;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aegis.Api.Endpoints.Documents.Features.UpdateDocument;
 
@@ -22,6 +24,14 @@ public sealed class UpdateDocumentHandler : IRequestHandler<UpdateDocumentReques
     {
         var document = await _db.Documents.FindAsync([request.Id], ct)
             ?? throw new DocumentNotFoundException(request.Id);
+
+        var hasCompletedReview = await _db.Reviews.AnyAsync(
+            r => r.DocumentId == document.Id && r.Status == ReviewStatus.Completed, ct);
+
+        if (hasCompletedReview)
+        {
+            throw new DocumentLockedException(request.Id);
+        }
 
         document.Name = request.Name;
 

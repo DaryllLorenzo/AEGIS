@@ -1,3 +1,4 @@
+using Aegis.Api.Endpoints.Groups.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -29,11 +30,17 @@ public sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.Property(d => d.Checksum)
             .HasMaxLength(128);
 
+        builder.HasOne<Group>()
+            .WithMany()
+            .HasForeignKey(d => d.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasOne<Document>()
             .WithMany()
             .HasForeignKey(d => d.ParentId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasIndex(d => d.GroupId);
         builder.HasIndex(d => d.Name);
         builder.HasIndex(d => d.ParentId);
         builder.HasIndex(d => d.IsActive);

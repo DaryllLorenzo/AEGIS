@@ -16,7 +16,8 @@ internal static class GetDocumentsEndpoint
             .WithTags(DocumentsConfiguration.Tag)
             .WithName(Name)
             .WithSummary("Returns a paginated list of documents.")
-            .WithDescription("Supports filtering, sorting and pagination via Sieve query parameters.");
+            .WithDescription("Supports filtering, sorting and pagination via Sieve query parameters.")
+            .RequireAuthorization();
 
         static async Task<Ok<PaginatedList<DocumentDto>>> Handle(
             [AsParameters] GetDocumentsParameters parameters,
@@ -31,7 +32,12 @@ internal static class GetDocumentsEndpoint
                 Sorts = parameters.Sorts,
             };
 
-            var result = await sender.Send(new GetDocumentsRequest { Sieve = sieve }, cancellationToken);
+            var result = await sender.Send(new GetDocumentsRequest
+            {
+                Sieve = sieve,
+                GroupId = parameters.GroupId,
+            }, cancellationToken);
+
             return TypedResults.Ok(result);
         }
     }
@@ -39,6 +45,7 @@ internal static class GetDocumentsEndpoint
 
 internal sealed record GetDocumentsParameters
 {
+    public Guid? GroupId { get; init; }
     public int? Page { get; init; }
     public int? PageSize { get; init; }
     public string? Filters { get; init; }

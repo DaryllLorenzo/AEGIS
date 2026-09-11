@@ -3,6 +3,7 @@ namespace Aegis.Api.Endpoints.Documents.Data;
 public sealed class Document
 {
     public Guid Id { get; set; }
+    public Guid GroupId { get; set; }
     public Guid? ParentId { get; set; }
     public int TotalPages { get; set; }
     public required string Name { get; set; }

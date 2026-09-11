@@ -18,6 +18,7 @@ internal static class UpdateDocumentEndpoint
             .WithTags(DocumentsConfiguration.Tag)
             .WithName(Name)
             .WithSummary("Updates an existing document (name, metadata, and optionally replaces the file).")
+            .RequireAuthorization()
             .DisableAntiforgery();
 
         static async Task<Results<Ok<DocumentDto>, NotFound, ValidationProblem>> Handle(
@@ -57,6 +58,13 @@ internal static class UpdateDocumentEndpoint
             catch (DocumentNotFoundException)
             {
                 return TypedResults.NotFound();
+            }
+            catch (DocumentLockedException)
+            {
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["document"] = ["This document has a completed review and cannot be modified."]
+                });
             }
         }
     }

@@ -14,7 +14,8 @@ internal static class DeleteReviewEndpoint
             .MapDelete("/{id:guid}", Handle)
             .WithTags(ReviewsConfigurations.Tag)
             .WithName(Name)
-            .WithSummary("Deletes a review.");
+            .WithSummary("Deletes a review.")
+            .RequireAuthorization();
 
         static async Task<Results<NoContent, NotFound>> Handle(
             Guid id,

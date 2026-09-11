@@ -9,6 +9,7 @@ public static class ManualReviewMappings
     {
         Id = review.Id,
         DocumentId = review.DocumentId,
+        UserId = review.UserId,
         Title = review.Title,
         Kind = review.Kind,
         Version = review.Version,

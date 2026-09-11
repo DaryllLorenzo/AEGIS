@@ -16,7 +16,8 @@ internal static class GetReviewsEndpoint
             .WithTags(ReviewsConfigurations.Tag)
             .WithName(Name)
             .WithSummary("Returns a paginated list of reviews.")
-            .WithDescription("Supports filtering, sorting and pagination via Sieve query parameters.");
+            .WithDescription("Supports filtering, sorting and pagination via Sieve query parameters.")
+            .RequireAuthorization();
 
         static async Task<Ok<PaginatedList<ReviewDto>>> Handle(
             [AsParameters] GetReviewsParameters parameters,
@@ -31,7 +32,12 @@ internal static class GetReviewsEndpoint
                 Sorts = parameters.Sorts,
             };
 
-            var result = await sender.Send(new GetReviewsRequest { Sieve = sieve }, cancellationToken);
+            var result = await sender.Send(new GetReviewsRequest
+            {
+                Sieve = sieve,
+                GroupId = parameters.GroupId,
+            }, cancellationToken);
+
             return TypedResults.Ok(result);
         }
     }
@@ -39,6 +45,7 @@ internal static class GetReviewsEndpoint
 
 internal sealed record GetReviewsParameters
 {
+    public Guid? GroupId { get; init; }
     public int? Page { get; init; }
     public int? PageSize { get; init; }
     public string? Filters { get; init; }

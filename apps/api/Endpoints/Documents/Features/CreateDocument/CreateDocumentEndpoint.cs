@@ -17,10 +17,12 @@ internal static class CreateDocumentEndpoint
             .WithTags(DocumentsConfiguration.Tag)
             .WithName(Name)
             .WithSummary("Creates a new document by uploading a file.")
+            .RequireAuthorization()
             .DisableAntiforgery();
 
-        static async Task<Results<Created<DocumentDto>, ValidationProblem>> Handle(
+        static async Task<Results<Created<DocumentDto>, NotFound, ValidationProblem>> Handle(
             IFormFile file,
+            [FromForm] Guid groupId,
             [FromForm] string name,
             [FromForm] string? parentId,
             [FromForm] int? totalPages,
@@ -38,6 +40,7 @@ internal static class CreateDocumentEndpoint
 
             var request = new CreateDocumentRequest
             {
+                GroupId = groupId,
                 ParentId = Guid.TryParse(parentId, out var pid) ? pid : null,
                 Name = name,
                 TotalPages = totalPages,
@@ -54,11 +57,17 @@ internal static class CreateDocumentEndpoint
                 return TypedResults.ValidationProblem(validation.ToDictionary());
             }
 
-            var result = await sender.Send(request, cancellationToken);
-
-            return TypedResults.Created(
-                $"/api/documents/{result.Id}",
-                result);
+            try
+            {
+                var result = await sender.Send(request, cancellationToken);
+                return TypedResults.Created(
+                    $"/api/documents/{result.Id}",
+                    result);
+            }
+            catch (Documents.Exceptions.NotGroupMemberException)
+            {
+                return TypedResults.NotFound();
+            }
         }
     }
 }
