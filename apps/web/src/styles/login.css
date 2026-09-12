@@ -1,0 +1,387 @@
+.login-page {
+  background: var(--surface);
+  display: grid;
+  grid-template-columns: minmax(340px, 0.82fr) minmax(460px, 1.18fr);
+  min-height: 100vh;
+}
+
+.login-brand-panel {
+  background: var(--green-950);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  padding: 44px clamp(32px, 7vw, 112px) 36px;
+}
+
+.login-brand-panel .brand__copy strong,
+.login-brand-panel .brand__copy small {
+  color: #fff;
+}
+
+.login-brand-panel > .brand {
+  background: #fff;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.login-brand-panel__copy {
+  max-width: 440px;
+}
+
+.login-brand-panel__copy .eyebrow {
+  color: #9ce8bd;
+}
+
+.login-brand-panel__copy h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4vw, 4.2rem);
+  line-height: 1.05;
+  margin-top: 14px;
+}
+
+.login-brand-panel__copy > p:last-child {
+  color: #c4d8ce;
+  font-size: 1.03rem;
+  line-height: 1.7;
+  margin-top: 22px;
+  max-width: 390px;
+}
+
+.login-brand-panel__footer {
+  align-items: center;
+  color: #a9c8b8;
+  display: flex;
+  font-size: 0.76rem;
+  gap: 8px;
+}
+
+.login-form-panel {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  padding: 44px 32px;
+}
+
+.login-form-panel__inner {
+  max-width: 480px;
+  width: 100%;
+}
+
+.login-form-panel h2 {
+  font-size: 2rem;
+  margin-top: 7px;
+}
+
+.login-intro {
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+.login-form {
+  display: grid;
+  gap: 9px;
+  margin-top: 28px;
+}
+
+.login-form label,
+.login-form__label-row {
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.login-form input:not([type="checkbox"]) {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  min-height: 44px;
+  outline: none;
+  padding: 0 12px;
+  width: 100%;
+}
+
+.login-form input:not([type="checkbox"]):focus {
+  border-color: var(--green-900);
+  box-shadow: 0 0 0 3px rgba(0, 81, 52, 0.09);
+}
+
+.login-form__label-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 9px;
+}
+
+.login-form__label-row a,
+.login-support a {
+  color: var(--green-900);
+  font-weight: 650;
+}
+
+.password-field {
+  align-items: center;
+  display: flex;
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 42px !important;
+}
+
+.password-field svg {
+  color: var(--muted);
+  pointer-events: none;
+  position: absolute;
+  right: 13px;
+}
+
+.checkbox-row {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  font-size: 0.74rem !important;
+  font-weight: 400 !important;
+  gap: 7px;
+  margin-top: 6px;
+}
+
+.checkbox-row input {
+  accent-color: var(--green-900);
+}
+
+.login-submit {
+  margin-top: 11px;
+  width: 100%;
+}
+
+.login-divider {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  gap: 13px;
+  margin: 24px 0 16px;
+}
+
+.login-divider::before,
+.login-divider::after {
+  background: var(--border-soft);
+  content: "";
+  height: 1px;
+  flex: 1;
+}
+
+.login-divider span {
+  font-size: 0.72rem;
+}
+
+.login-sso {
+  width: 100%;
+}
+
+.login-support,
+.login-legal {
+  color: var(--muted);
+  font-size: 0.74rem;
+  text-align: center;
+}
+
+.login-support {
+  margin-top: 18px;
+}
+
+.role-preview {
+  border-top: 1px solid var(--border);
+  margin-top: 31px;
+  padding-top: 20px;
+}
+
+.role-preview__heading {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+}
+
+.role-preview__heading span {
+  font-size: 0.77rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.role-preview__heading small {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.role-option {
+  align-items: flex-start;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  display: flex;
+  gap: 11px;
+  margin-top: 10px;
+  padding: 12px;
+}
+
+.role-option.is-active {
+  background: var(--green-50);
+  border-color: #9cc9ad;
+}
+
+.role-option__check {
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  flex: 0 0 19px;
+  height: 19px;
+  justify-content: center;
+  margin-top: 1px;
+  width: 19px;
+}
+
+.role-option.is-active .role-option__check {
+  background: var(--green-900);
+  border-color: var(--green-900);
+  color: #fff;
+}
+
+.role-option strong {
+  font-size: 0.82rem;
+}
+
+.role-option p {
+  color: var(--muted);
+  font-size: 0.73rem;
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.login-legal {
+  margin-top: 20px;
+}
+
+.login-back {
+  color: var(--green-900);
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 650;
+  margin-top: 13px;
+  text-align: center;
+}
+
+.login-mobile-brand {
+  display: none;
+}
+
+.login-page--simple {
+  background: #fff;
+  display: block;
+}
+
+.login-page--simple .login-form-panel {
+  min-height: 100vh;
+  padding: 48px 24px;
+}
+
+.login-page--simple .login-form-panel__inner {
+  max-width: 420px;
+}
+
+.login-simple-brand {
+  margin-bottom: 34px;
+}
+
+.login-simple-brand .brand__logo {
+  height: 70px;
+  width: 50px;
+}
+
+.workspace-options-wrap {
+  position: relative;
+}
+
+.workspace-options-button.is-active {
+  background: var(--surface-muted);
+}
+
+.workspace-options {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 14px 30px rgba(26, 34, 30, 0.16);
+  min-width: 274px;
+  padding: 8px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 9px);
+  z-index: 70;
+}
+
+.workspace-options__title {
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 8px 11px;
+}
+
+.workspace-options__title span {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.workspace-options small {
+  color: var(--muted);
+  font-size: 0.67rem;
+}
+
+.workspace-options > button {
+  align-items: center;
+  background: transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  padding: 10px 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.workspace-options > button:hover {
+  background: var(--surface-soft);
+}
+
+.workspace-options > button > span {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1px;
+}
+
+.workspace-options > button > span strong {
+  font-size: 0.74rem;
+}
+
+.workspace-options > button > b {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.workspace-options__divider {
+  background: var(--border-soft);
+  height: 1px;
+  margin: 5px 8px;
+}
+
+.workspace-option-toggle {
+  align-items: center;
+  display: flex;
+  font-size: 0.73rem;
+  justify-content: space-between;
+  padding: 9px 8px 7px;
+}
+
+.workspace-option-toggle input {
+  accent-color: var(--green-900);
+}

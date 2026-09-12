@@ -1,0 +1,271 @@
+.app-shell {
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: #fff;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  left: 0;
+  padding: 24px 16px 20px;
+  position: fixed;
+  top: 0;
+  width: var(--sidebar-width);
+  z-index: 30;
+}
+
+.sidebar__header {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+}
+
+.sidebar__close {
+  display: none;
+}
+
+.brand {
+  align-items: center;
+  display: inline-flex;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand__logo {
+  flex: 0 0 auto;
+  height: 62px;
+  object-fit: contain;
+  width: 44px;
+}
+
+.brand__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.brand__copy strong {
+  color: var(--green-950);
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+}
+
+.brand__copy small {
+  color: #4d5558;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (min-width: 761px) {
+  .brand__copy strong,
+  .brand__copy small {
+    color: #111;
+  }
+}
+
+.brand--compact .brand__logo {
+  height: 38px;
+  width: 27px;
+}
+
+.sidebar__create {
+  margin: 28px 0 22px;
+  width: 100%;
+}
+
+.sidebar__nav {
+  display: grid;
+  gap: 4px;
+}
+
+.nav-item {
+  align-items: center;
+  background: transparent;
+  border-radius: var(--radius);
+  color: #4f565b;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  position: relative;
+  text-align: left;
+  width: 100%;
+}
+
+.nav-item:hover {
+  background: var(--surface-soft);
+  color: var(--green-950);
+}
+
+.nav-item--active {
+  background: #edf1f2;
+  color: var(--green-950);
+  font-weight: 650;
+}
+
+.nav-item--active::after {
+  background: var(--green-900);
+  border-radius: 3px 0 0 3px;
+  content: "";
+  height: 100%;
+  position: absolute;
+  right: -12px;
+  top: 0;
+  width: 4px;
+}
+
+.nav-item b {
+  align-items: center;
+  background: var(--amber-600);
+  border-radius: 4px;
+  color: #111;
+  display: inline-flex;
+  font-size: 0.68rem;
+  height: 20px;
+  justify-content: center;
+  margin-left: auto;
+  width: 20px;
+}
+
+.sidebar__groups {
+  border-left: 2px solid var(--border-soft);
+  display: grid;
+  gap: 8px;
+  margin: 20px 0 0 20px;
+  padding: 0 0 0 28px;
+}
+
+.sidebar__groups > span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sidebar__groups a {
+  align-items: center;
+  display: flex;
+  font-size: 0.86rem;
+  gap: 8px;
+}
+
+.sidebar__groups a:hover {
+  color: var(--green-900);
+}
+
+.group-dot,
+.legend-dot {
+  border-radius: 50%;
+  display: inline-block;
+  height: 7px;
+  width: 7px;
+}
+
+.group-dot--green,
+.legend-dot--green {
+  background: var(--success);
+}
+
+.group-dot--blue,
+.legend-dot--blue {
+  background: #3b82f6;
+}
+
+.legend-dot--amber {
+  background: var(--amber-600);
+}
+
+.sidebar__footer {
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 4px;
+  margin: auto -16px -20px;
+  padding: 14px 16px 18px;
+}
+
+.app-frame {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+}
+
+.topbar {
+  align-items: center;
+  background: rgba(248, 250, 251, 0.95);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  height: 68px;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.search-field {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  display: flex;
+  gap: 9px;
+  height: 40px;
+  max-width: 340px;
+  padding: 0 15px;
+  width: 100%;
+}
+
+.search-field:focus-within {
+  border-color: var(--green-900);
+  box-shadow: 0 0 0 3px rgba(0, 81, 52, 0.08);
+}
+
+.search-field input {
+  background: transparent;
+  border: 0;
+  min-width: 0;
+  outline: 0;
+  width: 100%;
+}
+
+.topbar__actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.notification-button {
+  position: relative;
+}
+
+.notification-button span {
+  background: #c92b25;
+  border: 2px solid var(--surface-soft);
+  border-radius: 50%;
+  height: 8px;
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  width: 8px;
+}
+
+.profile-button {
+  align-items: center;
+  background: var(--green-100);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.mobile-menu-button {
+  display: none;
+}

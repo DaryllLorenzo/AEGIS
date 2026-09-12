@@ -1,0 +1,135 @@
+/* Shared options and routed directory pages */
+.shell-options-wrap {
+  position: relative;
+}
+
+.shell-options-button.is-active {
+  background: var(--surface-muted);
+}
+
+.shell-options {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 14px 30px rgba(26, 34, 30, 0.16);
+  min-width: 270px;
+  padding: 8px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 9px);
+  z-index: 70;
+}
+
+.shell-options__title {
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 8px 11px;
+}
+
+.shell-options__title span,
+.shell-options a strong {
+  font-size: 0.76rem;
+}
+
+.shell-options small {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.shell-options a,
+.workspace-options > a {
+  align-items: center;
+  border-radius: 5px;
+  display: flex;
+  gap: 10px;
+  padding: 10px 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.shell-options a:hover,
+.workspace-options > a:hover {
+  background: var(--surface-soft);
+}
+
+.shell-options a > span,
+.workspace-options > a > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.shell-options__divider {
+  background: var(--border-soft);
+  height: 1px;
+  margin: 5px 8px;
+}
+
+.navigation-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 26px;
+}
+
+.navigation-card {
+  align-items: flex-start;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: grid;
+  gap: 14px;
+  grid-template-columns: auto 1fr auto;
+  min-height: 142px;
+  padding: 20px;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.navigation-card:hover {
+  border-color: var(--green-800);
+  box-shadow: 0 8px 22px rgba(26, 34, 30, 0.08);
+  transform: translateY(-1px);
+}
+
+.navigation-card__icon {
+  align-items: center;
+  background: var(--green-50);
+  border-radius: 6px;
+  color: var(--green-900);
+  display: flex;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.navigation-card__copy {
+  min-width: 0;
+}
+
+.navigation-card h2 {
+  font-size: 1.08rem;
+}
+
+.navigation-card p {
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  margin-top: 5px;
+}
+
+.navigation-card small {
+  color: var(--green-800);
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-top: 12px;
+  text-transform: uppercase;
+}
+
+.navigation-card > svg {
+  color: var(--green-800);
+  margin-top: 10px;
+}

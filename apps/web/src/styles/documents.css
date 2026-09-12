@@ -1,0 +1,124 @@
+.document-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+  padding: 24px;
+}
+
+.document-card__header h2 {
+  margin-top: 3px;
+}
+
+.document-meta {
+  color: var(--muted);
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  gap: 13px;
+  margin-top: 13px;
+}
+
+.version-history {
+  border-bottom: 1px solid var(--border-soft);
+  border-top: 1px solid var(--border-soft);
+  margin-top: 28px;
+  padding: 18px 0;
+}
+
+.version-history__title {
+  align-items: center;
+  display: flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.version-row {
+  align-items: start;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto auto 1fr auto;
+  padding: 16px 0 3px;
+  position: relative;
+}
+
+.version-row > i {
+  border-radius: 50%;
+  height: 8px;
+  margin-top: 6px;
+  width: 8px;
+}
+
+.version-row > i.is-progress {
+  background: var(--amber-600);
+}
+
+.version-row > i.is-complete {
+  background: var(--success);
+}
+
+.version-row > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.version-row > div span {
+  font-size: 0.78rem;
+}
+
+.version-row .is-progress {
+  color: #a56f00;
+}
+
+.version-row .is-complete {
+  color: #07834a;
+}
+
+.version-row small {
+  background: var(--surface-muted);
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 0.69rem;
+  padding: 2px 5px;
+}
+
+.version-row time {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.draft-state {
+  align-items: center;
+  background: var(--surface-soft);
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: #92999d;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  margin-top: 28px;
+  min-height: 240px;
+  padding: 20px;
+  text-align: center;
+}
+
+.draft-state strong {
+  color: #343b3f;
+  margin-top: 12px;
+}
+
+.draft-state p {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.document-card__footer {
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 20px;
+}

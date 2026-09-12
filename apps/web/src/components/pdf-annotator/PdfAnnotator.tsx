@@ -159,20 +159,12 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | string | null>(initialFile ?? null);
 
-  console.log("PdfAnnotator mounted with:", { documentId, initialFile, file });
-
   // Sync file state when initialFile changes
   useEffect(() => {
     if (initialFile) {
-      console.log("Setting file from initialFile:", initialFile);
       setFile(initialFile);
     }
   }, [initialFile]);
-
-  // Log when file changes
-  useEffect(() => {
-    console.log("File changed:", file);
-  }, [file]);
 
   const [isDrawing, setIsDrawing] = useState(false);
   const startPoint = useRef<{ x: number; y: number } | null>(null);

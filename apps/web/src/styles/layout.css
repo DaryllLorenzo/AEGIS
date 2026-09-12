@@ -1,0 +1,134 @@
+.app-main {
+  min-height: calc(100vh - 68px);
+}
+
+.page-container {
+  margin: 0 auto;
+  max-width: 1240px;
+  padding: 36px 32px 64px;
+}
+
+.page-heading {
+  margin-bottom: 28px;
+}
+
+.page-heading h1 {
+  margin-top: 4px;
+}
+
+.page-heading > p:last-child,
+.page-heading > div > p:last-child {
+  color: var(--muted);
+  margin-top: 7px;
+}
+
+.page-heading--split {
+  align-items: flex-end;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.status-legend {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  font-size: 0.78rem;
+  gap: 18px;
+  padding-bottom: 4px;
+}
+
+.status-legend span {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.metrics-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 42px;
+}
+
+.metric-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 154px;
+  padding: 22px;
+  position: relative;
+}
+
+.metric-card__icon {
+  align-items: center;
+  border-radius: 6px;
+  display: flex;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.metric-card__icon--blue {
+  background: var(--blue-50);
+  color: var(--blue-600);
+}
+
+.metric-card__icon--amber {
+  background: var(--amber-50);
+  color: var(--amber-600);
+}
+
+.metric-card__icon--green {
+  background: var(--green-50);
+  color: var(--success);
+}
+
+.metric-card__note {
+  background: var(--surface-soft);
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 650;
+  padding: 4px 7px;
+  position: absolute;
+  right: 18px;
+  top: 22px;
+}
+
+.metric-card strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  line-height: 1;
+  margin-top: 20px;
+}
+
+.metric-card p {
+  color: #4f555b;
+  font-weight: 600;
+  margin-top: 7px;
+}
+
+.section-block {
+  display: grid;
+  gap: 18px;
+}
+
+.section-heading {
+  align-items: flex-end;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 13px;
+}
+
+.section-heading h2 {
+  margin-top: 3px;
+}
+
+.section-heading--compact {
+  align-items: center;
+  margin-bottom: 18px;
+}

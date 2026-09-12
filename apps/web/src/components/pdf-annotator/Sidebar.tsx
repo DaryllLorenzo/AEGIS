@@ -49,15 +49,7 @@ export default function Sidebar({
         );
       })}
 
-      <button
-        className="btn annotator-log-btn"
-        onClick={() => {
-          console.log("JSON FOR BACKEND:");
-          console.log(JSON.stringify(annotations, null, 2));
-        }}
-      >
-        Log JSON to console
-      </button>
+
     </aside>
   );
 }

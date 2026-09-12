@@ -1,0 +1,184 @@
+body {
+  font-size: 14px;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.2rem;
+}
+
+.page-container {
+  max-width: 1180px;
+  padding-bottom: 44px;
+  padding-top: 28px;
+}
+
+.topbar {
+  height: 62px;
+}
+
+.app-main {
+  min-height: calc(100vh - 62px);
+}
+
+.sidebar {
+  padding-top: 20px;
+}
+
+.sidebar__create {
+  margin: 22px 0 16px;
+}
+
+.nav-item {
+  min-height: 40px;
+}
+
+.metrics-grid {
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.metric-card {
+  min-height: 132px;
+  padding: 17px;
+}
+
+.metric-card__icon {
+  height: 36px;
+  width: 36px;
+}
+
+.metric-card__note {
+  right: 14px;
+  top: 17px;
+}
+
+.metric-card strong {
+  font-size: 1.8rem;
+  margin-top: 14px;
+}
+
+.review-card,
+.content-panel,
+.document-card {
+  padding: 18px;
+}
+
+.review-card h3 {
+  margin-top: 15px;
+}
+
+.review-card__footer {
+  margin-top: 16px;
+  padding-top: 12px;
+}
+
+.group-tabs {
+  margin-bottom: 24px;
+}
+
+.group-layout,
+.review-overview-grid {
+  gap: 18px;
+}
+
+.group-layout__main,
+.group-layout__aside {
+  gap: 16px;
+}
+
+.review-title-block {
+  margin-bottom: 24px;
+}
+
+.review-title-block h1 {
+  font-size: 2.15rem;
+}
+
+.previous-review-panel {
+  margin-top: 18px;
+}
+
+.workspace-header {
+  height: 62px;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.workspace-body {
+  height: calc(100vh - 62px);
+}
+
+.document-stage {
+  padding: 24px 28px 112px;
+}
+
+.document-page {
+  min-height: 900px;
+  padding: 64px 70px;
+  width: 670px;
+}
+
+.document-page h1 {
+  font-size: 2.2rem;
+}
+
+.document-page > p {
+  font-size: 0.96rem;
+  line-height: 1.72;
+  margin-top: 19px;
+}
+
+.workspace-toolbar {
+  bottom: 16px;
+}
+
+.comment-card {
+  padding: 12px;
+}
+
+.comments-list {
+  gap: 10px;
+  padding: 12px;
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    height: 58px;
+  }
+
+  .app-main {
+    min-height: calc(100vh - 58px);
+  }
+
+  .document-stage {
+    padding: 14px 10px 106px;
+  }
+
+  .document-page {
+    min-height: 780px;
+    padding: 34px 24px;
+  }
+
+  .document-page h1 {
+    font-size: 1.7rem;
+  }
+}
+
+@media (max-width: 440px) {
+  .topbar__actions {
+    display: flex;
+  }
+
+  .topbar__actions > .notification-button,
+  .topbar__actions > .profile-button {
+    display: none;
+  }
+
+  .topbar .search-field {
+    max-width: calc(100vw - 112px);
+  }
+}

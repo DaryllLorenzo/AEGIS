@@ -1,0 +1,36 @@
+:root {
+  --green-950: #073b28;
+  --green-900: #005134;
+  --green-800: #0c6243;
+  --green-100: #dff3e9;
+  --green-50: #eff8f4;
+  --blue-600: #2563eb;
+  --blue-50: #eff6ff;
+  --amber-600: #d99a00;
+  --amber-100: #fff1c2;
+  --amber-50: #fff9e8;
+  --success: #14a95d;
+  --surface: #f3f6f8;
+  --surface-soft: #f8fafb;
+  --surface-muted: #e9eef1;
+  --paper: #ffffff;
+  --text: #171b1e;
+  --muted: #5b646c;
+  --border: #c8d2cc;
+  --border-soft: #dce3df;
+  --danger: #b42318;
+  --sidebar-width: 264px;
+  --radius: 8px;
+  --font-ui: "Aptos", "Inter", "Segoe UI", Arial, sans-serif;
+  --font-display: "Aptos Display", "Segoe UI", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+
+/* Compact product pass: dense enough for repeated academic workflows. */
+:root {
+  --blue-600: #567365;
+  --blue-50: #edf3ef;
+  --amber-600: #997b36;
+  --amber-100: #f4edda;
+  --amber-50: #faf7ed;
+}

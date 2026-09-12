@@ -22,7 +22,8 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { getReviewById, getDocumentById, getDocumentDownloadUrl, getAuthToken, updateReview, reviewStatusLabel, type Review, type DocumentDto } from "@/lib/api";
+import { getReviewById, getDocumentById, getDocumentDownloadUrl, getAuthToken, updateReview, type Review, type DocumentDto } from "@/lib/api";
+import { reviewStatusLabel } from "@/lib/utils";
 
 import Avatar from "./Avatar";
 import Brand from "./Brand";
@@ -117,7 +118,6 @@ export default function ReviewWorkspace({ reviewId }: Props) {
 
         // Fetch the PDF blob and create a File object
         const downloadUrl = getDocumentDownloadUrl(r.documentId);
-        console.log("Fetching PDF from:", downloadUrl);
         const headers: Record<string, string> = {};
         const token = getAuthToken();
         if (token) headers["Authorization"] = `Bearer ${token}`;

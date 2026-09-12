@@ -21,7 +21,7 @@ import { useState } from "react";
 
 import Brand from "./Brand";
 import { useAuth } from "@/lib/auth-context";
-import { initialsFromName } from "@/lib/api";
+import { initialsFromName } from "@/lib/utils";
 
 type AppShellProps = {
   children: React.ReactNode;
