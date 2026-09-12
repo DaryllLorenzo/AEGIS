@@ -1,7 +1,7 @@
 // Barrel export — re-export everything from the modular API files.
 // Existing imports like `from "@/lib/api"` will continue to work.
 
-export { apiBaseUrl, setAuthToken, getAuthToken } from "./client";
+export { apiBaseUrl, setAuthToken, getAuthToken, setTokenRefresher, setAuthFailureHandler } from "./client";
 export { apiFetch } from "./client";
 
 export type {
@@ -16,9 +16,10 @@ export type {
   AnnotationPayload,
   LoginPayload,
   LoginResponse,
+  RefreshResponse,
 } from "./types";
 
-export { login, getMe } from "./auth";
+export { login, refreshAccessToken, logoutUser, getMe } from "./auth";
 export { getGroups, getGroupById } from "./groups";
 export { getUsers } from "./users";
 export { getDocuments, getDocumentById, getDocumentDownloadUrl, uploadDocument } from "./documents";

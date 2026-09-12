@@ -95,7 +95,14 @@ export type LoginPayload = {
 
 export type LoginResponse = {
   token: string;
+  refreshToken: string;
   email: string;
   displayName: string;
+  expiresAt: string;
+};
+
+export type RefreshResponse = {
+  token: string;
+  refreshToken: string;
   expiresAt: string;
 };

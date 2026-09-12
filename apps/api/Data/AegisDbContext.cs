@@ -20,6 +20,7 @@ public class AegisDbContext(DbContextOptions<AegisDbContext> options) : DbContex
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<GroupUserRole> UserRoles => Set<GroupUserRole>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,5 +33,6 @@ public class AegisDbContext(DbContextOptions<AegisDbContext> options) : DbContex
         modelBuilder.ApplyConfiguration(new RoleConfiguration());
         modelBuilder.ApplyConfiguration(new GroupConfiguration());
         modelBuilder.ApplyConfiguration(new GroupUserRoleConfiguration());
+        modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
     }
 }

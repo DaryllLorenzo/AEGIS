@@ -4,6 +4,8 @@ using Aegis.Api.Endpoints.Users.Features.GetProtectedResource;
 using Aegis.Api.Endpoints.Users.Features.GetUserById;
 using Aegis.Api.Endpoints.Users.Features.GetUsers;
 using Aegis.Api.Endpoints.Users.Features.Login;
+using Aegis.Api.Endpoints.Users.Features.Logout;
+using Aegis.Api.Endpoints.Users.Features.Refresh;
 using Aegis.Api.Endpoints.Users.Features.UpdateUser;
 using Aegis.Api.Endpoints.Users.Features.WhoAmI;
 using Aegis.Api.Endpoints.Users.Services;
@@ -20,9 +22,12 @@ internal static class UsersConfigurations
     {
         builder.Services.AddScoped<UserSieveProcessor>();
         builder.Services.AddScoped<JwtTokenService>();
+        builder.Services.AddScoped<RefreshTokenService>();
 
         builder.Services.AddValidatorsFromAssemblyContaining<CreateUserValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<LoginValidator>();
+        builder.Services.AddValidatorsFromAssemblyContaining<RefreshValidator>();
+        builder.Services.AddValidatorsFromAssemblyContaining<LogoutValidator>();
 
         builder.Services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssemblyContaining<GetUsersRequest>());
@@ -36,6 +41,10 @@ internal static class UsersConfigurations
 
         // Auth (no auth required)
         users.MapLoginEndpoint();
+        users.MapRefreshEndpoint();
+
+        // Auth (requires auth)
+        users.MapLogoutEndpoint();
 
         // Test endpoint (requires auth)
         users.MapGetProtectedResourceEndpoint();

@@ -10,11 +10,13 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, LoginResponse>
 {
     private readonly AegisDbContext _db;
     private readonly JwtTokenService _jwt;
+    private readonly RefreshTokenService _refreshToken;
 
-    public LoginHandler(AegisDbContext db, JwtTokenService jwt)
+    public LoginHandler(AegisDbContext db, JwtTokenService jwt, RefreshTokenService refreshToken)
     {
         _db = db;
         _jwt = jwt;
+        _refreshToken = refreshToken;
     }
 
     public async Task<LoginResponse> Handle(LoginRequest request, CancellationToken ct)
@@ -35,10 +37,12 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, LoginResponse>
 
         var token = _jwt.GenerateToken(user, roles);
         var expiresAt = DateTime.UtcNow.AddHours(24);
+        var refreshToken = await _refreshToken.GenerateRefreshTokenAsync(user.Id, ct);
 
         return new LoginResponse
         {
             Token = token,
+            RefreshToken = refreshToken.Token,
             Email = user.Email,
             DisplayName = user.DisplayName,
             ExpiresAt = expiresAt,

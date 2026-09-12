@@ -6,8 +6,8 @@ import { ArrowRight, LockKeyhole, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 import Brand from "@/components/aegis/Brand";
-import { login as apiLogin, setAuthToken } from "@/lib/api";
-import { useAuth, type AuthUser } from "@/lib/auth-context";
+import { login as apiLogin } from "@/lib/api";
+import { useAuth, decodeJwtPayload } from "@/lib/auth-context";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,21 +26,13 @@ export default function LoginPage() {
 
     try {
       const res = await apiLogin({ email, password });
-      setAuthToken(res.token);
 
-      const payload = JSON.parse(atob(res.token.split(".")[1]));
-      const user: AuthUser = {
-        userId: payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ?? "",
-        email: res.email,
-        displayName: res.displayName,
-        roles: Array.isArray(payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"])
-          ? payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"]
-          : payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"]
-            ? [payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"]]
-            : [],
-      };
+      const user = decodeJwtPayload(res.token);
+      if (!user) {
+        throw new Error("Failed to decode token.");
+      }
 
-      ctxLogin(res.token, user);
+      ctxLogin(res.token, res.refreshToken, user, res.expiresAt);
       router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid credentials.");

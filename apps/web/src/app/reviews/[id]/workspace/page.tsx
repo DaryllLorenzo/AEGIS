@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 
+import AuthGuard from "@/components/aegis/AuthGuard";
 import ReviewWorkspace from "@/components/aegis/ReviewWorkspace";
 
 export default function WorkspacePage() {
@@ -10,5 +11,9 @@ export default function WorkspacePage() {
 
   if (!reviewId) return <div className="annotator-status">Loading...</div>;
 
-  return <ReviewWorkspace reviewId={reviewId} />;
+  return (
+    <AuthGuard>
+      <ReviewWorkspace reviewId={reviewId} />
+    </AuthGuard>
+  );
 }
