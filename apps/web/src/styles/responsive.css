@@ -8,12 +8,8 @@
     grid-template-columns: 1fr auto;
   }
 
-  .review-card__footer .avatar-stack {
-    display: none;
-  }
-
   .workspace-body {
-    grid-template-columns: 164px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .review-panel {
@@ -71,12 +67,19 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .group-layout__aside .members-panel {
-    grid-row: span 2;
+  .workspace-status {
+    display: none;
   }
 
-  .workspace-status,
-  .workspace-reviewers {
+  .workflow__steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .workflow-step {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .workflow-step__icon {
     display: none;
   }
 }
@@ -175,10 +178,6 @@
     max-width: 240px;
   }
 
-  .topbar__actions .notification-button {
-    display: none;
-  }
-
   .page-container {
     padding: 26px 16px 48px;
   }
@@ -215,10 +214,6 @@
     grid-template-columns: 1fr;
   }
 
-  .group-layout__aside .members-panel {
-    grid-row: auto;
-  }
-
   .heading-actions {
     width: 100%;
   }
@@ -231,12 +226,8 @@
     flex-basis: 100%;
   }
 
-  .previous-review-row {
-    grid-template-columns: auto 1fr auto;
-  }
-
-  .previous-review-row__count {
-    display: none;
+  .workflow__steps {
+    grid-template-columns: 1fr;
   }
 
   .workspace-header {
@@ -255,8 +246,8 @@
   }
 
   .workspace-header__title strong {
-    max-width: 170px;
     font-size: 0.82rem;
+    max-width: 170px;
   }
 
   .workspace-header__right {
@@ -264,6 +255,7 @@
   }
 
   .workspace-header__right > .button {
+    font-size: 0;
     height: 38px;
     min-height: 38px;
     padding: 0;
@@ -274,62 +266,13 @@
     display: block;
   }
 
-  .workspace-header__right > .button {
-    font-size: 0;
-  }
-
   .workspace-body {
     grid-template-columns: 1fr;
     height: calc(100vh - 62px);
   }
 
-  .pages-panel {
-    display: none;
-  }
-
   .document-stage {
     padding: 18px 12px 118px;
-  }
-
-  .document-page {
-    min-height: 840px;
-    padding: 42px 32px;
-    width: min(100%, 620px);
-  }
-
-  .document-page h1 {
-    font-size: 1.85rem;
-  }
-
-  .document-page > p {
-    font-size: 0.91rem;
-    line-height: 1.75;
-  }
-
-  .document-figure > div {
-    grid-template-columns: 1fr;
-  }
-
-  .workspace-toolbar {
-    bottom: 48px;
-    max-width: calc(100vw - 20px);
-  }
-
-  .workspace-toolbar button {
-    height: 35px;
-    width: 35px;
-  }
-
-  .workspace-toolbar button:nth-child(4),
-  .workspace-toolbar button:nth-child(5) {
-    display: none;
-  }
-
-  .workspace-toolbar > strong,
-  .workspace-toolbar button[aria-label="Zoom out"],
-  .workspace-toolbar button[aria-label="Zoom in"],
-  .workspace-toolbar > span {
-    display: none;
   }
 
   .review-panel,
@@ -341,39 +284,7 @@
     width: min(92vw, 360px);
   }
 
-  .mobile-page-controls {
-    align-items: center;
-    background: #fff;
-    border-top: 1px solid var(--border);
-    bottom: 0;
-    display: flex;
-    height: 40px;
-    justify-content: center;
-    left: 0;
-    position: fixed;
-    right: 0;
-    z-index: 18;
-  }
-
-  .mobile-page-controls button {
-    align-items: center;
-    background: transparent;
-    display: flex;
-    height: 36px;
-    justify-content: center;
-    width: 48px;
-  }
-
-  .mobile-page-controls span {
-    font-size: 0.72rem;
-    min-width: 96px;
-    text-align: center;
-  }
-}
-
-@media (max-width: 760px) {
-  .navigation-grid,
-  .settings-layout {
+  .navigation-grid {
     grid-template-columns: 1fr;
   }
 
@@ -386,6 +297,28 @@
   .brand__logo {
     height: 56px;
     width: 40px;
+  }
+
+  .doc-tree-row {
+    grid-template-columns: 28px 34px minmax(0, 1fr);
+  }
+
+  .doc-tree-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .field__row,
+  .action-row {
+    grid-template-columns: 1fr;
+  }
+
+  .lineage {
+    gap: 4px;
+  }
+
+  .lineage-chip span {
+    max-width: 120px;
   }
 }
 
@@ -400,7 +333,7 @@
 
   .review-card,
   .content-panel,
-  .document-card {
+  .form-panel {
     padding: 18px;
   }
 
@@ -418,23 +351,16 @@
     white-space: nowrap;
   }
 
-  .activity-row {
-    grid-template-columns: auto 1fr;
-  }
-
-  .activity-row time {
-    grid-column: 2;
-  }
-
   .review-title-block h1 {
     font-size: 2rem;
   }
 
-  .previous-review-panel > .panel-title .text-link {
-    display: none;
+  .form-panel {
+    border-radius: var(--radius);
   }
 
-  .document-page {
-    padding: 34px 24px;
+  .doc-tree-children {
+    margin-left: 14px;
+    padding-left: 14px;
   }
 }

@@ -60,6 +60,16 @@ export type GroupDto = {
   updatedAt: string | null;
 };
 
+export type FacultyDto = {
+  id: string;
+  name: string;
+  code: string | null;
+  description: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+};
+
 export type AnnotationGeometry =
   | { x: number; y: number; width: number; height: number }
   | { cx: number; cy: number; radius: number }

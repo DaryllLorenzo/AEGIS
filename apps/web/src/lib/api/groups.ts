@@ -12,3 +12,14 @@ export async function getGroups(
 export async function getGroupById(id: string): Promise<GroupDto> {
   return apiFetch<GroupDto>(`/api/groups/${id}`);
 }
+
+export async function createGroup(data: {
+  name: string;
+  facultyId: string;
+  description?: string;
+}): Promise<GroupDto> {
+  return apiFetch<GroupDto>("/api/groups", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}

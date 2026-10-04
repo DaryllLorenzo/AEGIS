@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowLeft, Upload, Loader2 } from "lucide-react";
+import { ArrowLeft, FileUp, FolderTree, Info, Loader2, Tag, Upload, UserRound, CalendarDays } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 
 import { uploadDocument, createReview, getGroups, getDocuments, type GroupDto, type DocumentDto } from "@/lib/api";
 
@@ -17,6 +17,7 @@ function NewReviewForm() {
   const [kind, setKind] = useState("");
   const [version, setVersion] = useState("");
   const [assignee, setAssignee] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [groupId, setGroupId] = useState(preGroupId);
   const [documentId, setDocumentId] = useState("");
@@ -36,7 +37,10 @@ function NewReviewForm() {
   }, []);
 
   useEffect(() => {
-    if (!groupId) { setDocuments([]); return; }
+    if (!groupId) {
+      setDocuments([]);
+      return;
+    }
     getDocuments(1, 50, groupId)
       .then((r) => setDocuments(r.items))
       .catch(() => setDocuments([]));
@@ -59,14 +63,15 @@ function NewReviewForm() {
         docId = doc.id;
       }
 
-      await createReview({
+      const review = await createReview({
         documentId: docId,
         title,
         kind: kind || undefined,
         version: version || undefined,
+        dueDate: dueDate || undefined,
         assignee: assignee || undefined,
       });
-      router.push("/reviews");
+      router.push(`/reviews/${review.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -74,107 +79,190 @@ function NewReviewForm() {
     }
   }
 
+  const selectedGroup = groups.find((g) => g.id === groupId);
+
   return (
-    <form
-      className="content-panel login-form"
-      style={{ marginTop: 26, maxWidth: 720 }}
-      onSubmit={handleSubmit}
-    >
+    <form className="form-panel" onSubmit={handleSubmit}>
       {isVersion && (
-        <div style={{ background: "#e8f5e9", padding: "10px 14px", borderRadius: 6, marginBottom: 16, fontSize: 14 }}>
-          Creating a new version. The previous document will be linked as parent.
+        <div className="banner banner--success" role="status">
+          <Info size={16} />
+          <p>
+            Creating a new version. The selected document will be linked as the
+            parent of the new file.
+          </p>
         </div>
       )}
 
-      <label htmlFor="review-title">Document title</label>
-      <input
-        id="review-title"
-        placeholder="e.g. Adaptive Learning Thesis"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        required
-      />
-
-      <label htmlFor="review-group">Group</label>
-      <select
-        id="review-group"
-        value={groupId}
-        onChange={(e) => setGroupId(e.target.value)}
-        required
-        disabled={isVersion && !!preGroupId}
-      >
-        <option value="">Select a group</option>
-        {groups.map((g) => (
-          <option key={g.id} value={g.id}>{g.name}</option>
-        ))}
-      </select>
+      <section className="form-step">
+        <header className="form-step__header">
+          <span className="form-step__number">1</span>
+          <div>
+            <h2><FolderTree size={18} /> Choose a group</h2>
+            <p>Groups keep documents, versions, and reviews together.</p>
+          </div>
+        </header>
+        <div className="form-step__body">
+          <div className="field">
+            <label htmlFor="review-group">Group</label>
+            <select
+              id="review-group"
+              value={groupId}
+              onChange={(e) => setGroupId(e.target.value)}
+              required
+              disabled={isVersion && !!preGroupId}
+            >
+              <option value="">Select a group</option>
+              {groups.map((g) => (
+                <option key={g.id} value={g.id}>{g.name}</option>
+              ))}
+            </select>
+            {isVersion && preGroupId && selectedGroup && (
+              <p className="field__hint">Locked to {selectedGroup.name} because this is a new version.</p>
+            )}
+          </div>
+        </div>
+      </section>
 
       {!isVersion && (
-        <>
-          <label>Document source</label>
-          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-            <button type="button" className={`button ${mode === "upload" ? "button--primary" : "button--secondary"}`} onClick={() => setMode("upload")}>
-              Upload new file
-            </button>
-            <button type="button" className={`button ${mode === "existing" ? "button--primary" : "button--secondary"}`} onClick={() => setMode("existing")}>
-              Use existing document
-            </button>
+        <section className="form-step">
+          <header className="form-step__header">
+            <span className="form-step__number">2</span>
+            <div>
+              <h2><FileUp size={18} /> Add the document</h2>
+              <p>Upload a new PDF or review a document that already exists in the group.</p>
+            </div>
+          </header>
+          <div className="form-step__body">
+            <div className="segmented" role="group" aria-label="Document source">
+              <button
+                type="button"
+                className={mode === "upload" ? "is-active" : ""}
+                onClick={() => setMode("upload")}
+              >
+                <Upload size={15} />
+                Upload new file
+              </button>
+              <button
+                type="button"
+                className={mode === "existing" ? "is-active" : ""}
+                onClick={() => setMode("existing")}
+              >
+                <FileUp size={15} />
+                Use existing document
+              </button>
+            </div>
+
+            {mode === "upload" && (
+              <div className="field">
+                <label htmlFor="review-file">PDF file</label>
+                <input
+                  id="review-file"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  required
+                />
+              </div>
+            )}
+
+            {mode === "existing" && (
+              <div className="field">
+                <label htmlFor="review-document">Document</label>
+                <select
+                  id="review-document"
+                  value={documentId}
+                  onChange={(e) => setDocumentId(e.target.value)}
+                  required
+                  disabled={!groupId}
+                >
+                  <option value="">Select a document</option>
+                  {documents.map((d) => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+                {!groupId && (
+                  <p className="field__hint">Choose a group first to see its documents.</p>
+                )}
+              </div>
+            )}
           </div>
-        </>
+        </section>
       )}
 
-      {mode === "upload" && (
-        <>
-          <label htmlFor="review-file">PDF file</label>
-          <input
-            id="review-file"
-            type="file"
-            accept="application/pdf"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            required
-          />
-        </>
-      )}
+      <section className="form-step">
+        <header className="form-step__header">
+          <span className="form-step__number">{isVersion ? "2" : "3"}</span>
+          <div>
+            <h2><Tag size={18} /> Review details</h2>
+            <p>Name the review round and set expectations for the reviewer.</p>
+          </div>
+        </header>
+        <div className="form-step__body">
+          <div className="field">
+            <label htmlFor="review-title">Document title</label>
+            <input
+              id="review-title"
+              placeholder="e.g. Adaptive Learning Thesis"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
+          <div className="field__row">
+            <div className="field">
+              <label htmlFor="review-kind">Document type</label>
+              <input
+                id="review-kind"
+                placeholder="Thesis, article, report..."
+                value={kind}
+                onChange={(e) => setKind(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="review-version">Version</label>
+              <input
+                id="review-version"
+                placeholder="e.g. v2.0"
+                value={version}
+                onChange={(e) => setVersion(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="field__row">
+            <div className="field">
+              <label htmlFor="review-assignee">Assignee</label>
+              <input
+                id="review-assignee"
+                placeholder="e.g. Dr. Chen"
+                value={assignee}
+                onChange={(e) => setAssignee(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="review-due">Due date</label>
+              <input
+                id="review-due"
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="field">
+            <label htmlFor="review-notes">
+              Notes <span className="field__optional">Optional</span>
+            </label>
+            <p className="field__hint">
+              <UserRound size={13} />
+              Reviewers see this round&apos;s status and due date on their dashboard.
+            </p>
+          </div>
+        </div>
+      </section>
 
-      {mode === "existing" && !isVersion && (
-        <>
-          <label htmlFor="review-document">Document</label>
-          <select id="review-document" value={documentId} onChange={(e) => setDocumentId(e.target.value)} required disabled={!groupId}>
-            <option value="">Select a document</option>
-            {documents.map((d) => (
-              <option key={d.id} value={d.id}>{d.name}</option>
-            ))}
-          </select>
-        </>
-      )}
+      {error && <p className="form-error" role="alert">{error}</p>}
 
-      <label htmlFor="review-kind">Document type</label>
-      <input
-        id="review-kind"
-        placeholder="Thesis, article, report..."
-        value={kind}
-        onChange={(e) => setKind(e.target.value)}
-      />
-
-      <label htmlFor="review-version">Version</label>
-      <input
-        id="review-version"
-        placeholder="e.g. v2.0"
-        value={version}
-        onChange={(e) => setVersion(e.target.value)}
-      />
-
-      <label htmlFor="review-assignee">Assignee</label>
-      <input
-        id="review-assignee"
-        placeholder="e.g. Dr. Chen"
-        value={assignee}
-        onChange={(e) => setAssignee(e.target.value)}
-      />
-
-      {error && <p style={{ color: "red", fontSize: 14 }}>{error}</p>}
-
-      <div className="heading-actions">
+      <div className="form-actions">
         <Link className="button button--secondary" href="/reviews">
           <ArrowLeft size={16} /> Cancel
         </Link>
@@ -185,8 +273,10 @@ function NewReviewForm() {
         >
           {submitting ? (
             <><Loader2 size={16} className="animate-spin" /> Creating...</>
+          ) : isVersion ? (
+            <><Upload size={16} /> Create new version</>
           ) : (
-            <><Upload size={16} /> {isVersion ? "Create new version" : "Create review"}</>
+            <><Upload size={16} /> Create review</>
           )}
         </button>
       </div>
@@ -207,7 +297,7 @@ export default function NewReviewPage() {
         <h1>New review</h1>
         <p>Upload a document or select an existing one to start a new review round.</p>
       </div>
-      <Suspense fallback={<p>Loading...</p>}>
+      <Suspense fallback={<p className="muted">Loading...</p>}>
         <NewReviewForm />
       </Suspense>
     </div>

@@ -14,7 +14,6 @@ type NavigationPageProps = {
   eyebrow: string;
   title: string;
   description: string;
-  searchPlaceholder?: string;
   items: NavigationItem[];
   action?: React.ReactNode;
 };

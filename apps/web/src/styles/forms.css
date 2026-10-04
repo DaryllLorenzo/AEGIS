@@ -1,0 +1,388 @@
+/* Forms, dialogs, and shared building blocks */
+
+/* -- Form panel (new review, standalone forms) ----------------------------- */
+
+.form-panel {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: 20px;
+  max-width: 760px;
+  padding: 24px;
+}
+
+.form-step {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.form-step__header {
+  align-items: center;
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  gap: 14px;
+  padding: 15px 18px;
+}
+
+.form-step__number {
+  align-items: center;
+  background: var(--green-900);
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  font-weight: 700;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.form-step__header h2 {
+  align-items: center;
+  display: flex;
+  font-size: 1.02rem;
+  gap: 9px;
+  margin: 0;
+}
+
+.form-step__header h2 svg {
+  color: var(--green-800);
+}
+
+.form-step__header p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.form-step__body {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* -- Fields ---------------------------------------------------------------- */
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field > label {
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.field__optional {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.field input:not([type="checkbox"]):not([type="file"]),
+.field select,
+.field textarea {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  min-height: 40px;
+  outline: none;
+  padding: 0 12px;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  width: 100%;
+}
+
+.field textarea {
+  line-height: 1.5;
+  min-height: 88px;
+  padding: 9px 12px;
+  resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--green-900);
+  box-shadow: 0 0 0 3px rgba(0, 81, 52, 0.09);
+}
+
+.field input[type="file"] {
+  font-size: 0.85rem;
+  padding: 8px 0;
+}
+
+.field__row {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field__hint {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  font-size: 0.76rem;
+  gap: 5px;
+}
+
+.form-error {
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 6px;
+  color: var(--danger);
+  font-size: 0.82rem;
+  padding: 10px 12px;
+}
+
+/* -- Segmented control ------------------------------------------------------ */
+
+.segmented {
+  background: var(--surface-muted);
+  border-radius: 8px;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  width: 100%;
+}
+
+.segmented button {
+  align-items: center;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 650;
+  gap: 7px;
+  justify-content: center;
+  min-height: 34px;
+  padding: 5px 10px;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.segmented button:hover {
+  color: var(--text);
+}
+
+.segmented button.is-active {
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  color: var(--green-950);
+}
+
+/* -- Banner ----------------------------------------------------------------- */
+
+.banner {
+  align-items: flex-start;
+  border-radius: 8px;
+  display: flex;
+  font-size: 0.84rem;
+  gap: 10px;
+  padding: 12px 14px;
+}
+
+.banner p {
+  margin: 0;
+}
+
+.banner--success {
+  background: var(--green-50);
+  border: 1px solid #b8ddca;
+  color: var(--green-950);
+}
+
+.banner--success svg {
+  color: var(--success);
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+/* -- Modal ------------------------------------------------------------------ */
+
+.modal-backdrop {
+  animation: fade-in 150ms ease;
+  align-items: center;
+  background: rgba(17, 24, 21, 0.45);
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.modal {
+  animation: slide-up 180ms ease;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  width: min(480px, 100%);
+}
+
+.modal__header {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 22px 0;
+}
+
+.modal__header h2 {
+  margin-top: 3px;
+}
+
+.modal__body {
+  display: grid;
+  gap: 14px;
+  padding: 18px 22px 22px;
+}
+
+.modal__footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* -- Empty state ------------------------------------------------------------ */
+
+.empty-state {
+  align-items: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 44px 20px;
+  text-align: center;
+}
+
+.empty-state strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.empty-state .button {
+  margin-top: 8px;
+}
+
+/* -- Detail list ------------------------------------------------------------ */
+
+.detail-list {
+  display: grid;
+  gap: 13px;
+  margin-top: 16px;
+}
+
+.detail-list > div {
+  display: grid;
+  gap: 2px;
+}
+
+.detail-list dt {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.detail-list dd {
+  font-weight: 600;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* -- Action cards ----------------------------------------------------------- */
+
+.action-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.action-card {
+  align-items: flex-start;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.action-card:hover {
+  border-color: var(--green-800);
+  box-shadow: var(--shadow-sm);
+}
+
+.action-card__icon {
+  align-items: center;
+  background: var(--green-50);
+  border-radius: 8px;
+  color: var(--green-900);
+  display: flex;
+  flex: 0 0 auto;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.action-card__icon--amber {
+  background: var(--amber-50);
+  color: var(--amber-600);
+}
+
+.action-card__copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.action-card__copy strong {
+  font-size: 0.9rem;
+}
+
+.action-card__copy p {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+.action-card__arrow {
+  color: var(--muted);
+}

@@ -1,0 +1,153 @@
+/* Document hierarchy tree */
+
+.doc-tree {
+  display: grid;
+  gap: 4px;
+}
+
+.doc-tree-node {
+  display: grid;
+}
+
+.doc-tree-row {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 28px 34px minmax(0, 1fr) auto;
+  padding: 10px 12px;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.doc-tree-row:hover {
+  border-color: var(--green-800);
+  box-shadow: var(--shadow-sm);
+}
+
+.doc-tree-toggle {
+  color: var(--muted);
+  height: 24px;
+  width: 24px;
+}
+
+.doc-tree-toggle:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.doc-tree-icon {
+  align-items: center;
+  background: var(--blue-50);
+  border-radius: 8px;
+  color: var(--blue-600);
+  display: flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.doc-tree-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.doc-tree-title {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.doc-tree-title strong {
+  font-size: 0.92rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-tree-version {
+  background: var(--surface-muted);
+  color: var(--muted);
+  font-size: 0.7rem;
+  padding: 2px 7px;
+}
+
+.doc-tree-noreview {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-style: italic;
+}
+
+.doc-tree-meta {
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.76rem;
+  gap: 4px 14px;
+}
+
+.doc-tree-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.doc-tree-children {
+  border-left: 1px solid var(--border-soft);
+  display: grid;
+  gap: 4px;
+  margin-left: 26px;
+  padding-left: 20px;
+}
+
+/* Documents page toolbar */
+
+.doc-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.doc-toolbar .search-field {
+  flex: 0 1 320px;
+  max-width: 320px;
+}
+
+.sort-toggle {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+  padding: 3px;
+}
+
+.sort-toggle button {
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 650;
+  padding: 6px 12px;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.sort-toggle button:hover {
+  color: var(--text);
+}
+
+.sort-toggle button.is-active {
+  background: var(--green-900);
+  color: #fff;
+}

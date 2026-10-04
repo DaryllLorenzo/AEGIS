@@ -3,25 +3,22 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import {
-  Bell,
   FileText,
   Home,
+  LogOut,
   Menu,
   MessageSquareText,
   Plus,
   Search,
-  Settings,
   SlidersHorizontal,
   Users,
-  UserRound,
   X,
-  LogOut,
 } from "lucide-react";
 import { useState } from "react";
 
 import Brand from "./Brand";
+import NewGroupDialog from "./NewGroupDialog";
 import { useAuth } from "@/lib/auth-context";
-import { initialsFromName } from "@/lib/utils";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -41,20 +38,16 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
-
-  const initials = user ? initialsFromName(user.displayName) : "??";
-  const displayName = user?.displayName ?? "Guest";
+  const [newGroupOpen, setNewGroupOpen] = useState(false);
 
   function handleLogout() {
+    setOptionsOpen(false);
     logout();
     router.push("/login");
   }
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
-    if (href === "/reviews") return pathname.startsWith("/reviews");
-    if (href === "/submissions") return pathname.startsWith("/submissions");
-    if (href === "/groups") return pathname.startsWith("/groups");
     return pathname.startsWith(href);
   }
 
@@ -79,9 +72,9 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
           </button>
         </div>
 
-        <Link className="button button--primary sidebar__create" href="/submissions/new" onClick={() => setMobileOpen(false)}>
+        <Link className="button button--primary sidebar__create" href="/reviews/new" onClick={() => setMobileOpen(false)}>
           <Plus size={18} />
-          New submission
+          New review
         </Link>
 
         <nav className="sidebar__nav" aria-label="Main navigation">
@@ -100,14 +93,13 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
 
         <div className="sidebar__groups">
           <span>My groups</span>
+          <button type="button" className="sidebar__group-action" onClick={() => setNewGroupOpen(true)}>
+            <Plus size={15} />
+            New group
+          </button>
           <Link href="/groups" onClick={() => setMobileOpen(false)}>
             View all groups
           </Link>
-        </div>
-
-        <div className="sidebar__footer">
-          <Link href="/notifications" className={`nav-item${pathname === "/notifications" ? " nav-item--active" : ""}`} onClick={() => setMobileOpen(false)}><Bell size={19} /><span>Notifications</span><b>3</b></Link>
-          <Link href="/settings" className={`nav-item${pathname === "/settings" ? " nav-item--active" : ""}`} onClick={() => setMobileOpen(false)}><Settings size={19} /><span>Settings</span></Link>
         </div>
       </aside>
 
@@ -118,26 +110,25 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
             <input aria-label={searchPlaceholder} placeholder={searchPlaceholder} />
           </label>
           <div className="topbar__actions">
-            <Link className="icon-button notification-button" href="/notifications" aria-label="Notifications">
-              <Bell size={20} />
-              <span />
-            </Link>
-            <Link className="profile-button" href="/profile" aria-label="Open profile">
-              <span>{initials}</span>
-            </Link>
             <div className="shell-options-wrap">
-              <button className={`icon-button shell-options-button${optionsOpen ? " is-active" : ""}`} type="button" aria-label="Open options" aria-expanded={optionsOpen} onClick={() => setOptionsOpen((value) => !value)}>
+              <button
+                className={`icon-button shell-options-button${optionsOpen ? " is-active" : ""}`}
+                type="button"
+                aria-label="Open account options"
+                aria-expanded={optionsOpen}
+                onClick={() => setOptionsOpen((value) => !value)}
+              >
                 <SlidersHorizontal size={19} />
               </button>
               {optionsOpen && (
-                <nav className="shell-options" aria-label="Account and workspace options">
-                  <div className="shell-options__title"><span>Options</span><small>{displayName}</small></div>
-                  <Link href="/profile" onClick={() => setOptionsOpen(false)}><UserRound size={17} /><span><strong>Profile</strong><small>Account and identity</small></span></Link>
-                  <Link href="/notifications" onClick={() => setOptionsOpen(false)}><Bell size={17} /><span><strong>Notifications</strong><small>3 unread updates</small></span></Link>
-                  <Link href="/settings" onClick={() => setOptionsOpen(false)}><Settings size={17} /><span><strong>Settings</strong><small>Workspace preferences</small></span></Link>
-                  <div className="shell-options__divider" />
-                  <button type="button" onClick={() => { setOptionsOpen(false); handleLogout(); }} className="shell-options__logout">
-                    <LogOut size={17} /><span>Sign out</span>
+                <nav className="shell-options" aria-label="Account options">
+                  <div className="shell-options__title">
+                    <span>Options</span>
+                    <small>{user?.displayName ?? "Guest"}</small>
+                  </div>
+                  <button type="button" onClick={handleLogout} className="shell-options__logout">
+                    <LogOut size={17} />
+                    <span>Sign out</span>
                   </button>
                 </nav>
               )}
@@ -146,6 +137,11 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
         </header>
         <main className="app-main">{children}</main>
       </div>
+
+      <NewGroupDialog
+        open={newGroupOpen}
+        onClose={() => setNewGroupOpen(false)}
+      />
     </div>
   );
 }

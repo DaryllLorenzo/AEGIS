@@ -11,6 +11,7 @@ export type {
   DocumentDto,
   UserDto,
   GroupDto,
+  FacultyDto,
   AnnotationGeometry,
   AnnotationDto,
   AnnotationPayload,
@@ -20,8 +21,8 @@ export type {
 } from "./types";
 
 export { login, refreshAccessToken, logoutUser, getMe } from "./auth";
-export { getGroups, getGroupById } from "./groups";
-export { getUsers } from "./users";
+export { getGroups, getGroupById, createGroup } from "./groups";
+export { getFaculties } from "./faculties";
 export { getDocuments, getDocumentById, getDocumentDownloadUrl, uploadDocument } from "./documents";
 export { getReviews, getReviewById, createReview, updateReview } from "./reviews";
 export { getAnnotationsByDocumentId, bulkUpdateAnnotations } from "./annotations";

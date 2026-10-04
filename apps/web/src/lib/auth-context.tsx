@@ -17,14 +17,12 @@ type AuthContextValue = {
   login: (token: string, refreshToken: string, user: AuthUser, expiresAt: string) => void;
   logout: () => void;
   refreshTokenValue: string | null;
-  onSessionWarning: (callback: () => void) => () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const TOKEN_KEY = "aegis_token";
 const REFRESH_TOKEN_KEY = "aegis_refresh_token";
-const EXPIRES_AT_KEY = "aegis_expires_at";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // 5 minutes before expiry
 
@@ -65,7 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const warningCallbacksRef = useRef<Set<() => void>>(new Set());
 
   // Schedule proactive token refresh
   const scheduleRefresh = useCallback((expiresAtMs: number) => {
@@ -139,12 +136,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (!cancelled) {
               localStorage.removeItem(TOKEN_KEY);
               localStorage.removeItem(REFRESH_TOKEN_KEY);
-              localStorage.removeItem(EXPIRES_AT_KEY);
             }
           }
         } else {
           localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(EXPIRES_AT_KEY);
         }
         if (!cancelled) setLoading(false);
         return;
@@ -169,7 +164,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!cancelled) {
           localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem(REFRESH_TOKEN_KEY);
-          localStorage.removeItem(EXPIRES_AT_KEY);
         }
       }
 
@@ -187,7 +181,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function login(newToken: string, newRefreshToken: string, newUser: AuthUser, expiresAt: string) {
     localStorage.setItem(TOKEN_KEY, newToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
-    localStorage.setItem(EXPIRES_AT_KEY, expiresAt);
     setToken(newToken);
     setRefreshToken(newRefreshToken);
     setUser(newUser);
@@ -207,7 +200,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(EXPIRES_AT_KEY);
     setToken(null);
     setRefreshToken(null);
     setUser(null);
@@ -218,13 +210,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const onSessionWarning = useCallback((callback: () => void) => {
-    warningCallbacksRef.current.add(callback);
-    return () => {
-      warningCallbacksRef.current.delete(callback);
-    };
-  }, []);
-
   const value = useMemo(
     () => ({
       user,
@@ -233,9 +218,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       refreshTokenValue: refreshToken,
-      onSessionWarning,
     }),
-    [user, token, loading, refreshToken, onSessionWarning],
+    [user, token, loading, refreshToken],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

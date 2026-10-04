@@ -2,17 +2,15 @@ import Link from "next/link";
 
 type GroupTabsProps = {
   groupId: string;
-  active: "overview" | "documents" | "reviews" | "discussion" | "members";
+  active: "overview" | "documents" | "reviews";
 };
 
-const tabIds = ["overview", "documents", "reviews", "discussion", "members"] as const;
+const tabIds = ["overview", "documents", "reviews"] as const;
 
-const tabLabels: Record<string, string> = {
+const tabLabels: Record<GroupTabsProps["active"], string> = {
   overview: "Overview",
   documents: "Documents",
   reviews: "Reviews",
-  discussion: "Discussion",
-  members: "Members",
 };
 
 export default function GroupTabs({ groupId, active }: GroupTabsProps) {

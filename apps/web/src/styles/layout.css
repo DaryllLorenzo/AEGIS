@@ -1,5 +1,5 @@
 .app-main {
-  min-height: calc(100vh - 68px);
+  min-height: calc(100vh - 62px);
 }
 
 .page-container {
@@ -56,9 +56,15 @@
   background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
   min-height: 154px;
   padding: 22px;
   position: relative;
+  transition: box-shadow var(--transition-fast);
+}
+
+.metric-card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .metric-card__icon {
@@ -130,5 +136,7 @@
 
 .section-heading--compact {
   align-items: center;
-  margin-bottom: 18px;
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }

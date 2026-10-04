@@ -23,7 +23,7 @@ export default function GroupsPage() {
     <NavigationPage
       eyebrow="Research collectives"
       title="My groups"
-      description="Move between your active research groups and their documents, reviews, and discussions."
+      description="Move between your active research groups and their documents and reviews."
       items={items}
     />
   );

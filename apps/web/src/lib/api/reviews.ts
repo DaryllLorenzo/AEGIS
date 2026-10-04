@@ -14,7 +14,7 @@ function normalizeReviewStatus(raw: unknown): ReviewStatus {
       default: return "Pending";
     }
   }
-  return (raw as string) as ReviewStatus ?? "Pending";
+  return raw as ReviewStatus;
 }
 
 function normalizeReview<T extends { status: unknown }>(review: T): T {

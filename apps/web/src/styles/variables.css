@@ -21,6 +21,11 @@
   --danger: #b42318;
   --sidebar-width: 264px;
   --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(23, 27, 30, 0.05);
+  --shadow-md: 0 8px 24px rgba(23, 27, 30, 0.08);
+  --shadow-lg: 0 20px 48px rgba(23, 27, 30, 0.16);
+  --transition-fast: 140ms ease;
   --font-ui: "Aptos", "Inter", "Segoe UI", Arial, sans-serif;
   --font-display: "Aptos Display", "Segoe UI", Arial, sans-serif;
   --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;

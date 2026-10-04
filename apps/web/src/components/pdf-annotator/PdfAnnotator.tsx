@@ -9,7 +9,6 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 
 import "./annotator.css";
 import "./toolbar.css";
-import "./sidebar.css";
 
 import type {
   Tool,
@@ -25,7 +24,6 @@ import {
   computeHighlightLinesFromWords,
 } from "./text-layer-helpers";
 import Toolbar from "./Toolbar";
-import Sidebar from "./Sidebar";
 import {
   RectangleAnnotation,
   CircleAnnotation,
@@ -73,9 +71,9 @@ function getAnnotationBounds(
     const c = g as CircleGeometry;
     return {
       x: c.cx * pageWidth - c.radius * pageWidth,
-      y: c.cy * pageHeight - c.radius * pageWidth,
+      y: c.cy * pageHeight - c.radius * pageHeight,
       width: c.radius * pageWidth * 2,
-      height: c.radius * pageWidth * 2,
+      height: c.radius * pageHeight * 2,
     };
   }
   if ("radiusX" in g) {
@@ -156,7 +154,6 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
   const [tool, setTool] = useState<Tool>("rectangle");
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | string | null>(initialFile ?? null);
 
   // Sync file state when initialFile changes
@@ -187,7 +184,6 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
     let cancelled = false;
 
     (async () => {
-      setLoading(true);
       try {
         const dtos = await getAnnotationsByDocumentId(documentId);
         if (!cancelled) {
@@ -197,8 +193,6 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
         }
       } catch (err) {
         console.error("Failed to load annotations:", err);
-      } finally {
-        if (!cancelled) setLoading(false);
       }
     })();
 
@@ -549,28 +543,25 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
 
   return (
     <main className="annotator">
-      {/* Header */}
-      <div className="annotator-header">
-        <h1>PDF Annotation POC</h1>
-        {!documentId && (
-          <>
-            <button
-              className="btn"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Load PDF
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf"
-              onChange={handleFileChange}
-              hidden
-            />
-          </>
-        )}
-        {loading && <span className="muted">Loading annotations...</span>}
-      </div>
+      {/* Header (standalone mode only) */}
+      {!documentId && (
+        <div className="annotator-header">
+          <h1>PDF Annotation POC</h1>
+          <button
+            className="btn"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Load PDF
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileChange}
+            hidden
+          />
+        </div>
+      )}
 
       {/* Toolbar */}
       {file && (
