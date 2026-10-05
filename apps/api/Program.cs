@@ -9,6 +9,7 @@ using Aegis.Api.Endpoints.Groups;
 using Aegis.Api.Endpoints.Reviews;
 using Aegis.Api.Endpoints.Roles;
 using Aegis.Api.Endpoints.Users;
+using Aegis.Api.Shared.Email;
 using Aegis.Api.Shared.Storage.MinIO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -60,6 +61,9 @@ builder.Services.Configure<SieveOptions>(builder.Configuration.GetSection("Sieve
 
 // Object storage — MinIO (extracted to Shared/Storage/MinIO extension).
 builder.Services.AddMinIOStorage(builder.Configuration);
+
+// Email sender — SMTP via MailHog locally (extracted to Shared/Email extension).
+builder.Services.AddEmail(builder.Configuration);
 
 // The browser talks to the API directly, so the web origin needs an explicit grant.
 // Origins come from Cors:AllowedOrigins (the AppHost and docker-compose both set it).

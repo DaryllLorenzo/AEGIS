@@ -4,6 +4,7 @@ using Aegis.Api.Endpoints.Groups.Data;
 using Aegis.Api.Endpoints.Groups.Dtos;
 using Aegis.Api.Endpoints.Groups.Mappings;
 using Aegis.Api.Endpoints.Users.Data;
+using Aegis.Api.Shared.Email;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,11 +14,13 @@ public sealed class CreateGroupHandler : IRequestHandler<CreateGroupRequest, Gro
 {
     private readonly AegisDbContext _db;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IEmailSender _emailSender;
 
-    public CreateGroupHandler(AegisDbContext db, IHttpContextAccessor httpContextAccessor)
+    public CreateGroupHandler(AegisDbContext db, IHttpContextAccessor httpContextAccessor, IEmailSender emailSender)
     {
         _db = db;
         _httpContextAccessor = httpContextAccessor;
+        _emailSender = emailSender;
     }
 
     public async Task<GroupDto> Handle(CreateGroupRequest request, CancellationToken ct)
@@ -83,6 +86,37 @@ public sealed class CreateGroupHandler : IRequestHandler<CreateGroupRequest, Gro
         }
 
         await _db.SaveChangesAsync(ct);
+
+        // Welcome email to every member linked at creation. The
+        // group is already saved, so mail failures are logged
+        // and swallowed by the sender.
+        if (request.Members is { Count: > 0 })
+        {
+            var memberIds = request.Members.Select(m => m.UserId).Distinct().ToList();
+            var memberUsers = await _db.Users
+                .Where(u => memberIds.Contains(u.Id))
+                .ToListAsync(ct);
+
+            foreach (var memberUser in memberUsers)
+            {
+                var member = request.Members.First(m => m.UserId == memberUser.Id);
+                var roleLabel = member.Roles.Count > 0
+                    ? string.Join(" and ", member.Roles)
+                    : "member";
+
+                try
+                {
+                    await _emailSender.SendAsync(new EmailMessage(
+                        memberUser.Email,
+                        $"You were added to the group \"{group.Name}\"",
+                        $"Hello {memberUser.DisplayName}, you were added to the group \"{group.Name}\" on AEGIS with the role(s): {roleLabel}."), ct);
+                }
+                catch
+                {
+                    // Non-fatal: membership already persisted.
+                }
+            }
+        }
 
         return group.ToDto();
     }

@@ -5,6 +5,7 @@ using Aegis.Api.Endpoints.Groups.Exceptions;
 using Aegis.Api.Endpoints.Groups.Mappings;
 using Aegis.Api.Endpoints.Users.Data;
 using Aegis.Api.Endpoints.Users.Exceptions;
+using Aegis.Api.Shared.Email;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,8 +22,13 @@ public sealed record AddGroupMemberRequest : IRequest<GroupDto>
 public sealed class AddGroupMemberHandler : IRequestHandler<AddGroupMemberRequest, GroupDto>
 {
     private readonly AegisDbContext _db;
+    private readonly IEmailSender _emailSender;
 
-    public AddGroupMemberHandler(AegisDbContext db) => _db = db;
+    public AddGroupMemberHandler(AegisDbContext db, IEmailSender emailSender)
+    {
+        _db = db;
+        _emailSender = emailSender;
+    }
 
     public async Task<GroupDto> Handle(AddGroupMemberRequest request, CancellationToken ct)
     {
@@ -54,6 +60,20 @@ public sealed class AddGroupMemberHandler : IRequestHandler<AddGroupMemberReques
 
         group.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
+
+        // Best-effort welcome email: the membership already saved, so
+        // a mail failure must never break the request.
+        try
+        {
+            await _emailSender.SendAsync(new EmailMessage(
+                user.Email,
+                $"You were added to the group \"{group.Name}\"",
+                $"Hello {user.DisplayName}, you were added to the group \"{group.Name}\" on AEGIS with the role {roleName}."), ct);
+        }
+        catch
+        {
+            // Logged by the sender; group notification is non-fatal.
+        }
 
         return group.ToDto();
     }

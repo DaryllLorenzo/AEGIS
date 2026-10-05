@@ -86,6 +86,27 @@ if (enableMinIO)
 }
 
 // ---------------------------------------------------------------------------
+// MailHog — local SMTP capture. UI on 8025, SMTP on 1025.
+// ---------------------------------------------------------------------------
+// The pinned v1.0.1 tag is the image already present locally; do not bump to
+// "latest" or you will trigger an image pull. The API talks SMTP on port 1025
+// (plain TCP), and the dashboard links the MailHog web UI.
+var mailhogSmtpPort = configuration.GetValue("AppHost:Ports:MailHogSmtp", 1025);
+var mailhogUiPort = configuration.GetValue("AppHost:Ports:MailHogUi", 8025);
+
+var mailhog = builder.AddContainer("mailhog", "mailhog/mailhog")
+    .WithImageTag("v1.0.1")
+    .WithHttpEndpoint(port: mailhogUiPort, targetPort: 8025, name: "ui")
+    // SMTP is not HTTP: declaring it as a "smtp" scheme endpoint stops
+    // browsers from GET-ing this port (which would spam MailHog).
+    .WithEndpoint(targetPort: 1025, port: mailhogSmtpPort, scheme: "smtp", name: "smtp")
+    .WithUrlForEndpoint("ui", endpoint => new ResourceUrlAnnotation
+    {
+        Url = endpoint.Url,
+        DisplayText = "MailHog"
+    });
+
+// ---------------------------------------------------------------------------
 // Backend
 // ---------------------------------------------------------------------------
 // Runs as a host process: fast restarts, attachable from a debugger, and no image build.
@@ -131,6 +152,16 @@ if (enableApi)
 
         api.WaitFor(minio);
     }
+
+    // Point the API at the local MailHog SMTP sink so every email
+    // (member invites, review notifications) is captured locally.
+    api
+        .WithEnvironment("Email__Smtp__Host", "localhost")
+        .WithEnvironment("Email__Smtp__Port", mailhogSmtpPort.ToString())
+        .WithEnvironment("Email__Smtp__From", configuration.GetValue("AppHost:Email:From", "noreply@aegis.local"))
+        .WithEnvironment("Email__Smtp__EnableSsl", "false");
+
+    api.WaitFor(mailhog);
 }
 
 // ---------------------------------------------------------------------------
