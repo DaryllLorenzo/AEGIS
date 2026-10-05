@@ -14,8 +14,8 @@ public sealed record AddGroupMemberRequest : IRequest<GroupDto>
 {
     public Guid GroupId { get; init; }
     public Guid UserId { get; init; }
-    /// <summary>Defaults to the "Student" role when omitted.</summary>
-    public Guid? RoleId { get; init; }
+    /// <summary>"Submitter" or "Reviewer". Defaults to "Submitter" when omitted.</summary>
+    public string? Role { get; init; }
 }
 
 public sealed class AddGroupMemberHandler : IRequestHandler<AddGroupMemberRequest, GroupDto>
@@ -39,23 +39,16 @@ public sealed class AddGroupMemberHandler : IRequestHandler<AddGroupMemberReques
             return group.ToDto();
         }
 
-        var roleId = request.RoleId;
-        if (roleId is null)
-        {
-            var memberRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name == "Student", ct);
-            if (memberRole is null)
-            {
-                throw new InvalidOperationException("Default member role not found.");
-            }
-            roleId = memberRole.Id;
-        }
+        var roleName = string.IsNullOrWhiteSpace(request.Role) ? GroupRoles.Submitter : request.Role;
+        var role = await _db.Roles.FirstOrDefaultAsync(r => r.Name == roleName, ct)
+            ?? throw new InvalidOperationException($"Role '{roleName}' not found.");
 
         _db.UserRoles.Add(new GroupUserRole
         {
             Id = Guid.NewGuid(),
             UserId = request.UserId,
             GroupId = request.GroupId,
-            RoleId = roleId.Value,
+            RoleId = role.Id,
             AssignedAt = DateTimeOffset.UtcNow,
         });
 

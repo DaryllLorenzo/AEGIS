@@ -12,32 +12,33 @@ public static class AegisUserSeed
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AegisDbContext>();
 
-        // Seed roles if none exist
-        if (!await db.Roles.AnyAsync())
+        // Ensure all roles exist (idempotent: new roles are added
+        // even when some were seeded by an older build).
+        var desiredRoles = new (string Name, string Description)[]
         {
-            db.Roles.AddRange(
-                new Role
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Admin",
-                    Description = "System administrator with full access.",
-                    CreatedAt = DateTimeOffset.UtcNow,
-                },
-                new Role
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Professor",
-                    Description = "Faculty professor.",
-                    CreatedAt = DateTimeOffset.UtcNow,
-                },
-                new Role
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Student",
-                    Description = "Faculty student.",
-                    CreatedAt = DateTimeOffset.UtcNow,
-                });
+            ("Admin", "System administrator with full access."),
+            ("Professor", "Faculty professor."),
+            ("Student", "Faculty student."),
+            ("Creator", "Creator of a research group."),
+            ("Submitter", "Submits documents for review in a group."),
+            ("Reviewer", "Reviews documents in a group."),
+        };
 
+        var existingRoleNames = await db.Roles.Select(r => r.Name).ToListAsync();
+        var missing = desiredRoles
+            .Where(d => !existingRoleNames.Contains(d.Name))
+            .Select(d => new Role
+            {
+                Id = Guid.NewGuid(),
+                Name = d.Name,
+                Description = d.Description,
+                CreatedAt = DateTimeOffset.UtcNow,
+            })
+            .ToList();
+
+        if (missing.Count > 0)
+        {
+            db.Roles.AddRange(missing);
             await db.SaveChangesAsync();
         }
 

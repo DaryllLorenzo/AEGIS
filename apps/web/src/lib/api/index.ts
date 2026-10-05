@@ -13,6 +13,7 @@ export type {
   SelectItem,
   UserDto,
   GroupDto,
+  GroupMember,
   FacultyDto,
   AnnotationGeometry,
   AnnotationDto,
@@ -30,6 +31,7 @@ export {
   getGroupMembers,
   addGroupMember,
   removeGroupMember,
+  type GetGroupsOptions,
 } from "./groups";
 export { getFaculties } from "./faculties";
 export { getDocuments, getDocumentById, getDocumentDownloadUrl, uploadDocument } from "./documents";

@@ -132,6 +132,49 @@
   font-size: 0.84rem;
 }
 
+.member-list__roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.role-badge {
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  padding: 3px 8px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.role-badge--creator {
+  background: var(--amber-50);
+  border: 1px solid #f1d78f;
+  color: #a56f00;
+}
+
+.role-badge--submitter {
+  background: var(--blue-50);
+  border: 1px solid #c4d9ff;
+  color: #1555b6;
+}
+
+.role-badge--reviewer {
+  background: #f5f0ff;
+  border: 1px solid #ddd0f7;
+  color: #6d3fc0;
+}
+
+.role-badge--student,
+.role-badge--professor,
+.role-badge--admin {
+  background: #eef1ef;
+  border: 1px solid #cad1cd;
+  color: #4b5350;
+}
+
 .heading-actions {
   display: flex;
   flex-wrap: wrap;

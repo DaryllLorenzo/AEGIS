@@ -9,8 +9,16 @@ public sealed record CreateGroupRequest : IRequest<GroupDto>
     public Guid FacultyId { get; init; }
     public string? Description { get; init; }
     /// <summary>
-    /// Users to link to the group at creation time. Each is added
-    /// with the default member role ("Student").
+    /// Members to link at creation. Each entry lists the roles the
+    /// user gets in THIS group ("Submitter" and/or "Reviewer").
+    /// Roles are per-group — a user can hold different roles in
+    /// different groups.
     /// </summary>
-    public Guid[]? UserIds { get; init; }
+    public List<GroupMember>? Members { get; init; }
+}
+
+public sealed record GroupMember
+{
+    public Guid UserId { get; init; }
+    public List<string> Roles { get; init; } = [];
 }

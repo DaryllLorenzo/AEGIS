@@ -109,11 +109,17 @@
 /* Documents page toolbar */
 
 .doc-toolbar {
-  align-items: center;
+  align-items: flex-end;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  justify-content: space-between;
   margin-bottom: 18px;
+  margin-top: 4px;
+}
+
+.doc-toolbar__filter {
+  min-width: 200px;
 }
 
 .doc-toolbar .search-field {

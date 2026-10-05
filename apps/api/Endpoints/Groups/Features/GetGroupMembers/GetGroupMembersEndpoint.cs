@@ -1,5 +1,5 @@
+using Aegis.Api.Endpoints.Groups.Dtos;
 using Aegis.Api.Endpoints.Groups.Features.GetGroupMembers;
-using Aegis.Api.Endpoints.Users.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -18,7 +18,7 @@ internal static class GetGroupMembersEndpoint
             .WithSummary("Returns the users linked to a group.")
             .RequireAuthorization();
 
-        static async Task<Results<Ok<List<UserDto>>, NotFound>> Handle(
+        static async Task<Results<Ok<List<GroupMemberDto>>, NotFound>> Handle(
             Guid id,
             ISender sender,
             CancellationToken cancellationToken)

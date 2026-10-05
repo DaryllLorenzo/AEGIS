@@ -183,6 +183,21 @@
   border-radius: 6px;
 }
 
+.member-picker__roles {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.member-picker__role {
+  align-items: center;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.76rem;
+  gap: 4px;
+}
+
 .form-error {
   background: #fef3f2;
   border: 1px solid #fecdca;

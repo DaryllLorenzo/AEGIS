@@ -29,7 +29,7 @@ internal static class AddGroupMemberEndpoint
             {
                 GroupId = id,
                 UserId = body.UserId,
-                RoleId = body.RoleId,
+                Role = body.Role,
             };
 
             try
@@ -52,5 +52,6 @@ internal static class AddGroupMemberEndpoint
 internal sealed record AddGroupMemberBody
 {
     public required Guid UserId { get; init; }
-    public Guid? RoleId { get; init; }
+    /// <summary>"Submitter" or "Reviewer". Defaults to "Submitter".</summary>
+    public string? Role { get; init; }
 }

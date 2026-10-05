@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Groups.Dtos;
 using Aegis.Api.Endpoints.Groups.Mappings;
@@ -12,16 +13,31 @@ public sealed class GetGroupsHandler : IRequestHandler<GetGroupsRequest, Paginat
 {
     private readonly AegisDbContext _db;
     private readonly GroupSieveProcessor _sieve;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public GetGroupsHandler(AegisDbContext db, GroupSieveProcessor sieve)
+    public GetGroupsHandler(
+        AegisDbContext db,
+        GroupSieveProcessor sieve,
+        IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
         _sieve = sieve;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<PaginatedList<GroupDto>> Handle(GetGroupsRequest request, CancellationToken ct)
     {
         var query = _db.Groups.AsQueryable();
+
+        // "My groups": restrict to groups the current user is a member of.
+        if (request.Mine == true
+            && _httpContextAccessor.HttpContext?.User
+                .FindFirstValue(ClaimTypes.NameIdentifier) is { } parsed
+            && Guid.TryParse(parsed, out var userId))
+        {
+            query = query.Where(g => _db.UserRoles
+                .Any(ur => ur.GroupId == g.Id && ur.UserId == userId));
+        }
 
         var paged = _sieve.Apply(request.Sieve, query);
 

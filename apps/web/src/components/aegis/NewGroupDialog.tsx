@@ -21,7 +21,8 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
   const [name, setName] = useState("");
   const [facultyId, setFacultyId] = useState("");
   const [description, setDescription] = useState("");
-  const [memberIds, setMemberIds] = useState<Set<string>>(new Set());
+  // Map of userId -> which of the assignable roles were picked for this group.
+  const [memberRoles, setMemberRoles] = useState<Map<string, Set<"Submitter" | "Reviewer">>>(new Map());
   const [faculties, setFaculties] = useState<FacultyDto[]>([]);
   const [users, setUsers] = useState<SelectItem[]>([]);
   const [facultiesError, setFacultiesError] = useState(false);
@@ -55,7 +56,7 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
       setName("");
       setFacultyId("");
       setDescription("");
-      setMemberIds(new Set());
+      setMemberRoles(new Map());
       setError(null);
     }
   }, [open]);
@@ -70,10 +71,24 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
   }, [open, onClose]);
 
   function toggleMember(id: string) {
-    setMemberIds((prev) => {
-      const next = new Set(prev);
+    setMemberRoles((prev) => {
+      const next = new Map(prev);
       if (next.has(id)) next.delete(id);
-      else next.add(id);
+      else next.set(id, new Set(["Submitter"]));
+      return next;
+    });
+  }
+
+  function toggleRole(id: string, role: "Submitter" | "Reviewer") {
+    setMemberRoles((prev) => {
+      const next = new Map(prev);
+      const set = next.get(id);
+      if (!set) return prev;
+      const roles = new Set(set);
+      if (roles.has(role)) roles.delete(role);
+      else roles.add(role);
+      if (roles.size === 0) next.delete(id);
+      else next.set(id, roles);
       return next;
     });
   }
@@ -88,7 +103,10 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
         name: name.trim(),
         facultyId,
         description: description.trim() || undefined,
-        userIds: memberIds.size > 0 ? [...memberIds] : undefined,
+        members:
+          memberRoles.size > 0
+            ? [...memberRoles.entries()].map(([userId, roles]) => ({ userId, roles: [...roles] }))
+            : undefined,
       });
       onCreated?.();
       onClose();
@@ -168,23 +186,40 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
               Members <span className="field__optional">Optional</span>
             </label>
             <p className="field__hint">
-              Link members now so they can submit documents and be
-              assigned as reviewers.
+              Link members and pick their role in THIS group. You are added
+              automatically as Creator; role assignments are per-group.
             </p>
             <div className="member-picker">
               {users.length === 0 ? (
                 <p className="field__hint">No users available.</p>
               ) : (
-                users.map((u) => (
-                  <label key={u.id} className="member-picker__option">
-                    <input
-                      type="checkbox"
-                      checked={memberIds.has(u.id)}
-                      onChange={() => toggleMember(u.id)}
-                    />
-                    <span>{u.label}</span>
-                  </label>
-                ))
+                users.map((u) => {
+                  const picked = memberRoles.get(u.id);
+                  return (
+                    <label key={u.id} className="member-picker__option">
+                      <input
+                        type="checkbox"
+                        checked={picked != null}
+                        onChange={() => toggleMember(u.id)}
+                      />
+                      <span>{u.label}</span>
+                      {picked != null && (
+                        <span className="member-picker__roles">
+                          {(["Submitter", "Reviewer"] as const).map((role) => (
+                            <label key={role} className="member-picker__role">
+                              <input
+                                type="checkbox"
+                                checked={picked.has(role)}
+                                onChange={() => toggleRole(u.id, role)}
+                              />
+                              {role}
+                            </label>
+                          ))}
+                        </span>
+                      )}
+                    </label>
+                  );
+                })
               )}
             </div>
           </div>

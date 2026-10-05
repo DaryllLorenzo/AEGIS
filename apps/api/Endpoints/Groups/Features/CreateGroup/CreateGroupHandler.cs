@@ -22,60 +22,63 @@ public sealed class CreateGroupHandler : IRequestHandler<CreateGroupRequest, Gro
 
     public async Task<GroupDto> Handle(CreateGroupRequest request, CancellationToken ct)
     {
+        Guid? creatorId = null;
+        if (_httpContextAccessor.HttpContext?.User
+                .FindFirstValue(ClaimTypes.NameIdentifier) is { } parsed
+            && Guid.TryParse(parsed, out var parsedGuid))
+        {
+            creatorId = parsedGuid;
+        }
+
         var group = new Group
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
             FacultyId = request.FacultyId,
             Description = request.Description,
+            CreatedByUserId = creatorId,
             CreatedAt = DateTimeOffset.UtcNow,
         };
 
         _db.Groups.Add(group);
 
-        // The creator is always a member of their own group —
-        // without this, uploads and review creation right after
-        // group creation would be rejected.
         var now = DateTimeOffset.UtcNow;
-        var memberRole = await _db.Roles
-            .FirstOrDefaultAsync(r => r.Name == "Student", ct);
+        var roles = await _db.Roles.ToDictionaryAsync(r => r.Name, r => r.Id, ct);
 
-        if (_httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier) is { } creatorId
-            && Guid.TryParse(creatorId, out var creatorGuid))
+        // The creator always belongs to their own group with the
+        // "Creator" role. They may also hold Submitter/Reviewer
+        // rows if they add themselves to the member list.
+        if (creatorId is not null && roles.TryGetValue(GroupRoles.Creator, out var creatorRoleId))
         {
-            if (memberRole is not null)
+            _db.UserRoles.Add(new GroupUserRole
             {
-                _db.UserRoles.Add(new GroupUserRole
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = creatorGuid,
-                    GroupId = group.Id,
-                    RoleId = memberRole.Id,
-                    AssignedAt = now,
-                });
-            }
+                Id = Guid.NewGuid(),
+                UserId = creatorId.Value,
+                GroupId = group.Id,
+                RoleId = creatorRoleId,
+                AssignedAt = now,
+            });
         }
 
-        // Link the requested users to the group with the default
-        // member role so they can be assigned to reviews immediately.
-        if (request.UserIds is { Length: > 0 } && memberRole is not null)
+        // Link the requested members with their per-group roles.
+        if (request.Members is { Count: > 0 })
         {
-            var creatorGuidParsed = _httpContextAccessor.HttpContext?.User
-                .FindFirstValue(ClaimTypes.NameIdentifier) is { } parsed &&
-                Guid.TryParse(parsed, out var c) ? c : (Guid?)null;
-
-            foreach (var userId in request.UserIds.Distinct())
+            foreach (var member in request.Members)
             {
-                if (userId == creatorGuidParsed) continue;
-
-                _db.UserRoles.Add(new GroupUserRole
+                foreach (var roleName in member.Roles.Distinct())
                 {
-                    Id = Guid.NewGuid(),
-                    UserId = userId,
-                    GroupId = group.Id,
-                    RoleId = memberRole.Id,
-                    AssignedAt = now,
-                });
+                    if (roles.TryGetValue(roleName, out var roleId))
+                    {
+                        _db.UserRoles.Add(new GroupUserRole
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId = member.UserId,
+                            GroupId = group.Id,
+                            RoleId = roleId,
+                            AssignedAt = now,
+                        });
+                    }
+                }
             }
         }
 

@@ -68,8 +68,21 @@ export type GroupDto = {
   name: string;
   facultyId: string;
   description: string | null;
+  /** User who created the group (holds the Creator role). */
+  createdByUserId: string | null;
   createdAt: string;
   updatedAt: string | null;
+};
+
+/** A user linked to a group, with the roles they hold in that group. */
+export type GroupMember = {
+  id: string;
+  email: string;
+  displayName: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+  roles: string[];
 };
 
 export type FacultyDto = {

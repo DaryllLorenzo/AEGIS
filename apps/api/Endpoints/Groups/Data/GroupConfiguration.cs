@@ -19,6 +19,8 @@ public sealed class GroupConfiguration : IEntityTypeConfiguration<Group>
         builder.Property(g => g.Description)
             .HasMaxLength(1000);
 
+        builder.Property(g => g.CreatedByUserId);
+
         builder.HasOne<Faculty>()
             .WithMany()
             .HasForeignKey(g => g.FacultyId)

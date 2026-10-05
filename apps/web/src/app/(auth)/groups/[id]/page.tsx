@@ -18,7 +18,7 @@ import { useReviews } from "@/hooks/useReviews";
 import { useFetch } from "@/hooks/useFetch";
 import { getGroupMembers, initialsFromName } from "@/lib/api";
 import { reviewStatusLabel } from "@/lib/utils";
-import type { UserDto } from "@/lib/api";
+import type { GroupMember } from "@/lib/api";
 
 export default function GroupOverviewPage() {
   const params = useParams();
@@ -33,7 +33,7 @@ export default function GroupOverviewPage() {
     [groupId],
   );
 
-  const members: UserDto[] = membersData ?? [];
+  const members: GroupMember[] = membersData ?? [];
 
   const documents = docData?.items ?? [];
   const docIds = useMemo(() => new Set(documents.map((d) => d.id)), [documents]);
@@ -164,6 +164,16 @@ export default function GroupOverviewPage() {
                       {initialsFromName(m.displayName)}
                     </span>
                     <span className="member-list__name">{m.displayName}</span>
+                    <span className="member-list__roles">
+                      {m.roles.map((role) => (
+                        <span
+                          key={role}
+                          className={`role-badge role-badge--${role.toLowerCase()}`}
+                        >
+                          {role}
+                        </span>
+                      ))}
+                    </span>
                   </li>
                 ))}
               </ul>

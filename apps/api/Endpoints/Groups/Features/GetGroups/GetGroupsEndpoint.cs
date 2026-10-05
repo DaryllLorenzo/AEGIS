@@ -31,7 +31,9 @@ internal static class GetGroupsEndpoint
                 Sorts = parameters.Sorts,
             };
 
-            var result = await sender.Send(new GetGroupsRequest { Sieve = sieve }, cancellationToken);
+            var result = await sender.Send(
+                new GetGroupsRequest { Sieve = sieve, Mine = parameters.Mine },
+                cancellationToken);
             return TypedResults.Ok(result);
         }
     }
@@ -43,4 +45,6 @@ internal sealed record GetGroupsParameters
     public int? PageSize { get; init; }
     public string? Filters { get; init; }
     public string? Sorts { get; init; }
+    /// <summary>When true, only groups the current user belongs to.</summary>
+    public bool? Mine { get; init; }
 }

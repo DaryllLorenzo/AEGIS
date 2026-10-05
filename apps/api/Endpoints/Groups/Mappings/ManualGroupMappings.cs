@@ -11,6 +11,7 @@ public static class ManualGroupMappings
         Name = group.Name,
         FacultyId = group.FacultyId,
         Description = group.Description,
+        CreatedByUserId = group.CreatedByUserId,
         CreatedAt = group.CreatedAt,
         UpdatedAt = group.UpdatedAt,
     };
