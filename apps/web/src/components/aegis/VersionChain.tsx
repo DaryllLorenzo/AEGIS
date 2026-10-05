@@ -62,7 +62,7 @@ export default function VersionChain({
               {review ? (
                 <Link
                   className={`lineage-chip${isCurrent ? " lineage-chip--current" : ""}`}
-                  href={`/reviews/${review.id}`}
+                  href={`/groups/${doc.groupId}/reviews/${review.id}/workspace`}
                   title={`Version ${version} — ${doc.name} (${reviewStatusLabel(review.status)})`}
                 >
                   <code>v{version}</code>

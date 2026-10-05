@@ -112,6 +112,9 @@ export type AnnotationDto = {
   isActive: boolean;
   createdAt: string;
   updatedAt: string | null;
+  /** Author info persisted by the API. */
+  createdByUserId: string | null;
+  authorName: string | null;
 };
 
 export type AnnotationPayload = {

@@ -7,7 +7,6 @@ import {
   Home,
   LogOut,
   Menu,
-  MessageSquareText,
   Plus,
   Search,
   SlidersHorizontal,
@@ -27,7 +26,6 @@ type AppShellProps = {
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/reviews", label: "My Reviews", icon: MessageSquareText },
   { href: "/submissions", label: "My Submissions", icon: FileText },
   { href: "/groups", label: "Groups", icon: Users },
 ];
@@ -72,11 +70,6 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
           </button>
         </div>
 
-        <Link className="button button--primary sidebar__create" href="/reviews/new" onClick={() => setMobileOpen(false)}>
-          <Plus size={18} />
-          New review
-        </Link>
-
         <nav className="sidebar__nav" aria-label="Main navigation">
           {navItems.map(({ href, label, icon: Icon }) => (
             <Link
@@ -91,16 +84,10 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
           ))}
         </nav>
 
-        <div className="sidebar__groups">
-          <span>My groups</span>
-          <button type="button" className="sidebar__group-action" onClick={() => setNewGroupOpen(true)}>
-            <Plus size={15} />
-            New group
-          </button>
-          <Link href="/groups" onClick={() => setMobileOpen(false)}>
-            View all groups
-          </Link>
-        </div>
+        <button type="button" className="sidebar__group-action" onClick={() => setNewGroupOpen(true)}>
+          <Plus size={15} />
+          New group
+        </button>
       </aside>
 
       <div className="app-frame">

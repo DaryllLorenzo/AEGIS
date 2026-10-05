@@ -127,14 +127,14 @@ function TreeNode({
           {review && (
             <Link
               className="button button--secondary button--sm"
-              href={`/reviews/${review.id}`}
+              href={`/groups/${doc.groupId}/reviews/${review.id}/workspace`}
             >
               {openLabel} <ArrowRight size={14} />
             </Link>
           )}
           <Link
             className="icon-button icon-button--outlined"
-            href={`/reviews/new?parentId=${doc.id}&groupId=${doc.groupId}`}
+            href={`/groups/${doc.groupId}/documents/new?parentId=${doc.id}`}
             aria-label={newVersionLabel.replace("{name}", doc.name)}
             title={newVersionLabel.replace("{name}", doc.name)}
           >

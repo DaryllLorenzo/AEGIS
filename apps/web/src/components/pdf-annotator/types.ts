@@ -30,4 +30,7 @@ export type Annotation = {
   type: Tool;
   geometry: RectangleGeometry | CircleGeometry | EllipseGeometry | HighlightGeometry;
   content: string | null;
+  /** Author display name (resolved by the API / current user for new ones). */
+  authorName: string | null;
+  createdByUserId: string | null;
 };

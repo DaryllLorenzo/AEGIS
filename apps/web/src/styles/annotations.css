@@ -129,3 +129,27 @@
 .nav-backdrop {
   display: none;
 }
+
+.annotation-card__author {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.annotation-card__avatar {
+  align-items: center;
+  border: 1px solid;
+  border-radius: 999px;
+  display: flex;
+  font-size: 0.62rem;
+  font-weight: 750;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
+}
+
+.annotation-card__author-name {
+  color: var(--text);
+  font-size: 0.74rem;
+  font-weight: 650;
+}

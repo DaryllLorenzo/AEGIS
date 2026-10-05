@@ -24,6 +24,7 @@ import {
   computeHighlightLinesFromWords,
 } from "./text-layer-helpers";
 import Toolbar from "./Toolbar";
+import { useAuth } from "@/lib/auth-context";
 import {
   RectangleAnnotation,
   CircleAnnotation,
@@ -111,6 +112,8 @@ function dtoToAnnotation(dto: AnnotationDto): Annotation {
     type: dto.type as Tool,
     geometry: JSON.parse(dto.geometry),
     content: dto.content,
+    authorName: dto.authorName,
+    createdByUserId: dto.createdByUserId,
   };
 }
 
@@ -151,6 +154,8 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
   { documentId, file: initialFile, onAnnotationsChange, readOnly },
   ref,
 ) {
+  const { user } = useAuth();
+
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [tool, setTool] = useState<Tool>("rectangle");
@@ -210,13 +215,19 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
       saveTimer.current = setTimeout(async () => {
         try {
           const payloads = next.map(annotationToPayload);
-          await bulkUpdateAnnotations(documentId, payloads);
+          // The API enriches each annotation with its author; then we
+          // replace the local copy with the server state so ids/authors
+          // stay in sync (no optimistic author drift).
+          const saved = await bulkUpdateAnnotations(documentId, payloads);
+          const serverList = saved.map(dtoToAnnotation);
+          setAnnotations(serverList);
+          onAnnotationsChange?.(serverList);
         } catch (err) {
           console.error("Failed to save annotations:", err);
         }
       }, 600);
     },
-    [documentId],
+    [documentId, onAnnotationsChange],
   );
 
   // Wrap setAnnotations to also trigger BE sync
@@ -440,6 +451,8 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
           type: "highlight",
           geometry,
           content: null,
+          authorName: user?.displayName ?? null,
+          createdByUserId: user?.userId ?? null,
         };
 
         updateAnnotations((prev) => [...prev, annotation]);
@@ -488,6 +501,8 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
         type: tool,
         geometry,
         content: null,
+        authorName: user?.displayName ?? null,
+        createdByUserId: user?.userId ?? null,
       };
 
       updateAnnotations((prev) => [...prev, annotation]);
@@ -496,7 +511,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
       startPoint.current = null;
       setCurrentPointer(null);
     },
-    [isDrawing, tool, pageNumber, normalizeX, normalizeY, updateAnnotations],
+    [isDrawing, tool, pageNumber, normalizeX, normalizeY, updateAnnotations, user],
   );
 
   // -- Derived preview coords ------------------------------------------------

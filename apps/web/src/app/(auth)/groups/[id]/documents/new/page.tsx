@@ -11,7 +11,7 @@ import {
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 
 import {
@@ -29,9 +29,10 @@ import {
 
 function NewReviewForm() {
   const router = useRouter();
+  const params = useParams();
   const searchParams = useSearchParams();
   const preParentId = searchParams.get("parentId") ?? "";
-  const preGroupId = searchParams.get("groupId") ?? "";
+  const groupIdParam = (params?.id as string) ?? "";
 
   const [title, setTitle] = useState("");
   const [kind, setKind] = useState("");
@@ -39,7 +40,7 @@ function NewReviewForm() {
   const [dueDate, setDueDate] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
-  const [groupId, setGroupId] = useState(preGroupId);
+  const [groupId, setGroupId] = useState(groupIdParam);
   const [documentId, setDocumentId] = useState("");
   const [docType, setDocType] = useState<DocumentType>("Thesis");
   const [mode, setMode] = useState<"upload" | "existing">("upload");
@@ -153,7 +154,7 @@ function NewReviewForm() {
         dueDate: dueDate || undefined,
         assigneeId: assigneeId || undefined,
       });
-      router.push(`/reviews/${review.id}`);
+      router.push(`/groups/${groupId}/reviews/${review.id}/workspace`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -200,16 +201,16 @@ function NewReviewForm() {
               value={groupId}
               onChange={(e) => setGroupId(e.target.value)}
               required
-              disabled={isVersion && !!preGroupId}
+              disabled
             >
               <option value="">Select a group</option>
               {groups.map((g) => (
                 <option key={g.id} value={g.id}>{g.name}</option>
               ))}
             </select>
-            {isVersion && preGroupId && selectedGroup && (
+            {selectedGroup && (
               <p className="field__hint">
-                Locked to {selectedGroup.name} because this is a new version.
+                Being created in {selectedGroup.name}; members are validated for this group.
               </p>
             )}
           </div>
@@ -419,7 +420,7 @@ function NewReviewForm() {
       {error && <p className="form-error" role="alert">{error}</p>}
 
       <div className="form-actions">
-        <Link className="button button--secondary" href="/reviews">
+        <Link className="button button--secondary" href={`/groups/${groupId}`}>
           <ArrowLeft size={16} /> Cancel
         </Link>
         <button
@@ -437,7 +438,7 @@ function NewReviewForm() {
             </>
           ) : (
             <>
-              <Upload size={16} /> Create review
+              <Upload size={16} /> Create document
             </>
           )}
         </button>
@@ -450,14 +451,14 @@ export default function NewReviewPage() {
   return (
     <div className="page-container">
       <div className="breadcrumb">
-        <Link href="/reviews">My Reviews</Link>
+        <Link href="/groups">My Groups</Link>
         <span>/</span>
-        <span>New review</span>
+        <span>New document</span>
       </div>
       <div className="page-heading">
-        <p className="eyebrow">Create review</p>
-        <h1>New review</h1>
-        <p>Upload a document or select an existing one to start a new review round.</p>
+        <p className="eyebrow">Create document</p>
+        <h1>New document</h1>
+        <p>Upload a document or select an existing one inside this group to start a review round.</p>
       </div>
       <Suspense fallback={<p className="muted">Loading...</p>}>
         <NewReviewForm />

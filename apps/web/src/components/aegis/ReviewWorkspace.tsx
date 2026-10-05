@@ -24,7 +24,7 @@ import {
   type Review,
   type DocumentDto,
 } from "@/lib/api";
-import { reviewStatusLabel } from "@/lib/utils";
+import { reviewStatusLabel, initialsFromName } from "@/lib/utils";
 
 import Brand from "./Brand";
 import PdfAnnotator from "../pdf-annotator/PdfAnnotator";
@@ -102,6 +102,17 @@ export default function ReviewWorkspace({ reviewId }: Props) {
       highlight: "▲",
     };
     return icons[a.type] ?? "?";
+  }
+
+  /** Deterministic chip color per author name (stable across renders). */
+  function authorChipColor(authorName: string | null): string {
+    const palette = ["#1555b6", "#087342", "#a56f00", "#6d3fc0", "#b42318", "#0e7490"];
+    if (!authorName) return "#6b7280";
+    let hash = 0;
+    for (let i = 0; i < authorName.length; i += 1) {
+      hash = (hash * 31 + authorName.charCodeAt(i)) % 997;
+    }
+    return palette[hash % palette.length];
   }
 
   function renderMiniPreview(a: Annotation) {
@@ -204,7 +215,7 @@ export default function ReviewWorkspace({ reviewId }: Props) {
   return (
     <main className="workspace">
       <header className="workspace-header">
-        <Link className="icon-button" href="/reviews" aria-label="Back to reviews">
+        <Link className="icon-button" href={doc ? `/groups/${doc.groupId}` : "/groups"} aria-label="Back to group">
           <ArrowLeft size={22} />
         </Link>
         <span className="workspace-header__divider" />
@@ -249,7 +260,7 @@ export default function ReviewWorkspace({ reviewId }: Props) {
           {isCompleted && doc && (
             <Link
               className="button button--primary"
-              href={`/reviews/new?parentId=${doc.id}&groupId=${doc.groupId}`}
+              href={`/groups/${doc.groupId}/documents/new?parentId=${doc.id}`}
             >
               <FileText size={16} />
               New version
@@ -279,8 +290,8 @@ export default function ReviewWorkspace({ reviewId }: Props) {
       {error && (
         <div className="workspace-error" role="alert">
           <p>{error}</p>
-          <Link className="button button--secondary" href="/reviews">
-            Back to reviews
+          <Link className="button button--secondary" href={doc ? `/groups/${doc.groupId}` : "/groups"}>
+            Back to group
           </Link>
         </div>
       )}
@@ -363,6 +374,15 @@ export default function ReviewWorkspace({ reviewId }: Props) {
                     <div className="annotation-card__header">
                       <span className="annotation-card__type">{getAnnotationIcon(a)}</span>
                       <span className="annotation-card__page">Page {a.page}</span>
+                    </div>
+                    <div className="annotation-card__author">
+                      <span
+                        className="annotation-card__avatar"
+                        style={{ background: `${authorChipColor(a.authorName)}1a`, borderColor: `${authorChipColor(a.authorName)}55`, color: authorChipColor(a.authorName) }}
+                      >
+                        {initialsFromName(a.authorName ?? "?")}
+                      </span>
+                      <span className="annotation-card__author-name">{a.authorName ?? "Unknown author"}</span>
                     </div>
                     {a.geometry && (
                       <div className="annotation-card__preview">

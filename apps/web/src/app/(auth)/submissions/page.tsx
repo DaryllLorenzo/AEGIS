@@ -138,7 +138,7 @@ export default function SubmissionsPage() {
           </div>
         </div>
         <div className="heading-actions">
-          <Link className="button button--primary" href="/reviews/new">
+          <Link className="button button--primary" href="/groups">
             <GitBranchPlus size={16} />
             Submit a document
           </Link>
@@ -251,7 +251,7 @@ export default function SubmissionsPage() {
                 Upload a document to start your first review round. Each new
                 version you upload is nested under the previous one.
               </p>
-              <Link className="button button--primary" href="/reviews/new">
+              <Link className="button button--primary" href="/groups">
                 <FileUp size={16} />
                 Submit a document
               </Link>

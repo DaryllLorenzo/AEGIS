@@ -25,6 +25,8 @@ public sealed class AnnotationConfiguration : IEntityTypeConfiguration<Annotatio
         builder.Property(a => a.Color)
             .HasMaxLength(20);
 
+        builder.Property(a => a.CreatedByUserId);
+
         builder.HasOne<Document>()
             .WithMany()
             .HasForeignKey(a => a.DocumentId)

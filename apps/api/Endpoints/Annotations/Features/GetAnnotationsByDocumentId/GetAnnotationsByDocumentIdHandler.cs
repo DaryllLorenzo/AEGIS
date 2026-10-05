@@ -17,6 +17,22 @@ public sealed class GetAnnotationsByDocumentIdHandler : IRequestHandler<GetAnnot
             .Where(a => a.DocumentId == request.DocumentId && a.IsActive)
             .OrderBy(a => a.PageNumber)
             .ThenBy(a => a.CreatedAt)
+            .ToListAsync(ct);
+
+        // Resolve authors so the UI can show who made each annotation.
+        var authorIds = annotations
+            .Where(a => a.CreatedByUserId.HasValue)
+            .Select(a => a.CreatedByUserId!.Value)
+            .Distinct()
+            .ToList();
+
+        var authorNames = authorIds.Count == 0
+            ? new Dictionary<Guid, string>()
+            : await _db.Users
+                .Where(u => authorIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.DisplayName, ct);
+
+        return annotations
             .Select(a => new AnnotationDto
             {
                 Id = a.Id,
@@ -29,9 +45,11 @@ public sealed class GetAnnotationsByDocumentIdHandler : IRequestHandler<GetAnnot
                 IsActive = a.IsActive,
                 CreatedAt = a.CreatedAt,
                 UpdatedAt = a.UpdatedAt,
+                CreatedByUserId = a.CreatedByUserId,
+                AuthorName = a.CreatedByUserId.HasValue && authorNames.TryGetValue(a.CreatedByUserId.Value, out var name)
+                    ? name
+                    : null,
             })
-            .ToListAsync(ct);
-
-        return annotations;
+            .ToList();
     }
 }

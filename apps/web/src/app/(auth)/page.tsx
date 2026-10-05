@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowRight,
   CalendarDays,
@@ -16,12 +16,15 @@ import {
 
 import StatusPill from "@/components/aegis/StatusPill";
 import NewGroupDialog from "@/components/aegis/NewGroupDialog";
+import { useDocuments } from "@/hooks/useDocuments";
 import { useReviews } from "@/hooks/useReviews";
 import { reviewStatusLabel, reviewStatusClass } from "@/lib/utils";
 
 export default function Home() {
   const { data } = useReviews(1, 20);
   const reviews = data?.items ?? [];
+  const { data: docData } = useDocuments(1, 100);
+  const docById = useMemo(() => new Map((docData?.items ?? []).map((d) => [d.id, d])), [docData]);
   const [newGroupOpen, setNewGroupOpen] = useState(false);
 
   const hour = new Date().getHours();
@@ -75,7 +78,7 @@ export default function Home() {
       title: "Set up a review",
       text: "Upload a document or pick an existing one, then assign a reviewer.",
       action: (
-        <Link className="button button--secondary button--sm" href="/reviews/new">
+        <Link className="button button--secondary button--sm" href="/groups">
           <ListChecks size={15} />
           New review
         </Link>
@@ -86,7 +89,7 @@ export default function Home() {
       title: "Review the document",
       text: "Annotate the PDF, flag issues, then complete the review round.",
       action: (
-        <Link className="button button--secondary button--sm" href="/reviews">
+        <Link className="button button--secondary button--sm" href="/groups">
           <PenLine size={15} />
           Open reviews
         </Link>
@@ -152,7 +155,7 @@ export default function Home() {
             <p className="eyebrow">Your queue</p>
             <h2>Pending reviews</h2>
           </div>
-          <Link className="text-link" href="/reviews">
+          <Link className="text-link" href="/groups">
             View all <ArrowRight size={16} />
           </Link>
         </div>
@@ -194,7 +197,7 @@ export default function Home() {
                 </div>
                 <Link
                   className={`button ${review.status === "Completed" ? "button--secondary" : "button--primary"}`}
-                  href={`/reviews/${review.id}`}
+                  href={`/groups/${docById.get(review.documentId)?.groupId ?? ""}/reviews/${review.id}/workspace`}
                 >
                   {review.status === "Completed"
                     ? "View"

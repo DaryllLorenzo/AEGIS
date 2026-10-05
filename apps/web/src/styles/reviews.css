@@ -75,3 +75,44 @@
   font-weight: 650;
   padding: 5px 8px;
 }
+
+.review-list {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.review-list__row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  padding: 8px 4px;
+}
+
+.review-list__row:hover {
+  background: var(--surface-muted);
+  border-radius: 8px;
+}
+
+.review-list__main {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+}
+
+.review-list__main strong {
+  font-size: 0.9rem;
+}
+
+.review-list__main small {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.detail-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 10px;
+}

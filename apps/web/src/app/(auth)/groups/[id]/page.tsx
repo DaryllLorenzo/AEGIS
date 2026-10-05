@@ -4,14 +4,16 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useParams } from "next/navigation";
 import {
-  ArrowRight,
   ArrowUpRight,
-  FileCheck2,
-  FilePlus2,
   FileUp,
 } from "lucide-react";
 
-import GroupTabs from "@/components/aegis/GroupTabs";
+import DocumentTree, {
+  buildDocumentTree,
+  buildReviewMap,
+} from "@/components/aegis/DocumentTree";
+import StatusPill from "@/components/aegis/StatusPill";
+import TypeBadge from "@/components/aegis/TypeBadge";
 import { useGroup } from "@/hooks/useGroup";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useReviews } from "@/hooks/useReviews";
@@ -34,25 +36,38 @@ export default function GroupOverviewPage() {
   );
 
   const members: GroupMember[] = membersData ?? [];
-
   const documents = docData?.items ?? [];
   const docIds = useMemo(() => new Set(documents.map((d) => d.id)), [documents]);
   const reviews = useMemo(
     () => (reviewData?.items ?? []).filter((r) => docIds.has(r.documentId)),
     [reviewData, docIds],
   );
-
-  const openCount = reviews.filter((r) => r.status !== "Completed").length;
-  const completedCount = reviews.filter((r) => r.status === "Completed").length;
-  const latestReview = reviews.reduce<typeof reviews[number] | null>(
-    (latest, r) =>
-      !latest || new Date(r.createdAt) > new Date(latest.createdAt) ? r : latest,
-    null,
-  );
   const docById = useMemo(
     () => new Map(documents.map((d) => [d.id, d])),
     [documents],
   );
+  const nodes = useMemo(() => buildDocumentTree(documents), [documents]);
+  const reviewsByDocument = useMemo(
+    () => buildReviewMap(reviews),
+    [reviews],
+  );
+
+  const openCount = reviews.filter((r) => r.status !== "Completed").length;
+  const completedCount = reviews.filter((r) => r.status === "Completed").length;
+  const latestReview = useMemo(
+    () =>
+      reviews.reduce<typeof reviews[number] | null>(
+        (latest, r) =>
+          !latest || new Date(r.createdAt) > new Date(latest.createdAt) ? r : latest,
+        null,
+      ),
+    [reviews],
+  );
+  const primaryDoc = useMemo(() => {
+    if (documents.length === 0) return null;
+    return [...documents].sort((a, b) => a.version - b.version).at(-1) ?? null;
+  }, [documents]);
+  const versionsCount = documents.length;
 
   if (error) {
     return (
@@ -75,53 +90,98 @@ export default function GroupOverviewPage() {
         <h1 className="serif-title">{group?.name ?? "Loading..."}</h1>
         <p>{group?.description ?? " "}</p>
       </div>
-      <GroupTabs groupId={groupId} active="overview" />
 
       <div className="group-layout">
         <div className="group-layout__main">
-          <section className="content-panel research-topic">
-            <div className="section-heading section-heading--compact">
-              <div>
-                <p className="eyebrow">About</p>
-                <h2>Research topic</h2>
+          {documents.length === 0 ? (
+            <section className="content-panel">
+              <div className="empty-state">
+                <FileUp size={28} />
+                <strong>No document in review yet in this group.</strong>
+                <p>Upload a PDF to start the first review round in this group.</p>
+                <Link
+                  className="button button--primary"
+                  href={`/groups/${groupId}/documents/new`}
+                >
+                  <FileUp size={16} />
+                  Upload document
+                </Link>
               </div>
-              <Link className="text-link" href={`/groups/${groupId}/documents`}>
-                Documents <ArrowRight size={16} />
-              </Link>
-            </div>
-            <p>{group?.description || "No description provided for this group yet."}</p>
-          </section>
+            </section>
+          ) : (
+            <>
+              <section className="content-panel">
+                <div className="section-heading section-heading--compact">
+                  <div>
+                    <p className="eyebrow">Document</p>
+                    <h2>Current version</h2>
+                  </div>
+                </div>
+                <div className="doc-tree-title">
+                  <strong>{primaryDoc?.name}</strong>
+                  {primaryDoc && <code className="doc-tree-version">v{primaryDoc.version}</code>}
+                  {primaryDoc && <TypeBadge type={primaryDoc.type} />}
+                  {latestReview && <StatusPill status={reviewStatusLabel(latestReview.status)} />}
+                </div>
+                <div className="detail-hint">
+                  {reviews.filter((r) => r.status !== "Completed").length} open review(s);{" "}
+                  {completedCount} completed.
+                </div>
+              </section>
 
-          <section className="content-panel">
-            <div className="section-heading section-heading--compact">
-              <div>
-                <p className="eyebrow">Quick actions</p>
-                <h2>Start working</h2>
-              </div>
-            </div>
-            <div className="action-row">
-              <Link className="action-card" href={`/reviews/new?groupId=${groupId}`}>
-                <span className="action-card__icon">
-                  <FilePlus2 size={20} />
-                </span>
-                <span className="action-card__copy">
-                  <strong>New document</strong>
-                  <p>Upload a PDF and start a review round.</p>
-                </span>
-                <ArrowUpRight size={17} className="action-card__arrow" />
-              </Link>
-              <Link className="action-card" href={`/groups/${groupId}/reviews`}>
-                <span className="action-card__icon action-card__icon--amber">
-                  <FileCheck2 size={20} />
-                </span>
-                <span className="action-card__copy">
-                  <strong>Review rounds</strong>
-                  <p>See every review for this group&apos;s documents.</p>
-                </span>
-                <ArrowUpRight size={17} className="action-card__arrow" />
-              </Link>
-            </div>
-          </section>
+              <section className="content-panel">
+                <div className="section-heading section-heading--compact">
+                  <div>
+                    <p className="eyebrow">Versioning</p>
+                    <h2>Document versions</h2>
+                  </div>
+                </div>
+                <DocumentTree nodes={nodes} reviewsByDocument={reviewsByDocument} />
+              </section>
+
+              <section className="content-panel">
+                <div className="section-heading section-heading--compact">
+                  <div>
+                    <p className="eyebrow">Review rounds</p>
+                    <h2>Reviews for this document</h2>
+                  </div>
+                </div>
+                {reviews.length === 0 ? (
+                  <p className="muted">No review rounds yet. Each uploaded version can start one.</p>
+                ) : (
+                  <ul className="review-list">
+                    {reviews
+                      .slice()
+                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      .map((review) => {
+                        const rDoc = docById.get(review.documentId);
+                        return (
+                          <li key={review.id} className="review-list__row">
+                            <Link
+                              className="review-list__main"
+                              href={`/groups/${groupId}/reviews/${review.id}/workspace`}
+                            >
+                              <strong>{review.title}</strong>
+                              <small>
+                                {rDoc?.name ?? "Document"} · v{rDoc?.version ?? "?"} ·{" "}
+                                {review.assigneeName ?? "Unassigned"}
+                              </small>
+                            </Link>
+                            <StatusPill status={reviewStatusLabel(review.status)} />
+                            <Link
+                              className="button button--secondary button--sm"
+                              href={`/groups/${groupId}/reviews/${review.id}/workspace`}
+                            >
+                              Open review
+                            </Link>
+                          </li>
+                        );
+                      })}
+                  </ul>
+                )}
+              </section>
+            </>
+          )}
         </div>
 
         <aside className="group-layout__aside">
@@ -133,16 +193,20 @@ export default function GroupOverviewPage() {
                 Documents
               </span>
               <span>
+                <strong>{versionsCount}</strong>
+                Versions
+              </span>
+              <span>
+                <strong>{members.length}</strong>
+                Participants
+              </span>
+              <span>
                 <strong>{openCount}</strong>
                 Open reviews
               </span>
               <span>
                 <strong>{completedCount}</strong>
                 Completed
-              </span>
-              <span>
-                <strong>{documents.filter((d) => d.parentId).length}</strong>
-                Versions
               </span>
             </div>
           </section>
@@ -151,11 +215,11 @@ export default function GroupOverviewPage() {
             <div className="section-heading section-heading--compact">
               <div>
                 <p className="eyebrow">Membership</p>
-                <h2>Members</h2>
+                <h2>Participants</h2>
               </div>
             </div>
             {members.length === 0 ? (
-              <p className="muted">No members linked to this group yet.</p>
+              <p className="muted">No participants linked to this group yet.</p>
             ) : (
               <ul className="member-list">
                 {members.map((m) => (
@@ -183,7 +247,7 @@ export default function GroupOverviewPage() {
           {latestReview && (
             <Link
               className="content-panel latest-review"
-              href={`/reviews/${latestReview.id}`}
+              href={`/groups/${groupId}/reviews/${latestReview.id}/workspace`}
             >
               <div className="section-heading section-heading--compact">
                 <div>
@@ -195,30 +259,15 @@ export default function GroupOverviewPage() {
               <strong>{latestReview.title}</strong>
               <p>
                 {docById.get(latestReview.documentId)?.name ?? "Document"}
-                {latestReview.version ? ` · ${latestReview.version}` : ""}
+                {docById.get(latestReview.documentId)?.version
+                  ? ` · v${docById.get(latestReview.documentId)!.version}`
+                  : ""}
               </p>
               <span className={`status-pill status-pill--${latestReview.status.toLowerCase()}`}>
                 {reviewStatusLabel(latestReview.status)}
               </span>
             </Link>
           )}
-
-          <section className="content-panel upload-hint">
-            <div className="section-heading section-heading--compact">
-              <div>
-                <p className="eyebrow">Tip</p>
-                <h2>New version?</h2>
-              </div>
-            </div>
-            <p>
-              When a document is revised, upload it from the documents page and
-              it will automatically nest under the original as a child version.
-            </p>
-            <Link className="button button--secondary button--sm" href={`/groups/${groupId}/documents`}>
-              <FileUp size={15} />
-              Open documents
-            </Link>
-          </section>
         </aside>
       </div>
     </div>

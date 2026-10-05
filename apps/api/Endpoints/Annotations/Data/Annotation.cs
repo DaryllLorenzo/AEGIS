@@ -14,6 +14,8 @@ public sealed class Annotation
     public bool IsActive { get; set; } = true;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
+    /// <summary>User who created this annotation. Nullable for legacy rows.</summary>
+    public Guid? CreatedByUserId { get; set; }
 
     public Document? Document { get; set; }
 }

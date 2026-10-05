@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Annotations.Data;
 using Aegis.Api.Endpoints.Annotations.Dtos;
@@ -11,11 +12,24 @@ namespace Aegis.Api.Endpoints.Annotations.Features.BulkUpdateAnnotations;
 public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnnotationsRequest, List<AnnotationDto>>
 {
     private readonly AegisDbContext _db;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public BulkUpdateAnnotationsHandler(AegisDbContext db) => _db = db;
+    public BulkUpdateAnnotationsHandler(AegisDbContext db, IHttpContextAccessor httpContextAccessor)
+    {
+        _db = db;
+        _httpContextAccessor = httpContextAccessor;
+    }
 
     public async Task<List<AnnotationDto>> Handle(BulkUpdateAnnotationsRequest request, CancellationToken ct)
     {
+        Guid? currentUserId = null;
+        if (_httpContextAccessor.HttpContext?.User
+                .FindFirstValue(ClaimTypes.NameIdentifier) is { } parsed
+            && Guid.TryParse(parsed, out var parsedGuid))
+        {
+            currentUserId = parsedGuid;
+        }
+
         // Annotations are editable only while the document's active
         // (most recent) review round is in progress: read-only before
         // "Start Review" and after "Complete Review".
@@ -63,6 +77,11 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
                 found.Content = item.Content;
                 found.Color = item.Color;
                 found.UpdatedAt = now;
+                // Author is preserved — editing content must not reassign ownership.
+                if (found.CreatedByUserId is null && currentUserId.HasValue)
+                {
+                    found.CreatedByUserId = currentUserId;
+                }
                 toUpdate.Add(found);
             }
             else
@@ -78,6 +97,7 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
                     Color = item.Color,
                     IsActive = true,
                     CreatedAt = now,
+                    CreatedByUserId = currentUserId,
                 };
                 toCreate.Add(annotation);
             }
@@ -86,7 +106,21 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
         _db.Annotations.AddRange(toCreate);
         await _db.SaveChangesAsync(ct);
 
-        var result = toUpdate.Concat(toCreate).Select(a => new AnnotationDto
+        var resultAnnotations = toUpdate.Concat(toCreate).ToList();
+
+        var resultAuthorIds = resultAnnotations
+            .Where(a => a.CreatedByUserId.HasValue)
+            .Select(a => a.CreatedByUserId!.Value)
+            .Distinct()
+            .ToList();
+
+        var resultAuthorNames = resultAuthorIds.Count == 0
+            ? new Dictionary<Guid, string>()
+            : await _db.Users
+                .Where(u => resultAuthorIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.DisplayName, ct);
+
+        var result = resultAnnotations.Select(a => new AnnotationDto
         {
             Id = a.Id,
             DocumentId = a.DocumentId,
@@ -98,6 +132,10 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
             IsActive = a.IsActive,
             CreatedAt = a.CreatedAt,
             UpdatedAt = a.UpdatedAt,
+            CreatedByUserId = a.CreatedByUserId,
+            AuthorName = a.CreatedByUserId.HasValue && resultAuthorNames.TryGetValue(a.CreatedByUserId.Value, out var name)
+                ? name
+                : null,
         }).ToList();
 
         return result;
