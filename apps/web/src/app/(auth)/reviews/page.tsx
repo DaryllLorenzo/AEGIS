@@ -64,7 +64,7 @@ export default function ReviewsPage() {
   const reviews = reviewData?.items ?? [];
   const docs = docData?.items ?? [];
   const groups = groupData?.items ?? [];
-  const myName = user?.displayName;
+  const myId = user?.userId;
 
   const docById = useMemo(
     () => new Map(docs.map((d) => [d.id, d])),
@@ -75,14 +75,11 @@ export default function ReviewsPage() {
     [groups],
   );
 
-  // Scope: reviews assigned to me (assignee matches my display name) or all.
+  // Scope: reviews assigned to me or all.
   const scoped = useMemo(() => {
-    if (scope === "all" || !myName) return reviews;
-    const name = myName.trim().toLowerCase();
-    return reviews.filter(
-      (r) => r.assignee && r.assignee.trim().toLowerCase() === name,
-    );
-  }, [reviews, scope, myName]);
+    if (scope === "all" || !myId) return reviews;
+    return reviews.filter((r) => r.assigneeId === myId);
+  }, [reviews, scope, myId]);
 
   const counts = useMemo(
     () => ({
@@ -111,7 +108,7 @@ export default function ReviewsPage() {
         return (
           r.title.toLowerCase().includes(q) ||
           r.kind?.toLowerCase().includes(q) ||
-          r.assignee?.toLowerCase().includes(q) ||
+          r.assigneeName?.toLowerCase().includes(q) ||
           doc?.name.toLowerCase().includes(q)
         );
       });
@@ -377,7 +374,7 @@ function ReviewCard({
         version: review.version ?? undefined,
         status: target,
         dueDate: review.dueDate ?? undefined,
-        assignee: review.assignee ?? undefined,
+        assigneeId: review.assigneeId ?? undefined,
       });
       onChanged();
     } catch (err) {
@@ -438,7 +435,7 @@ function ReviewCard({
         </span>
         <span>
           <UserRound size={15} />
-          {review.assignee ?? "Unassigned"}
+          {review.assigneeName ?? "Unassigned"}
         </span>
       </div>
 

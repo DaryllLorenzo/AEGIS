@@ -4,6 +4,9 @@
 
 export type ReviewStatus = "Pending" | "InProgress" | "Completed";
 
+/** Document type enum — mirrors the backend DocumentType enum. */
+export type DocumentType = "Thesis" | "Article";
+
 export type Review = {
   id: string;
   documentId: string;
@@ -13,7 +16,8 @@ export type Review = {
   version: string | null;
   status: ReviewStatus;
   dueDate: string | null;
-  assignee: string | null;
+  assigneeId: string | null;
+  assigneeName: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string | null;
@@ -32,6 +36,8 @@ export type DocumentDto = {
   parentId: string | null;
   totalPages: number;
   name: string;
+  type: DocumentType;
+  version: number;
   objectKey: string;
   bucketName: string;
   fileSize: number;
@@ -40,6 +46,12 @@ export type DocumentDto = {
   isActive: boolean;
   createdAt: string;
   updatedAt: string | null;
+};
+
+/** Shared shape for entity pickers (dropdowns, autocomplete). */
+export type SelectItem = {
+  id: string;
+  label: string;
 };
 
 export type UserDto = {

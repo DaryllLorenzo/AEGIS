@@ -18,8 +18,5 @@ public sealed class CreateReviewValidator : AbstractValidator<CreateReviewReques
 
         RuleFor(x => x.Version)
             .MaximumLength(50).WithMessage("Version must not exceed 50 characters.");
-
-        RuleFor(x => x.Assignee)
-            .MaximumLength(200).WithMessage("Assignee must not exceed 200 characters.");
     }
 }

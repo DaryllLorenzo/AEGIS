@@ -25,7 +25,7 @@ public sealed class ReviewSieveProcessor : SieveProcessor
             .CanFilter()
             .CanSort();
 
-        mapper.Property<Review>(r => r.Assignee)
+        mapper.Property<Review>(r => r.AssigneeId)
             .CanFilter();
 
         mapper.Property<Review>(r => r.IsActive)

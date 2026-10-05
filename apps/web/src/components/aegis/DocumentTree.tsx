@@ -12,11 +12,11 @@ import {
 
 import type { DocumentDto, Review, ReviewStatus } from "@/lib/api";
 import StatusPill from "./StatusPill";
+import TypeBadge from "./TypeBadge";
 import { reviewStatusLabel } from "@/lib/utils";
 
 export type DocNode = {
   doc: DocumentDto;
-  version: number;
   children: DocNode[];
 };
 
@@ -35,13 +35,12 @@ export function buildDocumentTree(docs: DocumentDto[]): DocNode[] {
     }
   }
 
-  const build = (doc: DocumentDto, depth: number): DocNode => ({
+  const build = (doc: DocumentDto): DocNode => ({
     doc,
-    version: depth + 1,
-    children: (childrenOf.get(doc.id) ?? []).map((child) => build(child, depth + 1)),
+    children: (childrenOf.get(doc.id) ?? []).map((child) => build(child)),
   });
 
-  return roots.map((doc) => build(doc, 0));
+  return roots.map((doc) => build(doc));
 }
 
 export function buildReviewMap(reviews: Review[]): Map<string, Review> {
@@ -86,7 +85,7 @@ function TreeNode({
   statusLabel,
 }: TreeNodeProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const { doc, version, children } = node;
+  const { doc, children } = node;
   const hasChildren = children.length > 0;
   const review = reviewsByDocument.get(doc.id);
 
@@ -110,7 +109,8 @@ function TreeNode({
         <div className="doc-tree-copy">
           <div className="doc-tree-title">
             <strong>{doc.name}</strong>
-            <code className="doc-tree-version">v{version}</code>
+            <code className="doc-tree-version">v{doc.version}</code>
+            <TypeBadge type={doc.type} />
             {review ? (
               <StatusPill status={reviewStatusLabel(review.status)} />
             ) : (

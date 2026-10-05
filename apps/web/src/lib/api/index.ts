@@ -9,6 +9,8 @@ export type {
   Review,
   PaginatedList,
   DocumentDto,
+  DocumentType,
+  SelectItem,
   UserDto,
   GroupDto,
   FacultyDto,
@@ -21,11 +23,19 @@ export type {
 } from "./types";
 
 export { login, refreshAccessToken, logoutUser, getMe } from "./auth";
-export { getGroups, getGroupById, createGroup } from "./groups";
+export {
+  getGroups,
+  getGroupById,
+  createGroup,
+  getGroupMembers,
+  addGroupMember,
+  removeGroupMember,
+} from "./groups";
 export { getFaculties } from "./faculties";
 export { getDocuments, getDocumentById, getDocumentDownloadUrl, uploadDocument } from "./documents";
 export { getReviews, getReviewById, createReview, updateReview } from "./reviews";
 export { getAnnotationsByDocumentId, bulkUpdateAnnotations } from "./annotations";
+export { getUserSelect } from "./users";
 
 // UI helpers (moved from the old monolithic api.ts)
 export { reviewStatusLabel, reviewStatusClass, initialsFromName } from "@/lib/utils";

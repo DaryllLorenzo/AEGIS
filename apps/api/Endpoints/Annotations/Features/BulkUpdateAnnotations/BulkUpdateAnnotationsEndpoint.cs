@@ -46,8 +46,18 @@ internal static class BulkUpdateAnnotationsEndpoint
                 return TypedResults.ValidationProblem(validation.ToDictionary());
             }
 
-            var result = await sender.Send(request, cancellationToken);
-            return TypedResults.Ok(result);
+            try
+            {
+                var result = await sender.Send(request, cancellationToken);
+                return TypedResults.Ok(result);
+            }
+            catch (Annotations.Exceptions.AnnotationsLockedException ex)
+            {
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["documentId"] = [ex.Message]
+                });
+            }
         }
     }
 }

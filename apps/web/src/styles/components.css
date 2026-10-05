@@ -144,6 +144,29 @@
   color: #4b5350;
 }
 
+.type-badge {
+  border-radius: 4px;
+  display: inline-flex;
+  font-size: 0.67rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  padding: 3px 7px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.type-badge--thesis {
+  background: #eef4ff;
+  border: 1px solid #c4d9ff;
+  color: #1555b6;
+}
+
+.type-badge--article {
+  background: #f5f0ff;
+  border: 1px solid #ddd0f7;
+  color: #6d3fc0;
+}
+
 .breadcrumb {
   align-items: center;
   color: var(--muted);

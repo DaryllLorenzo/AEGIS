@@ -91,7 +91,7 @@ export default function ReviewOverviewPage() {
             <>
               Document <strong>{document.name}</strong>
               {document.totalPages ? ` · ${document.totalPages} pages` : ""}
-              {review?.assignee ? ` · assigned to ${review.assignee}` : ""}
+              {review?.assigneeName ? ` · assigned to ${review.assigneeName}` : ""}
             </>
           ) : (
             "Loading document details..."
@@ -108,13 +108,13 @@ export default function ReviewOverviewPage() {
             </div>
           </div>
           <ol className="lineage">
-            {lineage.map((doc, index) => {
-              const version = index + 1;
+            {lineage.map((doc) => {
+              const version = doc.version;
               const versionReview = reviewByDocument.get(doc.id);
               const isCurrent = doc.id === review?.documentId;
               return (
                 <Fragment key={doc.id}>
-                  {index > 0 && (
+                  {lineage.indexOf(doc) > 0 && (
                     <ArrowRight className="lineage-sep" size={14} aria-hidden="true" />
                   )}
                   <li>
@@ -200,7 +200,7 @@ export default function ReviewOverviewPage() {
               </div>
               <div>
                 <dt>Version lineage</dt>
-                <dd>{lineage.length > 0 ? `v${lineage.length}` : "—"}</dd>
+                <dd>{document ? `v${document.version}` : "—"}</dd>
               </div>
               <div>
                 <dt>Status</dt>

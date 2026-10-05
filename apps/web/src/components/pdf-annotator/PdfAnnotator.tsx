@@ -139,6 +139,8 @@ type Props = {
   file?: File | string | null;
   /** Called whenever annotations change (after load and after each update). */
   onAnnotationsChange?: (annotations: Annotation[]) => void;
+  /** When set, annotation creation/editing/deletion is disabled. */
+  readOnly?: boolean;
 };
 
 // ---------------------------------------------------------------------------
@@ -146,7 +148,7 @@ type Props = {
 // ---------------------------------------------------------------------------
 
 const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator(
-  { documentId, file: initialFile, onAnnotationsChange },
+  { documentId, file: initialFile, onAnnotationsChange, readOnly },
   ref,
 ) {
   const [numPages, setNumPages] = useState(0);
@@ -295,13 +297,15 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
   );
 
   const deleteSelected = useCallback(() => {
+    if (readOnly) return;
     if (selectedId) deleteAnnotation(selectedId);
-  }, [selectedId, deleteAnnotation]);
+  }, [selectedId, deleteAnnotation, readOnly]);
 
   // -- Keyboard shortcuts ---------------------------------------------------
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      if (readOnly) return;
       if (e.key === "Delete" || e.key === "Backspace") {
         if (selectedId) {
           e.preventDefault();
@@ -315,7 +319,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedId, deleteSelected]);
+  }, [selectedId, deleteSelected, readOnly]);
 
   // -- Stage handlers -------------------------------------------------------
 
@@ -325,7 +329,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
 
-      if (tool === "select") {
+      if (tool === "select" || readOnly) {
         const clickedOnEmpty = event.target === stage;
         if (clickedOnEmpty) setSelectedId(null);
         return;
@@ -340,7 +344,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
         cachedWords.current = extractWordsFromTextLayer(pageContainerRef.current);
       }
     },
-    [tool],
+    [tool, readOnly],
   );
 
   const handleMouseMove = useCallback(
@@ -573,6 +577,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
           pageNumber={pageNumber}
           numPages={numPages}
           onPageChange={setPageNumber}
+          disabled={readOnly}
         />
       )}
 
@@ -734,6 +739,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
                         ),
                       );
                     }}
+                    readOnly={readOnly}
                     rows={3}
                   />
                 </div>

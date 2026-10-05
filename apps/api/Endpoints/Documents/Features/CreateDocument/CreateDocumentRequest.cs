@@ -1,3 +1,4 @@
+using Aegis.Api.Endpoints.Documents.Data;
 using Aegis.Api.Endpoints.Documents.Dtos;
 using MediatR;
 
@@ -8,6 +9,7 @@ public sealed record CreateDocumentRequest : IRequest<DocumentDto>
     public Guid GroupId { get; init; }
     public Guid? ParentId { get; init; }
     public required string Name { get; init; }
+    public DocumentType Type { get; init; }
     public int? TotalPages { get; init; }
     public required Stream FileStream { get; init; }
     public required string FileName { get; init; }

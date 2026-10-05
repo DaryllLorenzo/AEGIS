@@ -53,7 +53,7 @@ export async function createReview(data: {
   kind?: string;
   version?: string;
   dueDate?: string;
-  assignee?: string;
+  assigneeId?: string;
 }): Promise<Review> {
   const review = await apiFetch<Review>("/api/reviews", {
     method: "POST",
@@ -70,7 +70,7 @@ export async function updateReview(
     version?: string;
     status?: ReviewStatus;
     dueDate?: string;
-    assignee?: string;
+    assigneeId?: string | null;
   },
 ): Promise<Review> {
   const body: Record<string, unknown> = { title: data.title };
@@ -78,7 +78,7 @@ export async function updateReview(
   if (data.version !== undefined) body.version = data.version;
   if (data.status !== undefined) body.status = reviewStatusToNumber(data.status);
   if (data.dueDate !== undefined) body.dueDate = data.dueDate;
-  if (data.assignee !== undefined) body.assignee = data.assignee;
+  if (data.assigneeId !== undefined) body.assigneeId = data.assigneeId;
 
   const review = await apiFetch<Review>(`/api/reviews/${id}`, {
     method: "PUT",

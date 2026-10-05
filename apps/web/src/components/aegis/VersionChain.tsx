@@ -48,14 +48,14 @@ export default function VersionChain({
 
   return (
     <ol className="lineage lineage--compact" aria-label="Version history">
-      {chain.map((doc, index) => {
-        const version = index + 1;
+      {chain.map((doc) => {
+        const version = doc.version;
         const review = reviewByDoc.get(doc.id);
         const isCurrent = doc.id === currentDocId;
 
         return (
           <Fragment key={doc.id}>
-            {index > 0 && (
+            {chain.indexOf(doc) > 0 && (
               <ArrowRight className="lineage-sep" size={12} aria-hidden="true" />
             )}
             <li>

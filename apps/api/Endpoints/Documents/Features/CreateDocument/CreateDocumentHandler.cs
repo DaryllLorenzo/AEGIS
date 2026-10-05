@@ -39,6 +39,28 @@ public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentReques
             throw new NotGroupMemberException(request.GroupId);
         }
 
+        // A new version inherits everything from its parent: the exact
+        // name, the document type, and the next consecutive version
+        // number. Only the file (and the version) changes.
+        string name = request.Name;
+        DocumentType type = request.Type;
+        int version = 1;
+
+        if (request.ParentId.HasValue)
+        {
+            var parent = await _db.Documents.FindAsync([request.ParentId.Value], ct)
+                ?? throw new ParentDocumentNotFoundException(request.ParentId.Value);
+
+            if (parent.GroupId != request.GroupId)
+            {
+                throw new ParentDocumentNotFoundException(request.ParentId.Value);
+            }
+
+            name = parent.Name;
+            type = parent.Type;
+            version = parent.Version + 1;
+        }
+
         await _storage.EnsureBucketExistsAsync(BucketName, ct);
 
         var safeFileName = Path.GetFileName(request.FileName);
@@ -87,7 +109,9 @@ public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentReques
             GroupId = request.GroupId,
             ParentId = request.ParentId,
             TotalPages = totalPages,
-            Name = request.Name,
+            Name = name,
+            Type = type,
+            Version = version,
             ObjectKey = objectKey,
             BucketName = BucketName,
             FileSize = stored.FileSize,

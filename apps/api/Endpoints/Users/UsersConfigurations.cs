@@ -2,6 +2,7 @@ using Aegis.Api.Endpoints.Users.Features.CreateUser;
 using Aegis.Api.Endpoints.Users.Features.DeleteUser;
 using Aegis.Api.Endpoints.Users.Features.GetProtectedResource;
 using Aegis.Api.Endpoints.Users.Features.GetUserById;
+using Aegis.Api.Endpoints.Users.Features.GetUserSelect;
 using Aegis.Api.Endpoints.Users.Features.GetUsers;
 using Aegis.Api.Endpoints.Users.Features.Login;
 using Aegis.Api.Endpoints.Users.Features.Logout;
@@ -58,6 +59,9 @@ internal static class UsersConfigurations
         users.MapCreateUserEndpoint();
         users.MapUpdateUserEndpoint();
         users.MapDeleteUserEndpoint();
+
+        // Entity picker (shared select pattern)
+        users.MapGetUserSelectEndpoint();
 
         return endpoints;
     }

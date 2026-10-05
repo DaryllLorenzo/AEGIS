@@ -1,3 +1,5 @@
+using Aegis.Api.Endpoints.Documents.Data;
+
 namespace Aegis.Api.Endpoints.Documents.Dtos;
 
 public sealed record DocumentDto
@@ -7,6 +9,8 @@ public sealed record DocumentDto
     public Guid? ParentId { get; init; }
     public int TotalPages { get; init; }
     public required string Name { get; init; }
+    public DocumentType Type { get; init; }
+    public int Version { get; init; }
     public required string ObjectKey { get; init; }
     public required string BucketName { get; init; }
     public long FileSize { get; init; }

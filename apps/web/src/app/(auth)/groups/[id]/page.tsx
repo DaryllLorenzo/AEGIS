@@ -15,7 +15,10 @@ import GroupTabs from "@/components/aegis/GroupTabs";
 import { useGroup } from "@/hooks/useGroup";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useReviews } from "@/hooks/useReviews";
+import { useFetch } from "@/hooks/useFetch";
+import { getGroupMembers, initialsFromName } from "@/lib/api";
 import { reviewStatusLabel } from "@/lib/utils";
+import type { UserDto } from "@/lib/api";
 
 export default function GroupOverviewPage() {
   const params = useParams();
@@ -24,6 +27,13 @@ export default function GroupOverviewPage() {
   const { data: group, error } = useGroup(groupId);
   const { data: docData } = useDocuments(1, 100, groupId);
   const { data: reviewData } = useReviews(1, 100);
+  const { data: membersData } = useFetch(
+    () => getGroupMembers(groupId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [groupId],
+  );
+
+  const members: UserDto[] = membersData ?? [];
 
   const documents = docData?.items ?? [];
   const docIds = useMemo(() => new Set(documents.map((d) => d.id)), [documents]);
@@ -135,6 +145,29 @@ export default function GroupOverviewPage() {
                 Versions
               </span>
             </div>
+          </section>
+
+          <section className="content-panel">
+            <div className="section-heading section-heading--compact">
+              <div>
+                <p className="eyebrow">Membership</p>
+                <h2>Members</h2>
+              </div>
+            </div>
+            {members.length === 0 ? (
+              <p className="muted">No members linked to this group yet.</p>
+            ) : (
+              <ul className="member-list">
+                {members.map((m) => (
+                  <li key={m.id} className="member-list__row">
+                    <span className="member-list__avatar" aria-hidden="true">
+                      {initialsFromName(m.displayName)}
+                    </span>
+                    <span className="member-list__name">{m.displayName}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           {latestReview && (

@@ -35,7 +35,7 @@ internal static class UpdateReviewEndpoint
                 Version = body.Version,
                 Status = body.Status,
                 DueDate = body.DueDate,
-                Assignee = body.Assignee,
+                AssigneeId = body.AssigneeId,
             };
 
             var validation = await validator.ValidateAsync(request, cancellationToken);
@@ -68,6 +68,13 @@ internal static class UpdateReviewEndpoint
                     ["status"] = [ex.Message]
                 });
             }
+            catch (InvalidAssigneeException ex)
+            {
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["assigneeId"] = [ex.Message]
+                });
+            }
         }
     }
 }
@@ -79,5 +86,5 @@ internal sealed record UpdateReviewBody
     public string? Version { get; init; }
     public ReviewStatus Status { get; init; }
     public DateTimeOffset? DueDate { get; init; }
-    public string? Assignee { get; init; }
+    public Guid? AssigneeId { get; init; }
 }

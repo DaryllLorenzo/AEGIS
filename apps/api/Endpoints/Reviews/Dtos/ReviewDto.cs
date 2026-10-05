@@ -12,7 +12,8 @@ public sealed record ReviewDto
     public string? Version { get; init; }
     public ReviewStatus Status { get; init; }
     public DateTimeOffset? DueDate { get; init; }
-    public string? Assignee { get; init; }
+    public Guid? AssigneeId { get; init; }
+    public string? AssigneeName { get; init; }
     public bool IsActive { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; init; }

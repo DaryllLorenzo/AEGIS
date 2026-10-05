@@ -26,9 +26,6 @@ public sealed class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.Property(r => r.Status)
             .HasConversion<int>();
 
-        builder.Property(r => r.Assignee)
-            .HasMaxLength(200);
-
         builder.HasOne<Document>()
             .WithMany()
             .HasForeignKey(r => r.DocumentId)
@@ -39,8 +36,14 @@ public sealed class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(r => r.AssigneeUser)
+            .WithMany()
+            .HasForeignKey(r => r.AssigneeId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(r => r.DocumentId);
         builder.HasIndex(r => r.UserId);
+        builder.HasIndex(r => r.AssigneeId);
         builder.HasIndex(r => r.Status);
         builder.HasIndex(r => r.IsActive);
         builder.HasIndex(r => r.CreatedAt);

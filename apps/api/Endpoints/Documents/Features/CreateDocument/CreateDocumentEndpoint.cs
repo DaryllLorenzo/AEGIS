@@ -1,3 +1,4 @@
+using Aegis.Api.Endpoints.Documents.Data;
 using Aegis.Api.Endpoints.Documents.Dtos;
 using FluentValidation;
 using MediatR;
@@ -25,6 +26,7 @@ internal static class CreateDocumentEndpoint
             [FromForm] Guid groupId,
             [FromForm] string name,
             [FromForm] string? parentId,
+            [FromForm] DocumentType type,
             [FromForm] int? totalPages,
             ISender sender,
             IValidator<CreateDocumentRequest> validator,
@@ -38,11 +40,20 @@ internal static class CreateDocumentEndpoint
                 });
             }
 
+            if (!file.ContentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["file"] = ["Only PDF files are supported."]
+                });
+            }
+
             var request = new CreateDocumentRequest
             {
                 GroupId = groupId,
                 ParentId = Guid.TryParse(parentId, out var pid) ? pid : null,
                 Name = name,
+                Type = type,
                 TotalPages = totalPages,
                 FileStream = file.OpenReadStream(),
                 FileName = file.FileName,
@@ -66,7 +77,17 @@ internal static class CreateDocumentEndpoint
             }
             catch (Documents.Exceptions.NotGroupMemberException)
             {
-                return TypedResults.NotFound();
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["groupId"] = ["You are not a member of the selected group."]
+                });
+            }
+            catch (Documents.Exceptions.ParentDocumentNotFoundException ex)
+            {
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["parentId"] = [ex.Message]
+                });
             }
         }
     }

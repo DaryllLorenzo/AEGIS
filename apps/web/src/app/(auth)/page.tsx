@@ -180,10 +180,10 @@ export default function Home() {
               </div>
               <div className="review-card__footer">
                 <div>
-                  {review.assignee ? (
+                  {review.assigneeName ? (
                     <span>
                       <UserRoundPlus size={15} />
-                      Assigned to {review.assignee}
+                      Assigned to {review.assigneeName}
                     </span>
                   ) : (
                     <span>

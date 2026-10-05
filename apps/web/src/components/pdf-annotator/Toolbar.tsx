@@ -8,6 +8,8 @@ type Props = {
   pageNumber: number;
   numPages: number;
   onPageChange: (page: number) => void;
+  /** When set, all annotation-editing controls are disabled. */
+  disabled?: boolean;
 };
 
 const TOOLS: { id: Tool; label: string }[] = [
@@ -26,6 +28,7 @@ export default function Toolbar({
   pageNumber,
   numPages,
   onPageChange,
+  disabled,
 }: Props) {
   return (
     <div className="annotator-toolbar">
@@ -33,6 +36,7 @@ export default function Toolbar({
         <button
           key={t.id}
           className={`btn btn-tool${tool === t.id ? " btn-tool--active" : ""}`}
+          disabled={disabled}
           onClick={() => onToolChange(t.id)}
         >
           {t.label}
@@ -40,7 +44,11 @@ export default function Toolbar({
       ))}
 
       {selectedId && (
-        <button className="btn btn-danger" onClick={onDeleteSelected}>
+        <button
+          className="btn btn-danger"
+          disabled={disabled}
+          onClick={onDeleteSelected}
+        >
           Delete selected
         </button>
       )}

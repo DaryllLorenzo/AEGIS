@@ -16,6 +16,12 @@ public sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
             .HasMaxLength(300)
             .IsRequired();
 
+        builder.Property(d => d.Type)
+            .HasConversion<int>();
+
+        builder.Property(d => d.Version)
+            .IsRequired();
+
         builder.Property(d => d.ObjectKey)
             .HasMaxLength(500)
             .IsRequired();
@@ -35,14 +41,15 @@ public sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
             .HasForeignKey(d => d.GroupId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne<Document>()
-            .WithMany()
+        builder.HasOne(d => d.Parent)
+            .WithMany(d => d.Children)
             .HasForeignKey(d => d.ParentId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(d => d.GroupId);
         builder.HasIndex(d => d.Name);
         builder.HasIndex(d => d.ParentId);
+        builder.HasIndex(d => d.Type);
         builder.HasIndex(d => d.IsActive);
         builder.HasIndex(d => d.CreatedAt);
     }

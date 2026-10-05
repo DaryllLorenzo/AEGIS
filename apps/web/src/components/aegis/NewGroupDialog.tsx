@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { Loader2, X } from "lucide-react";
 
-import { createGroup, getFaculties, type FacultyDto } from "@/lib/api";
+import {
+  createGroup,
+  getFaculties,
+  getUserSelect,
+  type FacultyDto,
+  type SelectItem,
+} from "@/lib/api";
 
 type NewGroupDialogProps = {
   open: boolean;
@@ -15,7 +21,9 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
   const [name, setName] = useState("");
   const [facultyId, setFacultyId] = useState("");
   const [description, setDescription] = useState("");
+  const [memberIds, setMemberIds] = useState<Set<string>>(new Set());
   const [faculties, setFaculties] = useState<FacultyDto[]>([]);
+  const [users, setUsers] = useState<SelectItem[]>([]);
   const [facultiesError, setFacultiesError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +38,13 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
       .catch(() => {
         if (!cancelled) setFacultiesError(true);
       });
+    getUserSelect()
+      .then((items) => {
+        if (!cancelled) setUsers(items);
+      })
+      .catch(() => {
+        if (!cancelled) setUsers([]);
+      });
     return () => {
       cancelled = true;
     };
@@ -40,6 +55,7 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
       setName("");
       setFacultyId("");
       setDescription("");
+      setMemberIds(new Set());
       setError(null);
     }
   }, [open]);
@@ -53,6 +69,15 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  function toggleMember(id: string) {
+    setMemberIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !facultyId) return;
@@ -63,6 +88,7 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
         name: name.trim(),
         facultyId,
         description: description.trim() || undefined,
+        userIds: memberIds.size > 0 ? [...memberIds] : undefined,
       });
       onCreated?.();
       onClose();
@@ -136,6 +162,31 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
               maxLength={1000}
               placeholder="What does this group research?"
             />
+          </div>
+          <div className="field">
+            <label>
+              Members <span className="field__optional">Optional</span>
+            </label>
+            <p className="field__hint">
+              Link members now so they can submit documents and be
+              assigned as reviewers.
+            </p>
+            <div className="member-picker">
+              {users.length === 0 ? (
+                <p className="field__hint">No users available.</p>
+              ) : (
+                users.map((u) => (
+                  <label key={u.id} className="member-picker__option">
+                    <input
+                      type="checkbox"
+                      checked={memberIds.has(u.id)}
+                      onChange={() => toggleMember(u.id)}
+                    />
+                    <span>{u.label}</span>
+                  </label>
+                ))
+              )}
+            </div>
           </div>
           {error && (
             <p className="form-error" role="alert">{error}</p>

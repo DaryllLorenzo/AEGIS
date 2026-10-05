@@ -103,3 +103,16 @@
 .btn-danger:hover {
   opacity: 0.85;
 }
+
+/* -- Read-only lock banner ----------------------------------------------- */
+
+.annotator-lock {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  font-size: 0.82rem;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+}

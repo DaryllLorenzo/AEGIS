@@ -31,7 +31,7 @@ internal static class CreateReviewEndpoint
                 Kind = body.Kind,
                 Version = body.Version,
                 DueDate = body.DueDate,
-                Assignee = body.Assignee,
+                AssigneeId = body.AssigneeId,
             };
 
             var validation = await validator.ValidateAsync(request, cancellationToken);
@@ -41,11 +41,27 @@ internal static class CreateReviewEndpoint
                 return TypedResults.ValidationProblem(validation.ToDictionary());
             }
 
-            var result = await sender.Send(request, cancellationToken);
-
-            return TypedResults.Created(
-                $"/api/reviews/{result.Id}",
-                result);
+            try
+            {
+                var result = await sender.Send(request, cancellationToken);
+                return TypedResults.Created(
+                    $"/api/reviews/{result.Id}",
+                    result);
+            }
+            catch (Reviews.Exceptions.DocumentNotFoundException ex)
+            {
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["documentId"] = [ex.Message]
+                });
+            }
+            catch (Reviews.Exceptions.InvalidAssigneeException ex)
+            {
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["assigneeId"] = [ex.Message]
+                });
+            }
         }
     }
 }
@@ -57,5 +73,5 @@ internal sealed record CreateReviewBody
     public string? Kind { get; init; }
     public string? Version { get; init; }
     public DateTimeOffset? DueDate { get; init; }
-    public string? Assignee { get; init; }
+    public Guid? AssigneeId { get; init; }
 }

@@ -12,6 +12,8 @@ public static class ManualDocumentMappings
         ParentId = document.ParentId,
         TotalPages = document.TotalPages,
         Name = document.Name,
+        Type = document.Type,
+        Version = document.Version,
         ObjectKey = document.ObjectKey,
         BucketName = document.BucketName,
         FileSize = document.FileSize,

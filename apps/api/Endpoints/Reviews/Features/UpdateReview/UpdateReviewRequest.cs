@@ -12,5 +12,5 @@ public sealed record UpdateReviewRequest : IRequest<ReviewDto>
     public string? Version { get; init; }
     public ReviewStatus Status { get; init; }
     public DateTimeOffset? DueDate { get; init; }
-    public string? Assignee { get; init; }
+    public Guid? AssigneeId { get; init; }
 }

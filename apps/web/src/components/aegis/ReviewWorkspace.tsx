@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Download,
   FileText,
+  Lock,
   Menu,
   MessageSquarePlus,
   Play,
@@ -132,6 +133,7 @@ export default function ReviewWorkspace({ reviewId }: Props) {
   }
 
   const isCompleted = review?.status === "Completed";
+  const isInProgress = review?.status === "InProgress";
   const nextAction = review ? reviewNextAction(review.status) : null;
 
   /**
@@ -157,7 +159,7 @@ export default function ReviewWorkspace({ reviewId }: Props) {
         version: review.version ?? undefined,
         status: target,
         dueDate: review.dueDate ?? undefined,
-        assignee: review.assignee ?? undefined,
+        assigneeId: review.assigneeId ?? undefined,
       });
       setReview(updated);
     } catch (err) {
@@ -316,7 +318,16 @@ export default function ReviewWorkspace({ reviewId }: Props) {
               documentId={review?.documentId}
               file={pdfFile}
               onAnnotationsChange={setAnnotations}
+              readOnly={!isInProgress}
             />
+          )}
+          {!isInProgress && !loading && !error && (
+            <div className="annotator-lock" role="status">
+              <Lock size={15} aria-hidden="true" />
+              {isCompleted
+                ? "Review round closed — annotations are read-only. Start a new version to continue."
+                : "Start the review to annotate this document."}
+            </div>
           )}
         </section>
 

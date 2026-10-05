@@ -1,6 +1,9 @@
+using Aegis.Api.Endpoints.Groups.Features.AddGroupMember;
 using Aegis.Api.Endpoints.Groups.Features.CreateGroup;
 using Aegis.Api.Endpoints.Groups.Features.GetGroupById;
+using Aegis.Api.Endpoints.Groups.Features.GetGroupMembers;
 using Aegis.Api.Endpoints.Groups.Features.GetGroups;
+using Aegis.Api.Endpoints.Groups.Features.RemoveGroupMember;
 using Aegis.Api.Endpoints.Groups.Services;
 using FluentValidation;
 
@@ -26,6 +29,9 @@ internal static class GroupsConfigurations
         groups.MapGetGroupsEndpoint();
         groups.MapGetGroupByIdEndpoint();
         groups.MapCreateGroupEndpoint();
+        groups.MapGetGroupMembersEndpoint();
+        groups.MapAddGroupMemberEndpoint();
+        groups.MapRemoveGroupMemberEndpoint();
         return endpoints;
     }
 }

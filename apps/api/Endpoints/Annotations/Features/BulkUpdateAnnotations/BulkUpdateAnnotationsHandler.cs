@@ -1,6 +1,8 @@
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Annotations.Data;
 using Aegis.Api.Endpoints.Annotations.Dtos;
+using Aegis.Api.Endpoints.Annotations.Exceptions;
+using Aegis.Api.Endpoints.Reviews.Data;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +16,19 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
 
     public async Task<List<AnnotationDto>> Handle(BulkUpdateAnnotationsRequest request, CancellationToken ct)
     {
+        // Annotations are editable only while the document's active
+        // (most recent) review round is in progress: read-only before
+        // "Start Review" and after "Complete Review".
+        var latestReview = await _db.Reviews
+            .Where(r => r.DocumentId == request.DocumentId)
+            .OrderByDescending(r => r.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+
+        if (latestReview is null || latestReview.Status != ReviewStatus.InProgress)
+        {
+            throw new AnnotationsLockedException(request.DocumentId);
+        }
+
         var existing = await _db.Annotations
             .Where(a => a.DocumentId == request.DocumentId)
             .ToListAsync(ct);

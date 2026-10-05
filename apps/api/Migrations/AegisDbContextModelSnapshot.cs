@@ -126,14 +126,17 @@ namespace Aegis.Api.Migrations
                     b.Property<Guid?>("ParentId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ParentId1")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("TotalPages")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Type")
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -147,7 +150,7 @@ namespace Aegis.Api.Migrations
 
                     b.HasIndex("ParentId");
 
-                    b.HasIndex("ParentId1");
+                    b.HasIndex("Type");
 
                     b.ToTable("Documents", (string)null);
                 });
@@ -232,9 +235,8 @@ namespace Aegis.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Assignee")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                    b.Property<Guid?>("AssigneeId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -274,6 +276,8 @@ namespace Aegis.Api.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AssigneeId");
 
                     b.HasIndex("CreatedAt");
 
@@ -451,14 +455,10 @@ namespace Aegis.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Aegis.Api.Endpoints.Documents.Data.Document", null)
-                        .WithMany()
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Aegis.Api.Endpoints.Documents.Data.Document", "Parent")
                         .WithMany("Children")
-                        .HasForeignKey("ParentId1");
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Parent");
                 });
@@ -474,6 +474,11 @@ namespace Aegis.Api.Migrations
 
             modelBuilder.Entity("Aegis.Api.Endpoints.Reviews.Data.Review", b =>
                 {
+                    b.HasOne("Aegis.Api.Endpoints.Users.Data.User", "AssigneeUser")
+                        .WithMany()
+                        .HasForeignKey("AssigneeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Aegis.Api.Endpoints.Documents.Data.Document", null)
                         .WithMany()
                         .HasForeignKey("DocumentId")
@@ -489,6 +494,8 @@ namespace Aegis.Api.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("AssigneeUser");
 
                     b.Navigation("Document");
                 });
