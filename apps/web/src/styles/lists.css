@@ -1,0 +1,305 @@
+/* List pages: My Reviews, My Submissions — toolbar, filter tabs,
+   summary widgets, skeletons, and the compact version lineage. */
+
+/* -- Page heading with identity icon ----------------------------------- */
+
+.page-heading__start {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+}
+
+.page-heading__icon {
+  align-items: center;
+  border-radius: 12px;
+  display: flex;
+  flex: 0 0 auto;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
+}
+
+.page-heading__icon--blue {
+  background: var(--blue-50);
+  color: var(--blue-600);
+}
+
+.page-heading__icon--green {
+  background: var(--green-50);
+  color: var(--success);
+}
+
+/* -- Summary widgets (4-up) -------------------------------------------- */
+
+.metrics-grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metric-card__icon--red {
+  background: #fef3f2;
+  color: var(--danger);
+}
+
+/* -- List toolbar ------------------------------------------------------- */
+
+.list-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.list-toolbar .search-field {
+  flex: 1 1 240px;
+  max-width: 340px;
+}
+
+.list-toolbar .sort-toggle {
+  margin-left: auto;
+}
+
+.segmented--auto {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 280px;
+}
+
+/* -- Filter tabs --------------------------------------------------------- */
+
+.filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+}
+
+.filter-tabs button {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: #4f565b;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 650;
+  gap: 4px;
+  padding: 7px 13px;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.filter-tabs button:hover {
+  border-color: var(--green-800);
+  color: var(--text);
+}
+
+.filter-tabs button.is-active {
+  background: var(--green-900);
+  border-color: var(--green-900);
+  color: #fff;
+}
+
+.filter-tabs .count {
+  background: var(--surface-muted);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  min-width: 20px;
+  padding: 1px 6px;
+  text-align: center;
+}
+
+.filter-tabs button.is-active .count {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+/* -- Error + retry -------------------------------------------------------- */
+
+.list-error {
+  align-items: center;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: var(--radius);
+  color: var(--danger);
+  display: flex;
+  font-size: 0.84rem;
+  gap: 14px;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  padding: 12px 16px;
+}
+
+.list-error p {
+  margin: 0;
+}
+
+/* -- Skeleton loaders ------------------------------------------------------ */
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton {
+  animation: shimmer 1.4s linear infinite;
+  background: linear-gradient(
+    90deg,
+    var(--surface-soft) 25%,
+    var(--surface-muted) 50%,
+    var(--surface-soft) 75%
+  );
+  background-size: 200% 100%;
+  border-radius: 6px;
+}
+
+.skeleton-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+}
+
+.skeleton-line {
+  height: 14px;
+}
+
+.skeleton-line--sm {
+  height: 10px;
+  width: 40%;
+}
+
+.skeleton-line--lg {
+  height: 20px;
+  width: 80%;
+}
+
+/* -- Compact version lineage (inside cards) -------------------------------- */
+
+.lineage--compact {
+  gap: 4px;
+  margin-top: 14px;
+}
+
+.lineage--compact .lineage-chip {
+  font-size: 0.72rem;
+  gap: 5px;
+  padding: 4px 8px;
+}
+
+.lineage--compact .lineage-chip span {
+  display: none;
+}
+
+.lineage--compact .lineage-chip code {
+  font-size: 0.68rem;
+  padding: 0 5px;
+}
+
+.lineage-chip__status--pending {
+  color: var(--blue-600);
+}
+
+.lineage-chip__status--inprogress {
+  color: var(--amber-600);
+}
+
+/* -- Review card next-action hints ------------------------------------------ */
+
+.review-card__title-link {
+  color: inherit;
+}
+
+.review-card__title-link:hover {
+  color: var(--green-900);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.review-card__cta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.review-card__error {
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 6px;
+  color: var(--danger);
+  font-size: 0.78rem;
+  margin: 12px 0 0;
+  padding: 8px 10px;
+}
+
+.review-card__next {
+  align-items: center;
+  color: var(--green-800);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 5px;
+}
+
+.review-card__done {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+/* -- Closed review note (review overview) ----------------------------------- */
+
+.review-closed-note {
+  align-items: center;
+  background: var(--green-50);
+  border: 1px solid #b8ddca;
+  border-radius: 8px;
+  color: var(--green-900);
+  display: flex;
+  font-size: 0.84rem;
+  font-weight: 600;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+  padding: 12px;
+}
+
+/* -- Submissions note -------------------------------------------------------- */
+
+.submissions-note {
+  align-items: center;
+  color: var(--amber-600);
+  display: flex;
+  font-size: 0.8rem;
+  font-weight: 600;
+  gap: 7px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* -- Submissions tree accent -------------------------------------------------- */
+
+.submissions-page .doc-tree-row:hover {
+  border-color: var(--success);
+}
+
+.submissions-page .doc-tree-icon {
+  background: var(--green-50);
+  color: var(--success);
+}

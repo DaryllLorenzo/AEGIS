@@ -29,3 +29,11 @@ export { getAnnotationsByDocumentId, bulkUpdateAnnotations } from "./annotations
 
 // UI helpers (moved from the old monolithic api.ts)
 export { reviewStatusLabel, reviewStatusClass, initialsFromName } from "@/lib/utils";
+export {
+  nextReviewStatus,
+  reviewNextAction,
+  isReviewOverdue,
+  submissionStatusLabel,
+  submissionStatusClass,
+  REVIEW_STATUS_ORDER,
+} from "@/lib/review-machine";

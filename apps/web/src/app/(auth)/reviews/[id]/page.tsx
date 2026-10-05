@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { Fragment, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { ArrowRight, ClipboardList, FileText } from "lucide-react";
+import { ArrowRight, CheckCircle2, ClipboardList, FileText } from "lucide-react";
 
 import { useReview } from "@/hooks/useReview";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useReviews } from "@/hooks/useReviews";
 import { reviewStatusLabel } from "@/lib/utils";
+import { reviewNextAction } from "@/lib/api";
 import type { DocumentDto, Review } from "@/lib/api";
 
 function buildLineage(allDocs: DocumentDto[], currentId: string): DocumentDto[] {
@@ -51,6 +52,8 @@ export default function ReviewOverviewPage() {
     () => buildReviewMap(reviewData?.items ?? []),
     [reviewData],
   );
+
+  const nextAction = review ? reviewNextAction(review.status) : null;
 
   const document = useMemo(
     () => (docData?.items ?? []).find((d) => d.id === review?.documentId),
@@ -164,9 +167,17 @@ export default function ReviewOverviewPage() {
             <span>References</span>
             <span>Statistics</span>
           </div>
-          <Link className="button button--primary" href={`/reviews/${reviewId}/workspace`}>
-            Start review <ArrowRight size={17} />
-          </Link>
+          {nextAction ? (
+            <Link className="button button--primary" href={`/reviews/${reviewId}/workspace`}>
+              {nextAction.label} <ArrowRight size={17} />
+            </Link>
+          ) : (
+            <div className="review-closed-note">
+              <CheckCircle2 size={16} />
+              This review round is closed. Upload a new version to start
+              another round.
+            </div>
+          )}
         </section>
 
         <aside className="review-overview__aside">

@@ -10,7 +10,7 @@ import {
   GitBranchPlus,
 } from "lucide-react";
 
-import type { DocumentDto, Review } from "@/lib/api";
+import type { DocumentDto, Review, ReviewStatus } from "@/lib/api";
 import StatusPill from "./StatusPill";
 import { reviewStatusLabel } from "@/lib/utils";
 
@@ -72,11 +72,19 @@ function formatDate(value: string | null | undefined): string {
 
 type TreeNodeProps = {
   node: DocNode;
-  groupId: string;
   reviewsByDocument: Map<string, Review>;
+  openLabel: string;
+  newVersionLabel: string;
+  statusLabel: (status: ReviewStatus) => string;
 };
 
-function TreeNode({ node, groupId, reviewsByDocument }: TreeNodeProps) {
+function TreeNode({
+  node,
+  reviewsByDocument,
+  openLabel,
+  newVersionLabel,
+  statusLabel,
+}: TreeNodeProps) {
   const [collapsed, setCollapsed] = useState(false);
   const { doc, version, children } = node;
   const hasChildren = children.length > 0;
@@ -121,14 +129,14 @@ function TreeNode({ node, groupId, reviewsByDocument }: TreeNodeProps) {
               className="button button--secondary button--sm"
               href={`/reviews/${review.id}`}
             >
-              Open review <ArrowRight size={14} />
+              {openLabel} <ArrowRight size={14} />
             </Link>
           )}
           <Link
             className="icon-button icon-button--outlined"
-            href={`/reviews/new?parentId=${doc.id}&groupId=${groupId}`}
-            aria-label={`Start a new version of ${doc.name}`}
-            title="Start a new version"
+            href={`/reviews/new?parentId=${doc.id}&groupId=${doc.groupId}`}
+            aria-label={newVersionLabel.replace("{name}", doc.name)}
+            title={newVersionLabel.replace("{name}", doc.name)}
           >
             <GitBranchPlus size={16} />
           </Link>
@@ -141,8 +149,10 @@ function TreeNode({ node, groupId, reviewsByDocument }: TreeNodeProps) {
             <TreeNode
               key={child.doc.id}
               node={child}
-              groupId={groupId}
               reviewsByDocument={reviewsByDocument}
+              openLabel={openLabel}
+              newVersionLabel={newVersionLabel}
+              statusLabel={statusLabel}
             />
           ))}
         </div>
@@ -153,14 +163,21 @@ function TreeNode({ node, groupId, reviewsByDocument }: TreeNodeProps) {
 
 type DocumentTreeProps = {
   nodes: DocNode[];
-  groupId: string;
   reviewsByDocument: Map<string, Review>;
+  /** Label for the primary action (default: "Open review"). */
+  openLabel?: string;
+  /** Tooltip/aria for the new-version action. "{name}" is replaced with the document name. */
+  newVersionLabel?: string;
+  /** Maps review status to the pill label (default: review status label). */
+  statusLabel?: (status: ReviewStatus) => string;
 };
 
 export default function DocumentTree({
   nodes,
-  groupId,
   reviewsByDocument,
+  openLabel = "Open review",
+  newVersionLabel = "Start a new version of {name}",
+  statusLabel = reviewStatusLabel,
 }: DocumentTreeProps) {
   if (nodes.length === 0) return null;
 
@@ -170,8 +187,10 @@ export default function DocumentTree({
         <TreeNode
           key={node.doc.id}
           node={node}
-          groupId={groupId}
           reviewsByDocument={reviewsByDocument}
+          openLabel={openLabel}
+          newVersionLabel={newVersionLabel}
+          statusLabel={statusLabel}
         />
       ))}
     </div>

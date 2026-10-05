@@ -106,7 +106,6 @@ export default function DocumentsPage() {
       {nodes.length > 0 ? (
         <DocumentTree
           nodes={nodes}
-          groupId={groupId}
           reviewsByDocument={reviewsByDocument}
         />
       ) : (

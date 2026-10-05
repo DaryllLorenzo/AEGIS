@@ -8,6 +8,7 @@ import {
   FileText,
   Menu,
   MessageSquarePlus,
+  Play,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -17,6 +18,8 @@ import {
   getDocumentDownloadUrl,
   getAuthToken,
   updateReview,
+  reviewNextAction,
+  nextReviewStatus,
   type Review,
   type DocumentDto,
 } from "@/lib/api";
@@ -37,6 +40,7 @@ export default function ReviewWorkspace({ reviewId }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
@@ -128,22 +132,40 @@ export default function ReviewWorkspace({ reviewId }: Props) {
   }
 
   const isCompleted = review?.status === "Completed";
+  const nextAction = review ? reviewNextAction(review.status) : null;
 
-  async function handleStatusToggle() {
-    if (!review || saving) return;
+  /**
+   * Advance the review along its legal state-machine edge:
+   * Pending -> InProgress ("Start review") or InProgress -> Completed
+   * ("Complete review"). Completed is terminal — no transition exists.
+   *
+   * State is updated only from the server response (no optimistic update),
+   * so the UI can never drift ahead of the backend. Errors are surfaced
+   * inline with a retry; the review state is left untouched on failure.
+   */
+  async function handleAdvance() {
+    if (!review || !nextAction || saving) return;
+    const target = nextReviewStatus(review.status);
+    if (!target) return;
+
     setSaving(true);
+    setStatusError(null);
     try {
-      const newStatus = isCompleted ? "InProgress" : "Completed";
       const updated = await updateReview(review.id, {
         title: review.title,
         kind: review.kind ?? undefined,
         version: review.version ?? undefined,
-        status: newStatus,
+        status: target,
+        dueDate: review.dueDate ?? undefined,
         assignee: review.assignee ?? undefined,
       });
       setReview(updated);
     } catch (err) {
-      console.error("Failed to update review status:", err);
+      setStatusError(
+        err instanceof Error
+          ? err.message
+          : "Failed to update the review status. Please try again.",
+      );
     } finally {
       setSaving(false);
     }
@@ -190,21 +212,38 @@ export default function ReviewWorkspace({ reviewId }: Props) {
           <strong>{review?.title ?? "Loading..."}</strong>
         </div>
         <div className="workspace-header__right">
-          <span className={`workspace-status${isCompleted ? " workspace-status--complete" : ""}`}>
+          <span
+            className={`workspace-status${isCompleted ? " workspace-status--complete" : ""}`}
+            aria-live="polite"
+          >
             <i />
             {isCompleted
               ? "Your review · Completed"
               : `Review · ${review ? reviewStatusLabel(review.status) : "Loading"}`}
           </span>
-          <button
-            className={`button ${isCompleted ? "button--secondary" : "button--primary"}`}
-            type="button"
-            onClick={handleStatusToggle}
-            disabled={saving || !review}
-          >
-            <CheckCircle2 size={17} />
-            {saving ? "Saving..." : isCompleted ? "Reopen review" : "Complete review"}
-          </button>
+          {nextAction ? (
+            <button
+              className="button button--primary"
+              type="button"
+              onClick={handleAdvance}
+              disabled={saving || !review}
+              title={nextAction.hint}
+            >
+              {nextAction.verb === "start" ? (
+                <Play size={17} />
+              ) : (
+                <CheckCircle2 size={17} />
+              )}
+              {saving ? "Saving..." : nextAction.label}
+            </button>
+          ) : (
+            isCompleted && (
+              <span className="workspace-status workspace-status--complete">
+                <CheckCircle2 size={16} />
+                Review round closed
+              </span>
+            )
+          )}
           {isCompleted && doc && (
             <Link
               className="button button--primary"
@@ -241,6 +280,29 @@ export default function ReviewWorkspace({ reviewId }: Props) {
           <Link className="button button--secondary" href="/reviews">
             Back to reviews
           </Link>
+        </div>
+      )}
+
+      {statusError && (
+        <div className="workspace-error" role="alert">
+          <p>{statusError}</p>
+          <div className="workspace-error__actions">
+            <button
+              className="button button--secondary button--sm"
+              type="button"
+              onClick={handleAdvance}
+              disabled={saving}
+            >
+              Try again
+            </button>
+            <button
+              className="text-button"
+              type="button"
+              onClick={() => setStatusError(null)}
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
