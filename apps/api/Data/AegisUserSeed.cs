@@ -54,6 +54,7 @@ public static class AegisUserSeed
                 DisplayName = "Admin",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin1234!"),
                 IsActive = true,
+                IsAdmin = true,
                 CreatedAt = DateTimeOffset.UtcNow,
             };
 
@@ -84,6 +85,15 @@ public static class AegisUserSeed
                 AssignedAt = DateTimeOffset.UtcNow,
             });
 
+            await db.SaveChangesAsync();
+        }
+
+        // Ensure admin@aegis.com always carries the global admin flag
+        // (covers databases created before IsAdmin existed).
+        var possiblyStaleAdmin = await db.Users.FirstOrDefaultAsync(u => u.Email == "admin@aegis.com");
+        if (possiblyStaleAdmin is not null && !possiblyStaleAdmin.IsAdmin)
+        {
+            possiblyStaleAdmin.IsAdmin = true;
             await db.SaveChangesAsync();
         }
 

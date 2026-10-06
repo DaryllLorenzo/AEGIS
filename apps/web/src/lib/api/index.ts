@@ -33,11 +33,24 @@ export {
   removeGroupMember,
   type GetGroupsOptions,
 } from "./groups";
-export { getFaculties } from "./faculties";
+export {
+  getFaculties,
+  getFacultyById,
+  createFaculty,
+  updateFaculty,
+  deleteFaculty,
+} from "./faculties";
 export { getDocuments, getDocumentById, getDocumentDownloadUrl, uploadDocument } from "./documents";
 export { getReviews, getReviewById, createReview, updateReview } from "./reviews";
 export { getAnnotationsByDocumentId, bulkUpdateAnnotations } from "./annotations";
-export { getUserSelect } from "./users";
+export {
+  getUserSelect,
+  getUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+} from "./users";
 
 // UI helpers (moved from the old monolithic api.ts)
 export { reviewStatusLabel, reviewStatusClass, initialsFromName } from "@/lib/utils";

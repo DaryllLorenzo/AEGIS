@@ -1,13 +1,14 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { getMe, refreshAccessToken } from "@/lib/api";
+import { getMe, refreshAccessToken, setAuthToken } from "@/lib/api";
 
 export type AuthUser = {
   userId: string;
   email: string;
   displayName: string;
   roles: string[];
+  isAdmin: boolean;
 };
 
 type AuthContextValue = {
@@ -40,6 +41,7 @@ export function decodeJwtPayload(token: string): AuthUser | null {
         : payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"]
           ? [payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"]]
           : [],
+      isAdmin: false,
     };
   } catch {
     return null;
@@ -156,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: me.email,
             displayName: me.displayName,
             roles: [],
+            isAdmin: me.isAdmin,
           });
           if (expiry) scheduleRefresh(expiry);
         }
@@ -184,6 +187,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(newToken);
     setRefreshToken(newRefreshToken);
     setUser(newUser);
+    setAuthToken(newToken);
+
+    // The JWT payload has no IsAdmin claim; correct the flag from the DB
+    // right after login so admin-only UI appears without a full reload.
+    getMe()
+      .then((me) => {
+        if (me) {
+          setUser({
+            userId: me.id,
+            email: me.email,
+            displayName: me.displayName,
+            roles: [],
+            isAdmin: me.isAdmin,
+          });
+        }
+      })
+      .catch(() => {});
 
     const expiry = getTokenExpiry(newToken);
     if (expiry) scheduleRefresh(expiry);

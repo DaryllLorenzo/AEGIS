@@ -59,6 +59,7 @@ export type UserDto = {
   email: string;
   displayName: string;
   isActive: boolean;
+  isAdmin: boolean;
   createdAt: string;
   updatedAt: string | null;
 };

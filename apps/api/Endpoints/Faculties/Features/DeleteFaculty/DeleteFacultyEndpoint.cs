@@ -1,4 +1,5 @@
 using Aegis.Api.Endpoints.Faculties.Exceptions;
+using Aegis.Api.Shared.Authz;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -14,7 +15,9 @@ internal static class DeleteFacultyEndpoint
             .MapDelete("/{id:guid}", Handle)
             .WithTags(FacultiesConfigurations.Tag)
             .WithName(Name)
-            .WithSummary("Deletes a faculty.");
+            .WithSummary("Deletes a faculty.")
+            .RequireAuthorization()
+            .RequireAdmin();
 
         static async Task<Results<NoContent, NotFound>> Handle(
             Guid id,

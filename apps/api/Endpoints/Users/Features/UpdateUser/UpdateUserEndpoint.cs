@@ -1,4 +1,5 @@
 using Aegis.Api.Endpoints.Users.Dtos;
+using Aegis.Api.Shared.Authz;
 using Aegis.Api.Endpoints.Users.Exceptions;
 using FluentValidation;
 using MediatR;
@@ -17,7 +18,8 @@ internal static class UpdateUserEndpoint
             .WithTags(UsersConfigurations.Tag)
             .WithName(Name)
             .WithSummary("Updates an existing user.")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireAdmin();
 
         static async Task<Results<Ok<UserDto>, NotFound, ValidationProblem>> Handle(
             Guid id,

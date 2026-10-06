@@ -1,4 +1,5 @@
 using Aegis.Api.Endpoints.Faculties.Dtos;
+using Aegis.Api.Shared.Authz;
 using Aegis.Api.Endpoints.Faculties.Exceptions;
 using FluentValidation;
 using MediatR;
@@ -16,7 +17,9 @@ internal static class UpdateFacultyEndpoint
             .MapPut("/{id:guid}", Handle)
             .WithTags(FacultiesConfigurations.Tag)
             .WithName(Name)
-            .WithSummary("Updates an existing faculty.");
+            .WithSummary("Updates an existing faculty.")
+            .RequireAuthorization()
+            .RequireAdmin();
 
         static async Task<Results<Ok<FacultyDto>, NotFound, ValidationProblem>> Handle(
             Guid id,

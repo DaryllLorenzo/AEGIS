@@ -23,6 +23,8 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(200)
             .IsRequired();
 
+        builder.Property(u => u.IsAdmin).HasDefaultValue(false);
+
         builder.HasIndex(u => u.Email).IsUnique();
         builder.HasIndex(u => u.DisplayName);
         builder.HasIndex(u => u.IsActive);

@@ -1,4 +1,5 @@
 using Aegis.Api.Endpoints.Users.Dtos;
+using Aegis.Api.Shared.Authz;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -15,7 +16,9 @@ internal static class CreateUserEndpoint
             .MapPost("/", Handle)
             .WithTags(UsersConfigurations.Tag)
             .WithName(Name)
-            .WithSummary("Creates a new user.");
+            .WithSummary("Creates a new user.")
+            .RequireAuthorization()
+            .RequireAdmin();
 
         static async Task<Results<Created<UserDto>, ValidationProblem>> Handle(
             CreateUserRequest request,

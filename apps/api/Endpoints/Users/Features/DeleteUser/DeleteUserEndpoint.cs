@@ -1,4 +1,5 @@
 using Aegis.Api.Endpoints.Users.Exceptions;
+using Aegis.Api.Shared.Authz;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -15,7 +16,8 @@ internal static class DeleteUserEndpoint
             .WithTags(UsersConfigurations.Tag)
             .WithName(Name)
             .WithSummary("Deletes a user.")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireAdmin();
 
         static async Task<Results<NoContent, NotFound>> Handle(
             Guid id,

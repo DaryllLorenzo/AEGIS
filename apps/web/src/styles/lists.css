@@ -303,3 +303,42 @@
   background: var(--green-50);
   color: var(--success);
 }
+
+/* -- Admin tables ----------------------------------------------------------- */
+
+.admin-page {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-table {
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-table th,
+.admin-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.admin-table th {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.admin-table input {
+  width: 100%;
+}
+
+.admin-table td:last-child {
+  white-space: nowrap;
+}

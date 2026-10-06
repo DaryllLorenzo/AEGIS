@@ -1,4 +1,5 @@
 using Aegis.Api.Endpoints.Faculties.Dtos;
+using Aegis.Api.Shared.Authz;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -15,7 +16,9 @@ internal static class CreateFacultyEndpoint
             .MapPost("/", Handle)
             .WithTags(FacultiesConfigurations.Tag)
             .WithName(Name)
-            .WithSummary("Creates a new faculty.");
+            .WithSummary("Creates a new faculty.")
+            .RequireAuthorization()
+            .RequireAdmin();
 
         static async Task<Results<Created<FacultyDto>, ValidationProblem>> Handle(
             CreateFacultyRequest request,

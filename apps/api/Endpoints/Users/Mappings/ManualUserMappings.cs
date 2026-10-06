@@ -11,6 +11,7 @@ public static class ManualUserMappings
         Email = user.Email,
         DisplayName = user.DisplayName,
         IsActive = user.IsActive,
+        IsAdmin = user.IsAdmin,
         CreatedAt = user.CreatedAt,
         UpdatedAt = user.UpdatedAt,
     };

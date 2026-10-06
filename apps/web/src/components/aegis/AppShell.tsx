@@ -4,19 +4,19 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import {
   FileText,
+  GraduationCap,
   Home,
   LogOut,
   Menu,
-  Plus,
   Search,
   SlidersHorizontal,
+  UserCog,
   Users,
   X,
 } from "lucide-react";
 import { useState } from "react";
 
 import Brand from "./Brand";
-import NewGroupDialog from "./NewGroupDialog";
 import { useAuth } from "@/lib/auth-context";
 
 type AppShellProps = {
@@ -24,19 +24,24 @@ type AppShellProps = {
   searchPlaceholder?: string;
 };
 
-const navItems = [
+const baseNavItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/submissions", label: "My Submissions", icon: FileText },
   { href: "/groups", label: "Groups", icon: Users },
+];
+
+const adminNavItems = [
+  { href: "/admin/users", label: "User management", icon: UserCog },
+  { href: "/admin/faculties", label: "Faculty management", icon: GraduationCap },
 ];
 
 export default function AppShell({ children, searchPlaceholder = "Search..." }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const navItems = user?.isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
-  const [newGroupOpen, setNewGroupOpen] = useState(false);
 
   function handleLogout() {
     setOptionsOpen(false);
@@ -84,10 +89,6 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
           ))}
         </nav>
 
-        <button type="button" className="sidebar__group-action" onClick={() => setNewGroupOpen(true)}>
-          <Plus size={15} />
-          New group
-        </button>
       </aside>
 
       <div className="app-frame">
@@ -111,7 +112,10 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
                 <nav className="shell-options" aria-label="Account options">
                   <div className="shell-options__title">
                     <span>Options</span>
-                    <small>{user?.displayName ?? "Guest"}</small>
+                    <small>
+                      {user?.displayName ?? "Guest"}
+                      {user?.isAdmin ? " · Administrator" : ""}
+                    </small>
                   </div>
                   <button type="button" onClick={handleLogout} className="shell-options__logout">
                     <LogOut size={17} />
@@ -124,11 +128,6 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
         </header>
         <main className="app-main">{children}</main>
       </div>
-
-      <NewGroupDialog
-        open={newGroupOpen}
-        onClose={() => setNewGroupOpen(false)}
-      />
     </div>
   );
 }
