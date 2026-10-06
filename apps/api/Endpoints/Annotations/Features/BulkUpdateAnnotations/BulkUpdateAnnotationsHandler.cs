@@ -3,6 +3,7 @@ using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Annotations.Data;
 using Aegis.Api.Endpoints.Annotations.Dtos;
 using Aegis.Api.Endpoints.Annotations.Exceptions;
+using Aegis.Api.Endpoints.Groups.Data;
 using Aegis.Api.Endpoints.Reviews.Data;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +42,20 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
         if (latestReview is null || latestReview.Status != ReviewStatus.InProgress)
         {
             throw new AnnotationsLockedException(request.DocumentId);
+        }
+
+        // Only Reviewers in the document's group may write annotations
+        // (Submitters and creator-submitters are read-only).
+        if (currentUserId.HasValue)
+        {
+            var document = await _db.Documents.FindAsync([request.DocumentId], ct)
+                ?? throw new AnnotationsLockedException(request.DocumentId);
+
+            var myRoles = await GroupRoles.RolesOfUserAsync(_db, currentUserId.Value, document.GroupId, ct);
+            if (!myRoles.Contains(GroupRoles.Reviewer))
+            {
+                throw new AnnotationsPermissionException(request.DocumentId);
+            }
         }
 
         var existing = await _db.Annotations

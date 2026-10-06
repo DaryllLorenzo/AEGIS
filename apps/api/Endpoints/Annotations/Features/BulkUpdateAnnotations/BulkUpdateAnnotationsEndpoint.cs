@@ -16,9 +16,10 @@ internal static class BulkUpdateAnnotationsEndpoint
             .MapPut("/document/{documentId:guid}", Handle)
             .WithTags(AnnotationsConfigurations.Tag)
             .WithName(Name)
-            .WithSummary("Replaces all annotations for a document. Send an empty array to clear.");
+            .WithSummary("Replaces all annotations for a document. Send an empty array to clear.")
+            .RequireAuthorization();
 
-        static async Task<Results<Ok<List<AnnotationDto>>, ValidationProblem>> Handle(
+        static async Task<Results<Ok<List<AnnotationDto>>, ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> Handle(
             Guid documentId,
             BulkUpdateAnnotationsBody body,
             ISender sender,
@@ -57,6 +58,10 @@ internal static class BulkUpdateAnnotationsEndpoint
                 {
                     ["documentId"] = [ex.Message]
                 });
+            }
+            catch (Annotations.Exceptions.AnnotationsPermissionException ex)
+            {
+                return TypedResults.Problem(statusCode: 403, detail: ex.Message);
             }
         }
     }

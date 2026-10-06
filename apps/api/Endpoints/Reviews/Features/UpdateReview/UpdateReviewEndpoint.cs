@@ -20,7 +20,7 @@ internal static class UpdateReviewEndpoint
             .WithSummary("Updates an existing review.")
             .RequireAuthorization();
 
-        static async Task<Results<Ok<ReviewDto>, NotFound, ValidationProblem>> Handle(
+        static async Task<Results<Ok<ReviewDto>, NotFound, ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> Handle(
             Guid id,
             UpdateReviewBody body,
             ISender sender,
@@ -67,6 +67,10 @@ internal static class UpdateReviewEndpoint
                 {
                     ["status"] = [ex.Message]
                 });
+            }
+            catch (ReviewPermissionException ex)
+            {
+                return TypedResults.Problem(statusCode: 403, detail: ex.Message);
             }
             catch (InvalidAssigneeException ex)
             {

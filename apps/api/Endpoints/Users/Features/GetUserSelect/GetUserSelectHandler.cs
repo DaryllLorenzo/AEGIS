@@ -9,10 +9,15 @@ public sealed record GetUserSelectRequest : IRequest<List<SelectItemDto>>
 {
     /// <summary>When set, only members of this group are returned.</summary>
     public Guid? GroupId { get; init; }
+
+    /// <summary>Optional case-insensitive search over DisplayName and Email.</summary>
+    public string? Search { get; init; }
 }
 
 public sealed class GetUserSelectHandler : IRequestHandler<GetUserSelectRequest, List<SelectItemDto>>
 {
+    private const int MaxResults = 25;
+
     private readonly AegisDbContext _db;
 
     public GetUserSelectHandler(AegisDbContext db) => _db = db;
@@ -31,8 +36,17 @@ public sealed class GetUserSelectHandler : IRequestHandler<GetUserSelectRequest,
                 .Any(ur => ur.UserId == u.Id && ur.GroupId == request.GroupId.Value));
         }
 
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var term = request.Search.Trim();
+            query = query.Where(u =>
+                EF.Functions.ILike(u.DisplayName, $"%{term}%") ||
+                EF.Functions.ILike(u.Email, $"%{term}%"));
+        }
+
         return await query
             .OrderBy(u => u.DisplayName)
+            .Take(MaxResults)
             .Select(u => new SelectItemDto { Id = u.Id, Label = u.DisplayName })
             .ToListAsync(ct);
     }

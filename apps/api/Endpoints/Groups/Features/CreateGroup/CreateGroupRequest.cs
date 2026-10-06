@@ -9,10 +9,16 @@ public sealed record CreateGroupRequest : IRequest<GroupDto>
     public Guid FacultyId { get; init; }
     public string? Description { get; init; }
     /// <summary>
-    /// Members to link at creation. Each entry lists the roles the
-    /// user gets in THIS group ("Submitter" and/or "Reviewer").
-    /// Roles are per-group — a user can hold different roles in
-    /// different groups.
+    /// The creator's group role. The creator ALSO holds the
+    /// implicit "Creator" role for this group, so every creator
+    /// keeps exactly one non-Creator (Submitter or Reviewer) role.
+    /// Defaults to "Submitter" when omitted.
+    /// </summary>
+    public string? CreatorRole { get; init; }
+    /// <summary>
+    /// Members to link at creation. Each entry holds exactly ONE role
+    /// in this group ("Submitter" or "Reviewer"). Roles are per-group
+    /// — a user can hold different roles in different groups.
     /// </summary>
     public List<GroupMember>? Members { get; init; }
 }
@@ -20,5 +26,6 @@ public sealed record CreateGroupRequest : IRequest<GroupDto>
 public sealed record GroupMember
 {
     public Guid UserId { get; init; }
+    /// <summary>Roles assigned to this member in this group (validated to Submitter/Reviewer).</summary>
     public List<string> Roles { get; init; } = [];
 }

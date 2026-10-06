@@ -1,3 +1,6 @@
+using Aegis.Api.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace Aegis.Api.Endpoints.Groups.Data;
 
 /// <summary>
@@ -17,4 +20,25 @@ public static class GroupRoles
 
     /// <summary>Roles assignable to members. "Creator" is set automatically.</summary>
     public static readonly string[] Assignable = [Submitter, Reviewer];
+
+    /// <summary>
+    /// Role names a given user currently holds in a group (rows in UserRoles).
+    /// A review's AssigneeId, when set, is the only user allowed to complete it.
+    /// </summary>
+    public static async Task<List<string>> RolesOfUserAsync(
+        AegisDbContext db,
+        Guid userId,
+        Guid groupId,
+        CancellationToken ct)
+    {
+        return await db.UserRoles
+            .Where(ur => ur.UserId == userId && ur.GroupId == groupId)
+            .Join(
+                db.Roles,
+                ur => ur.RoleId,
+                r => r.Id,
+                (ur, r) => r.Name)
+            .ToListAsync(ct);
+    }
 }
+

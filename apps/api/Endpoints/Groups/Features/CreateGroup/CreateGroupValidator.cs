@@ -23,10 +23,15 @@ public sealed class CreateGroupValidator : AbstractValidator<CreateGroupRequest>
                 member.RuleFor(m => m.UserId)
                     .NotEmpty().WithMessage("Member user ID is required.");
                 member.RuleFor(m => m.Roles)
-                    .NotEmpty().WithMessage("Each member needs at least one role.");
+                    .Must(r => r != null && r.Count == 1)
+                    .WithMessage("Each member needs exactly one role.");
                 member.RuleForEach(m => m.Roles)
                     .Must(r => GroupRoles.Assignable.Contains(r))
                     .WithMessage("Member roles must be Submitter or Reviewer.");
             });
+
+        RuleFor(x => x.CreatorRole)
+            .Must(r => r == null || GroupRoles.Assignable.Contains(r))
+            .WithMessage("Creator role must be Submitter or Reviewer.");
     }
 }

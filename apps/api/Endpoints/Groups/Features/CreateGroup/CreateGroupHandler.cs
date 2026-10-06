@@ -48,9 +48,10 @@ public sealed class CreateGroupHandler : IRequestHandler<CreateGroupRequest, Gro
         var now = DateTimeOffset.UtcNow;
         var roles = await _db.Roles.ToDictionaryAsync(r => r.Name, r => r.Id, ct);
 
-        // The creator always belongs to their own group with the
-        // "Creator" role. They may also hold Submitter/Reviewer
-        // rows if they add themselves to the member list.
+        // Each creator holds BOTH the implicit "Creator" row AND one
+        // explicit group role (Submitter or Reviewer). Every other user
+        // holds exactly one role row.
+
         if (creatorId is not null && roles.TryGetValue(GroupRoles.Creator, out var creatorRoleId))
         {
             _db.UserRoles.Add(new GroupUserRole
@@ -63,11 +64,29 @@ public sealed class CreateGroupHandler : IRequestHandler<CreateGroupRequest, Gro
             });
         }
 
-        // Link the requested members with their per-group roles.
+        var creatorGroupRole = string.IsNullOrWhiteSpace(request.CreatorRole)
+            ? GroupRoles.Submitter
+            : request.CreatorRole;
+
+        if (creatorId is not null && roles.TryGetValue(creatorGroupRole, out var creatorGroupRoleId))
+        {
+            _db.UserRoles.Add(new GroupUserRole
+            {
+                Id = Guid.NewGuid(),
+                UserId = creatorId.Value,
+                GroupId = group.Id,
+                RoleId = creatorGroupRoleId,
+                AssignedAt = now,
+            });
+        }
+
+        // Link the requested members: exactly one group role each.
         if (request.Members is { Count: > 0 })
         {
             foreach (var member in request.Members)
             {
+                if (member.UserId == creatorId) continue;
+
                 foreach (var roleName in member.Roles.Distinct())
                 {
                     if (roles.TryGetValue(roleName, out var roleId))

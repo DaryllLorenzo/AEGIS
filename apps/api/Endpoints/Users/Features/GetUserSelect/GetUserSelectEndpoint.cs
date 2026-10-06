@@ -24,7 +24,7 @@ internal static class GetUserSelectEndpoint
             CancellationToken cancellationToken)
         {
             var result = await sender.Send(
-                new GetUserSelectRequest { GroupId = parameters.GroupId },
+                new GetUserSelectRequest { GroupId = parameters.GroupId, Search = parameters.Search },
                 cancellationToken);
             return TypedResults.Ok(result);
         }
@@ -34,4 +34,5 @@ internal static class GetUserSelectEndpoint
 internal sealed record GetUserSelectParameters
 {
     public Guid? GroupId { get; init; }
+    public string? Search { get; init; }
 }

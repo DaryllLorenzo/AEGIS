@@ -18,12 +18,15 @@ import {
   getDocumentById,
   getDocumentDownloadUrl,
   getAuthToken,
+  getGroupMembers,
   updateReview,
   reviewNextAction,
   nextReviewStatus,
   type Review,
   type DocumentDto,
 } from "@/lib/api";
+import { useFetch } from "@/hooks/useFetch";
+import { useAuth } from "@/lib/auth-context";
 import { reviewStatusLabel, initialsFromName } from "@/lib/utils";
 
 import Brand from "./Brand";
@@ -44,7 +47,21 @@ export default function ReviewWorkspace({ reviewId }: Props) {
   const [statusError, setStatusError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
+  const { user } = useAuth();
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
+
+  // Permission context: this user's roles inside the review's group.
+  const { data: membersData } = useFetch(
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    () => (doc ? getGroupMembers(doc.groupId) : Promise.resolve([])),
+    [doc?.groupId],
+  );
+  const myGroupRoles = (membersData ?? []).find((m) => m.id === user?.userId)?.roles ?? [];
+  const groupHasReviewer = myGroupRoles.includes("Reviewer");
+  const reviewIsInProgress = review?.status === "InProgress";
+  const canStart = review?.status === "Pending" && groupHasReviewer;
+  const canComplete = reviewIsInProgress && !!user && review?.assigneeId === user.userId;
+  const canAnnotate = reviewIsInProgress && groupHasReviewer;
 
   useEffect(() => {
     if (!reviewId) return;
@@ -239,8 +256,19 @@ export default function ReviewWorkspace({ reviewId }: Props) {
               className="button button--primary"
               type="button"
               onClick={handleAdvance}
-              disabled={saving || !review}
-              title={nextAction.hint}
+              disabled={
+                saving ||
+                !review ||
+                (nextAction.verb === "start" && !canStart) ||
+                (nextAction.verb === "complete" && !canComplete)
+              }
+              title={
+                nextAction.verb === "start" && !canStart
+                  ? "Only Reviewers in this group can start a review."
+                  : nextAction.verb === "complete" && !canComplete
+                    ? "Only the assignee of this review can complete it."
+                    : nextAction.hint
+              }
             >
               {nextAction.verb === "start" ? (
                 <Play size={17} />
@@ -329,15 +357,17 @@ export default function ReviewWorkspace({ reviewId }: Props) {
               documentId={review?.documentId}
               file={pdfFile}
               onAnnotationsChange={setAnnotations}
-              readOnly={!isInProgress}
+              readOnly={!canAnnotate}
             />
           )}
-          {!isInProgress && !loading && !error && (
+          {!canAnnotate && !loading && !error && (
             <div className="annotator-lock" role="status">
               <Lock size={15} aria-hidden="true" />
               {isCompleted
                 ? "Review round closed — annotations are read-only. Start a new version to continue."
-                : "Start the review to annotate this document."}
+                : reviewIsInProgress && !groupHasReviewer
+                  ? "Only Reviewers in this group can edit annotations."
+                  : "Start the review to annotate this document."}
             </div>
           )}
         </section>

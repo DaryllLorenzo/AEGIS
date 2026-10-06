@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using Aegis.Api.Data;
+using Aegis.Api.Endpoints.Groups.Data;
 using Aegis.Api.Endpoints.Reviews.Data;
 using Aegis.Api.Endpoints.Reviews.Dtos;
 using Aegis.Api.Endpoints.Reviews.Exceptions;
@@ -12,8 +14,13 @@ namespace Aegis.Api.Endpoints.Reviews.Features.UpdateReview;
 public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, ReviewDto>
 {
     private readonly AegisDbContext _db;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public UpdateReviewHandler(AegisDbContext db) => _db = db;
+    public UpdateReviewHandler(AegisDbContext db, IHttpContextAccessor httpContextAccessor)
+    {
+        _db = db;
+        _httpContextAccessor = httpContextAccessor;
+    }
 
     public async Task<ReviewDto> Handle(UpdateReviewRequest request, CancellationToken ct)
     {
@@ -39,6 +46,32 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
             {
                 throw new InvalidReviewTransitionException(
                     review.Status.ToString(), newStatus.ToString());
+            }
+
+            // Authorizing the transition:
+            //  - Start (Pending -> InProgress): needs the Reviewer role in
+            //    the document's group. Submitters are read-only.
+            //  - Complete (InProgress -> Completed): needs to be the review's
+            //    assignee. No one else can complete a review.
+            var me = CurrentUserId();
+            var document = await _db.Documents.FindAsync([review.DocumentId], ct)
+                ?? throw new DocumentNotFoundException(review.DocumentId);
+
+            if (newStatus == ReviewStatus.InProgress && me.HasValue)
+            {
+                var roles = await GroupRoles.RolesOfUserAsync(_db, me.Value, document.GroupId, ct);
+                if (!roles.Contains(GroupRoles.Reviewer))
+                {
+                    throw new ReviewPermissionException("Only Reviewers in this group can start a review.");
+                }
+            }
+
+            if (newStatus == ReviewStatus.Completed)
+            {
+                if (!me.HasValue || review.AssigneeId != me.Value)
+                {
+                    throw new ReviewPermissionException("Only the assignee of this review can complete it.");
+                }
             }
         }
 
@@ -73,5 +106,16 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
         await _db.Entry(review).Reference(r => r.AssigneeUser).LoadAsync(ct);
 
         return review.ToDto();
+    }
+
+    private Guid? CurrentUserId()
+    {
+        if (_httpContextAccessor.HttpContext?.User
+                .FindFirstValue(ClaimTypes.NameIdentifier) is { } parsed
+            && Guid.TryParse(parsed, out var guid))
+        {
+            return guid;
+        }
+        return null;
     }
 }

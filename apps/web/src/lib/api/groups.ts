@@ -51,6 +51,7 @@ export async function createGroup(data: {
   name: string;
   facultyId: string;
   description?: string;
+  creatorRole?: "Submitter" | "Reviewer";
   members?: { userId: string; roles: ("Submitter" | "Reviewer")[] }[];
 }): Promise<GroupDto> {
   return apiFetch<GroupDto>("/api/groups", {

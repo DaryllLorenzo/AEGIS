@@ -6,10 +6,10 @@ import { Loader2, X } from "lucide-react";
 import {
   createGroup,
   getFaculties,
-  getUserSelect,
   type FacultyDto,
-  type SelectItem,
 } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import MemberAutocomplete, { type MemberSelection } from "./MemberAutocomplete";
 
 type NewGroupDialogProps = {
   open: boolean;
@@ -18,13 +18,13 @@ type NewGroupDialogProps = {
 };
 
 export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDialogProps) {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [facultyId, setFacultyId] = useState("");
   const [description, setDescription] = useState("");
-  // Map of userId -> which of the assignable roles were picked for this group.
-  const [memberRoles, setMemberRoles] = useState<Map<string, Set<"Submitter" | "Reviewer">>>(new Map());
+  const [members, setMembers] = useState<MemberSelection[]>([]);
+  const [creatorRole, setCreatorRole] = useState<"Submitter" | "Reviewer">("Submitter");
   const [faculties, setFaculties] = useState<FacultyDto[]>([]);
-  const [users, setUsers] = useState<SelectItem[]>([]);
   const [facultiesError, setFacultiesError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,13 +39,6 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
       .catch(() => {
         if (!cancelled) setFacultiesError(true);
       });
-    getUserSelect()
-      .then((items) => {
-        if (!cancelled) setUsers(items);
-      })
-      .catch(() => {
-        if (!cancelled) setUsers([]);
-      });
     return () => {
       cancelled = true;
     };
@@ -56,7 +49,8 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
       setName("");
       setFacultyId("");
       setDescription("");
-      setMemberRoles(new Map());
+      setMembers([]);
+      setCreatorRole("Submitter");
       setError(null);
     }
   }, [open]);
@@ -70,29 +64,6 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  function toggleMember(id: string) {
-    setMemberRoles((prev) => {
-      const next = new Map(prev);
-      if (next.has(id)) next.delete(id);
-      else next.set(id, new Set(["Submitter"]));
-      return next;
-    });
-  }
-
-  function toggleRole(id: string, role: "Submitter" | "Reviewer") {
-    setMemberRoles((prev) => {
-      const next = new Map(prev);
-      const set = next.get(id);
-      if (!set) return prev;
-      const roles = new Set(set);
-      if (roles.has(role)) roles.delete(role);
-      else roles.add(role);
-      if (roles.size === 0) next.delete(id);
-      else next.set(id, roles);
-      return next;
-    });
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !facultyId) return;
@@ -104,9 +75,10 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
         facultyId,
         description: description.trim() || undefined,
         members:
-          memberRoles.size > 0
-            ? [...memberRoles.entries()].map(([userId, roles]) => ({ userId, roles: [...roles] }))
+          members.length > 0
+            ? members.map((m) => ({ userId: m.id, roles: [m.role] }))
             : undefined,
+        creatorRole,
       });
       onCreated?.();
       onClose();
@@ -182,46 +154,29 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
             />
           </div>
           <div className="field">
-            <label>
-              Members <span className="field__optional">Optional</span>
-            </label>
+            <label htmlFor="group-creator-role">Your role in this group</label>
+            <select
+              id="group-creator-role"
+              value={creatorRole}
+              onChange={(e) => setCreatorRole(e.target.value as "Submitter" | "Reviewer")}
+            >
+              <option value="Submitter">Submitter</option>
+              <option value="Reviewer">Reviewer</option>
+            </select>
             <p className="field__hint">
-              Link members and pick their role in THIS group. You are added
-              automatically as Creator; role assignments are per-group.
+              You always hold the Creator role as well; this is your operational group role.
             </p>
-            <div className="member-picker">
-              {users.length === 0 ? (
-                <p className="field__hint">No users available.</p>
-              ) : (
-                users.map((u) => {
-                  const picked = memberRoles.get(u.id);
-                  return (
-                    <label key={u.id} className="member-picker__option">
-                      <input
-                        type="checkbox"
-                        checked={picked != null}
-                        onChange={() => toggleMember(u.id)}
-                      />
-                      <span>{u.label}</span>
-                      {picked != null && (
-                        <span className="member-picker__roles">
-                          {(["Submitter", "Reviewer"] as const).map((role) => (
-                            <label key={role} className="member-picker__role">
-                              <input
-                                type="checkbox"
-                                checked={picked.has(role)}
-                                onChange={() => toggleRole(u.id, role)}
-                              />
-                              {role}
-                            </label>
-                          ))}
-                        </span>
-                      )}
-                    </label>
-                  );
-                })
-              )}
-            </div>
+          </div>
+          <div className="field">
+            <label>Members</label>
+            <p className="field__hint">
+              Find users by name or email. Each member gets exactly one role in this group.
+            </p>
+            <MemberAutocomplete
+              members={members}
+              onChange={setMembers}
+              excludeUserIds={user?.userId ? [user.userId] : []}
+            />
           </div>
           {error && (
             <p className="form-error" role="alert">{error}</p>
