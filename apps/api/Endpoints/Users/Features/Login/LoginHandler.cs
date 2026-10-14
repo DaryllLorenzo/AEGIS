@@ -19,10 +19,10 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, LoginResponse>
         _refreshToken = refreshToken;
     }
 
-    public async Task<LoginResponse> Handle(LoginRequest request, CancellationToken ct)
+    public async Task<LoginResponse> Handle(LoginRequest request, CancellationToken cancellationToken)
     {
         var user = await _db.Users
-            .FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive, ct)
+            .FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive, cancellationToken)
             ?? throw new InvalidCredentialsException();
 
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
@@ -33,11 +33,11 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, LoginResponse>
         var roles = await _db.UserRoles
             .Where(ur => ur.UserId == user.Id)
             .Join(_db.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var token = _jwt.GenerateToken(user, roles);
         var expiresAt = DateTime.UtcNow.AddHours(24);
-        var refreshToken = await _refreshToken.GenerateRefreshTokenAsync(user.Id, ct);
+        var refreshToken = await _refreshToken.GenerateRefreshTokenAsync(user.Id, cancellationToken);
 
         return new LoginResponse
         {

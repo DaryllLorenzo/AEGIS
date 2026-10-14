@@ -13,9 +13,9 @@ public sealed class GetGroupByIdHandler : IRequestHandler<GetGroupByIdRequest, G
 
     public GetGroupByIdHandler(AegisDbContext db) => _db = db;
 
-    public async Task<GroupDto> Handle(GetGroupByIdRequest request, CancellationToken ct)
+    public async Task<GroupDto> Handle(GetGroupByIdRequest request, CancellationToken cancellationToken)
     {
-        var group = await _db.Groups.FindAsync([request.Id], ct)
+        var group = await _db.Groups.FindAsync([request.Id], cancellationToken)
             ?? throw new GroupNotFoundException(request.Id);
 
         return group.ToDto();

@@ -1,5 +1,5 @@
+using Aegis.Api.Common.Authz;
 using Aegis.Api.Endpoints.Users.Exceptions;
-using Aegis.Api.Shared.Authz;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 

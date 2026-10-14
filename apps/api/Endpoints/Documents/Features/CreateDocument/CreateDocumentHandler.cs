@@ -1,11 +1,11 @@
 using System.Security.Claims;
+using Aegis.Api.Common.Storage;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Documents.Data;
 using Aegis.Api.Endpoints.Documents.Dtos;
 using Aegis.Api.Endpoints.Documents.Exceptions;
 using Aegis.Api.Endpoints.Documents.Mappings;
 using Aegis.Api.Endpoints.Users.Data;
-using Aegis.Api.Shared.Storage;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using PdfSharp.Pdf.IO;
@@ -27,12 +27,12 @@ public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentReques
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<DocumentDto> Handle(CreateDocumentRequest request, CancellationToken ct)
+    public async Task<DocumentDto> Handle(CreateDocumentRequest request, CancellationToken cancellationToken)
     {
         var userId = Guid.Parse(_httpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         var isMember = await _db.UserRoles.AnyAsync(
-            ur => ur.UserId == userId && ur.GroupId == request.GroupId, ct);
+            ur => ur.UserId == userId && ur.GroupId == request.GroupId, cancellationToken);
 
         if (!isMember)
         {
@@ -48,7 +48,7 @@ public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentReques
 
         if (request.ParentId.HasValue)
         {
-            var parent = await _db.Documents.FindAsync([request.ParentId.Value], ct)
+            var parent = await _db.Documents.FindAsync([request.ParentId.Value], cancellationToken)
                 ?? throw new ParentDocumentNotFoundException(request.ParentId.Value);
 
             if (parent.GroupId != request.GroupId)
@@ -61,7 +61,7 @@ public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentReques
             version = parent.Version + 1;
         }
 
-        await _storage.EnsureBucketExistsAsync(BucketName, ct);
+        await _storage.EnsureBucketExistsAsync(BucketName, cancellationToken);
 
         var safeFileName = Path.GetFileName(request.FileName);
         var objectKey = $"documents/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}_{safeFileName}";
@@ -75,7 +75,7 @@ public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentReques
             try
             {
                 pdfMemoryStream = new MemoryStream();
-                await request.FileStream.CopyToAsync(pdfMemoryStream, ct);
+                await request.FileStream.CopyToAsync(pdfMemoryStream, cancellationToken);
                 pdfMemoryStream.Position = 0;
 
                 var pdfDocument = PdfReader.Open(pdfMemoryStream);
@@ -98,7 +98,7 @@ public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentReques
             stream: uploadStream,
             fileSize: request.FileSize,
             mimeType: request.ContentType,
-            cancellationToken: ct);
+            cancellationToken: cancellationToken);
 
         pdfMemoryStream?.Dispose();
         request.FileStream?.Dispose();
@@ -122,7 +122,7 @@ public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentReques
         };
 
         _db.Documents.Add(document);
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         return document.ToDto();
     }

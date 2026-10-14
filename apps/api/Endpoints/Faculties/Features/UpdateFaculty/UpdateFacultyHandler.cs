@@ -15,9 +15,9 @@ public sealed class UpdateFacultyHandler : IRequestHandler<UpdateFacultyRequest,
         _db = db;
     }
 
-    public async Task<FacultyDto> Handle(UpdateFacultyRequest request, CancellationToken ct)
+    public async Task<FacultyDto> Handle(UpdateFacultyRequest request, CancellationToken cancellationToken)
     {
-        var faculty = await _db.Faculties.FindAsync([request.Id], ct)
+        var faculty = await _db.Faculties.FindAsync([request.Id], cancellationToken)
             ?? throw new FacultyNotFoundException(request.Id);
 
         faculty.Name = request.Name;
@@ -25,7 +25,7 @@ public sealed class UpdateFacultyHandler : IRequestHandler<UpdateFacultyRequest,
         faculty.Description = request.Description;
         faculty.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         return faculty.ToDto();
     }

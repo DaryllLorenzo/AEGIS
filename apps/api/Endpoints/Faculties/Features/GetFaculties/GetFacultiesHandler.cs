@@ -1,8 +1,8 @@
+using Aegis.Api.Common.Paging;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Faculties.Dtos;
 using Aegis.Api.Endpoints.Faculties.Mappings;
 using Aegis.Api.Endpoints.Faculties.Services;
-using Aegis.Api.Shared.Paging;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,17 +19,17 @@ public sealed class GetFacultiesHandler : IRequestHandler<GetFacultiesRequest, P
         _sieve = sieve;
     }
 
-    public async Task<PaginatedList<FacultyDto>> Handle(GetFacultiesRequest request, CancellationToken ct)
+    public async Task<PaginatedList<FacultyDto>> Handle(GetFacultiesRequest request, CancellationToken cancellationToken)
     {
         var query = _db.Faculties.AsQueryable();
 
         var paged = _sieve.Apply(request.Sieve, query);
 
-        var totalCount = await paged.CountAsync(ct);
+        var totalCount = await paged.CountAsync(cancellationToken);
 
         var items = await paged
             .Select(f => f.ToDto())
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return new PaginatedList<FacultyDto>
         {

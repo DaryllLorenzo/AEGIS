@@ -1,4 +1,4 @@
-namespace Aegis.Api.Shared.Storage;
+namespace Aegis.Api.Common.Storage;
 
 public interface IStorageService
 {

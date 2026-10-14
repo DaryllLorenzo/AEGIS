@@ -4,9 +4,9 @@ using Minio;
 using Minio.DataModel.Args;
 using Minio.Exceptions;
 
-namespace Aegis.Api.Shared.Storage.MinIO;
+namespace Aegis.Api.Common.Storage.MinIO;
 
-public sealed class MinIOStorageService : IStorageService
+public sealed partial class MinIOStorageService : IStorageService
 {
     private readonly IMinioClient _client;
     private readonly MinIOOptions _options;
@@ -31,7 +31,7 @@ public sealed class MinIOStorageService : IStorageService
 
         if (!exists)
         {
-            _logger.LogInformation("Bucket '{Bucket}' not found — creating it.", bucketName);
+            LogBucketMissing(_logger, bucketName);
             var makeArgs = new MakeBucketArgs().WithBucket(bucketName);
             await _client.MakeBucketAsync(makeArgs, cancellationToken);
         }
@@ -54,9 +54,7 @@ public sealed class MinIOStorageService : IStorageService
 
         var response = await _client.PutObjectAsync(putArgs, cancellationToken);
 
-        _logger.LogInformation(
-            "Uploaded object '{Key}' to bucket '{Bucket}' ({Size} bytes).",
-            objectKey, bucketName, fileSize);
+        LogObjectUploaded(_logger, objectKey, bucketName, fileSize);
 
         return new StoredObject
         {
@@ -154,8 +152,7 @@ public sealed class MinIOStorageService : IStorageService
 
         await _client.RemoveObjectAsync(removeArgs, cancellationToken);
 
-        _logger.LogInformation(
-            "Deleted object '{Key}' from bucket '{Bucket}'.", objectKey, bucketName);
+        LogObjectDeleted(_logger, objectKey, bucketName);
     }
 
     public async Task DeleteManyAsync(
@@ -179,9 +176,7 @@ public sealed class MinIOStorageService : IStorageService
         foreach (var deleteError in deleteErrors)
         {
             errors.Add($"{deleteError.Key}: {deleteError.Message}");
-            _logger.LogWarning(
-                "Failed to delete '{Key}' from bucket '{Bucket}': {Error}",
-                deleteError.Key, bucketName, deleteError.Message);
+            LogDeleteFailed(_logger, deleteError.Key, bucketName, deleteError.Message);
         }
 
         if (errors.Count > 0)
@@ -190,7 +185,21 @@ public sealed class MinIOStorageService : IStorageService
                 $"Some objects could not be deleted from '{bucketName}': {string.Join("; ", errors)}");
         }
 
-        _logger.LogInformation(
-            "Deleted {Count} object(s) from bucket '{Bucket}'.", keyList.Count, bucketName);
+        LogDeleteBatch(_logger, keyList.Count, bucketName);
     }
+
+    [LoggerMessage(1, LogLevel.Information, "Bucket '{Bucket}' not found — creating it.")]
+    private static partial void LogBucketMissing(ILogger logger, string bucket);
+
+    [LoggerMessage(2, LogLevel.Information, "Uploaded object '{Key}' to bucket '{Bucket}' ({Size} bytes).")]
+    private static partial void LogObjectUploaded(ILogger logger, string key, string bucket, long size);
+
+    [LoggerMessage(3, LogLevel.Information, "Deleted object '{Key}' from bucket '{Bucket}'.")]
+    private static partial void LogObjectDeleted(ILogger logger, string key, string bucket);
+
+    [LoggerMessage(4, LogLevel.Warning, "Failed to delete '{Key}' from bucket '{Bucket}': {Error}")]
+    private static partial void LogDeleteFailed(ILogger logger, string key, string bucket, string error);
+
+    [LoggerMessage(5, LogLevel.Information, "Deleted {Count} object(s) from bucket '{Bucket}'.")]
+    private static partial void LogDeleteBatch(ILogger logger, int count, string bucket);
 }

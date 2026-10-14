@@ -2,9 +2,9 @@ using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Options;
 
-namespace Aegis.Api.Shared.Email;
+namespace Aegis.Api.Common.Email;
 
-public sealed class SmtpEmailSender : IEmailSender
+public sealed partial class SmtpEmailSender : IEmailSender
 {
     private readonly IOptions<EmailOptions> _options;
     private readonly ILogger<SmtpEmailSender> _logger;
@@ -22,9 +22,7 @@ public sealed class SmtpEmailSender : IEmailSender
         // SMTP not configured (e.g. running outside Aspire locally): skip cleanly.
         if (string.IsNullOrWhiteSpace(opts.Host))
         {
-            _logger.LogWarning(
-                "Email skipped — Email:Smtp:Host is not configured. {To} → {Subject}",
-                message.To, message.Subject);
+            LogEmailSkipped(_logger, message.To, message.Subject);
             return;
         }
 
@@ -42,7 +40,13 @@ public sealed class SmtpEmailSender : IEmailSender
         };
         mail.To.Add(message.To);
 
-        await smtp.SendMailAsync(mail);
-        _logger.LogInformation("Email sent to {To}: {Subject}", message.To, message.Subject);
+        await smtp.SendMailAsync(mail, cancellationToken);
+        LogEmailSent(_logger, message.To, message.Subject);
     }
+
+    [LoggerMessage(1, LogLevel.Warning, "Email skipped — Email:Smtp:Host is not configured. {To} → {Subject}")]
+    private static partial void LogEmailSkipped(ILogger logger, string to, string subject);
+
+    [LoggerMessage(2, LogLevel.Information, "Email sent to {To}: {Subject}")]
+    private static partial void LogEmailSent(ILogger logger, string to, string subject);
 }

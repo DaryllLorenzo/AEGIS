@@ -1,8 +1,8 @@
+using Aegis.Api.Common.Paging;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Roles.Dtos;
 using Aegis.Api.Endpoints.Roles.Mappings;
 using Aegis.Api.Endpoints.Roles.Services;
-using Aegis.Api.Shared.Paging;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,17 +19,17 @@ public sealed class GetRolesHandler : IRequestHandler<GetRolesRequest, Paginated
         _sieve = sieve;
     }
 
-    public async Task<PaginatedList<RoleDto>> Handle(GetRolesRequest request, CancellationToken ct)
+    public async Task<PaginatedList<RoleDto>> Handle(GetRolesRequest request, CancellationToken cancellationToken)
     {
         var query = _db.Roles.AsQueryable();
 
         var paged = _sieve.Apply(request.Sieve, query);
 
-        var totalCount = await paged.CountAsync(ct);
+        var totalCount = await paged.CountAsync(cancellationToken);
 
         var items = await paged
             .Select(r => r.ToDto())
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return new PaginatedList<RoleDto>
         {

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Aegis.Api.Shared.Authz;
+namespace Aegis.Api.Common.Authz;
 
 public static class RequireAdminFilter
 {

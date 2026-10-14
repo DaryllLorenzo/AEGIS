@@ -12,16 +12,16 @@ public sealed class UpdateUserHandler : IRequestHandler<UpdateUserRequest, UserD
 
     public UpdateUserHandler(AegisDbContext db) => _db = db;
 
-    public async Task<UserDto> Handle(UpdateUserRequest request, CancellationToken ct)
+    public async Task<UserDto> Handle(UpdateUserRequest request, CancellationToken cancellationToken)
     {
-        var user = await _db.Users.FindAsync([request.Id], ct)
+        var user = await _db.Users.FindAsync([request.Id], cancellationToken)
             ?? throw new UserNotFoundException(request.Id);
 
         user.Email = request.Email;
         user.DisplayName = request.DisplayName;
         user.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         return user.ToDto();
     }

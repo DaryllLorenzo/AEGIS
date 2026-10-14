@@ -12,9 +12,9 @@ public sealed class GetUserByIdHandler : IRequestHandler<GetUserByIdRequest, Use
 
     public GetUserByIdHandler(AegisDbContext db) => _db = db;
 
-    public async Task<UserDto> Handle(GetUserByIdRequest request, CancellationToken ct)
+    public async Task<UserDto> Handle(GetUserByIdRequest request, CancellationToken cancellationToken)
     {
-        var user = await _db.Users.FindAsync([request.Id], ct)
+        var user = await _db.Users.FindAsync([request.Id], cancellationToken)
             ?? throw new UserNotFoundException(request.Id);
 
         return user.ToDto();

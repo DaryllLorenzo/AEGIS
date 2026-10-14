@@ -1,9 +1,9 @@
+using Aegis.Api.Common.Storage;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Documents.Dtos;
 using Aegis.Api.Endpoints.Documents.Exceptions;
 using Aegis.Api.Endpoints.Documents.Mappings;
 using Aegis.Api.Endpoints.Reviews.Data;
-using Aegis.Api.Shared.Storage;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,13 +20,13 @@ public sealed class UpdateDocumentHandler : IRequestHandler<UpdateDocumentReques
         _storage = storage;
     }
 
-    public async Task<DocumentDto> Handle(UpdateDocumentRequest request, CancellationToken ct)
+    public async Task<DocumentDto> Handle(UpdateDocumentRequest request, CancellationToken cancellationToken)
     {
-        var document = await _db.Documents.FindAsync([request.Id], ct)
+        var document = await _db.Documents.FindAsync([request.Id], cancellationToken)
             ?? throw new DocumentNotFoundException(request.Id);
 
         var hasCompletedReview = await _db.Reviews.AnyAsync(
-            r => r.DocumentId == document.Id && r.Status == ReviewStatus.Completed, ct);
+            r => r.DocumentId == document.Id && r.Status == ReviewStatus.Completed, cancellationToken);
 
         if (hasCompletedReview)
         {
@@ -47,7 +47,7 @@ public sealed class UpdateDocumentHandler : IRequestHandler<UpdateDocumentReques
 
         if (request.FileStream is not null)
         {
-            await _storage.DeleteAsync(document.BucketName, document.ObjectKey, ct);
+            await _storage.DeleteAsync(document.BucketName, document.ObjectKey, cancellationToken);
 
             var safeFileName = Path.GetFileName(request.FileName!);
             var objectKey = $"documents/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}_{safeFileName}";
@@ -58,7 +58,7 @@ public sealed class UpdateDocumentHandler : IRequestHandler<UpdateDocumentReques
                 stream: request.FileStream,
                 fileSize: request.FileSize!.Value,
                 mimeType: request.ContentType!,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             document.ObjectKey = objectKey;
             document.FileSize = stored.FileSize;
@@ -68,7 +68,7 @@ public sealed class UpdateDocumentHandler : IRequestHandler<UpdateDocumentReques
 
         document.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         return document.ToDto();
     }

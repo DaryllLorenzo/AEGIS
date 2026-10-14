@@ -1,9 +1,9 @@
 using System.Security.Claims;
+using Aegis.Api.Common.Paging;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Groups.Dtos;
 using Aegis.Api.Endpoints.Groups.Mappings;
 using Aegis.Api.Endpoints.Groups.Services;
-using Aegis.Api.Shared.Paging;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +25,7 @@ public sealed class GetGroupsHandler : IRequestHandler<GetGroupsRequest, Paginat
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<PaginatedList<GroupDto>> Handle(GetGroupsRequest request, CancellationToken ct)
+    public async Task<PaginatedList<GroupDto>> Handle(GetGroupsRequest request, CancellationToken cancellationToken)
     {
         var query = _db.Groups.AsQueryable();
 
@@ -41,11 +41,11 @@ public sealed class GetGroupsHandler : IRequestHandler<GetGroupsRequest, Paginat
 
         var paged = _sieve.Apply(request.Sieve, query);
 
-        var totalCount = await paged.CountAsync(ct);
+        var totalCount = await paged.CountAsync(cancellationToken);
 
         var items = await paged
             .Select(g => g.ToDto())
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return new PaginatedList<GroupDto>
         {

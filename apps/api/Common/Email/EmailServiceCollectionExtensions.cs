@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace Aegis.Api.Shared.Email;
+namespace Aegis.Api.Common.Email;
 
 public static class EmailServiceCollectionExtensions
 {

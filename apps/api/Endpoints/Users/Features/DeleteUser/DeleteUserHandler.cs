@@ -10,13 +10,13 @@ public sealed class DeleteUserHandler : IRequestHandler<DeleteUserRequest, Unit>
 
     public DeleteUserHandler(AegisDbContext db) => _db = db;
 
-    public async Task<Unit> Handle(DeleteUserRequest request, CancellationToken ct)
+    public async Task<Unit> Handle(DeleteUserRequest request, CancellationToken cancellationToken)
     {
-        var user = await _db.Users.FindAsync([request.Id], ct)
+        var user = await _db.Users.FindAsync([request.Id], cancellationToken)
             ?? throw new UserNotFoundException(request.Id);
 
         _db.Users.Remove(user);
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
     }

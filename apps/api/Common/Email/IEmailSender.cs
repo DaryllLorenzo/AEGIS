@@ -1,4 +1,4 @@
-namespace Aegis.Api.Shared.Email;
+namespace Aegis.Api.Common.Email;
 
 /// <summary>A single-recipient email payload.</summary>
 public sealed record EmailMessage(string To, string Subject, string Body);

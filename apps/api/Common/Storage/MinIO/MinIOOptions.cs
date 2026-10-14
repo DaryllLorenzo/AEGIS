@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Aegis.Api.Shared.Storage.MinIO;
+namespace Aegis.Api.Common.Storage.MinIO;
 
 public sealed class MinIOOptions
 {
@@ -15,7 +15,7 @@ public sealed class MinIOOptions
     [Required]
     public required string SecretKey { get; init; }
 
-    public bool UseSsl { get; init; } = false;
+    public bool UseSsl { get; init; }
 
     public TimeSpan DefaultPresignedUrlExpiry { get; init; } = TimeSpan.FromHours(1);
 }

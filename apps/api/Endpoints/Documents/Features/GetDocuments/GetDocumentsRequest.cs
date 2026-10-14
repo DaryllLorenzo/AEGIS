@@ -1,5 +1,5 @@
+using Aegis.Api.Common.Paging;
 using Aegis.Api.Endpoints.Documents.Dtos;
-using Aegis.Api.Shared.Paging;
 using MediatR;
 
 namespace Aegis.Api.Endpoints.Documents.Features.GetDocuments;

@@ -1,6 +1,6 @@
+using Aegis.Api.Common.Storage;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Documents.Exceptions;
-using Aegis.Api.Shared.Storage;
 using MediatR;
 
 namespace Aegis.Api.Endpoints.Documents.Features.DeleteDocument;
@@ -16,15 +16,15 @@ public sealed class DeleteDocumentHandler : IRequestHandler<DeleteDocumentReques
         _storage = storage;
     }
 
-    public async Task<Unit> Handle(DeleteDocumentRequest request, CancellationToken ct)
+    public async Task<Unit> Handle(DeleteDocumentRequest request, CancellationToken cancellationToken)
     {
-        var document = await _db.Documents.FindAsync([request.Id], ct)
+        var document = await _db.Documents.FindAsync([request.Id], cancellationToken)
             ?? throw new DocumentNotFoundException(request.Id);
 
-        await _storage.DeleteAsync(document.BucketName, document.ObjectKey, ct);
+        await _storage.DeleteAsync(document.BucketName, document.ObjectKey, cancellationToken);
 
         _db.Documents.Remove(document);
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
     }

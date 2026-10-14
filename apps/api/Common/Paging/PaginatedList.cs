@@ -1,4 +1,4 @@
-namespace Aegis.Api.Shared.Paging;
+namespace Aegis.Api.Common.Paging;
 
 public sealed class PaginatedList<T>
 {

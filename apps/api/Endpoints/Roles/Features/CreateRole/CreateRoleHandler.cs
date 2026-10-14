@@ -12,7 +12,7 @@ public sealed class CreateRoleHandler : IRequestHandler<CreateRoleRequest, RoleD
 
     public CreateRoleHandler(AegisDbContext db) => _db = db;
 
-    public async Task<RoleDto> Handle(CreateRoleRequest request, CancellationToken ct)
+    public async Task<RoleDto> Handle(CreateRoleRequest request, CancellationToken cancellationToken)
     {
         var role = new Role
         {
@@ -23,7 +23,7 @@ public sealed class CreateRoleHandler : IRequestHandler<CreateRoleRequest, RoleD
         };
 
         _db.Roles.Add(role);
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         return role.ToDto();
     }

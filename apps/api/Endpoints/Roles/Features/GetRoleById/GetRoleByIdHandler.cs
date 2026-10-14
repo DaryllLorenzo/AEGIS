@@ -12,9 +12,9 @@ public sealed class GetRoleByIdHandler : IRequestHandler<GetRoleByIdRequest, Rol
 
     public GetRoleByIdHandler(AegisDbContext db) => _db = db;
 
-    public async Task<RoleDto> Handle(GetRoleByIdRequest request, CancellationToken ct)
+    public async Task<RoleDto> Handle(GetRoleByIdRequest request, CancellationToken cancellationToken)
     {
-        var role = await _db.Roles.FindAsync([request.Id], ct)
+        var role = await _db.Roles.FindAsync([request.Id], cancellationToken)
             ?? throw new RoleNotFoundException(request.Id);
 
         return role.ToDto();

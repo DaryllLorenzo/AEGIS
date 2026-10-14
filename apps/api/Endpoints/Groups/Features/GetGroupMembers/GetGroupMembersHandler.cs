@@ -16,12 +16,12 @@ public sealed class GetGroupMembersHandler : IRequestHandler<GetGroupMembersRequ
 
     public GetGroupMembersHandler(AegisDbContext db) => _db = db;
 
-    public async Task<List<GroupMemberDto>> Handle(GetGroupMembersRequest request, CancellationToken ct)
+    public async Task<List<GroupMemberDto>> Handle(GetGroupMembersRequest request, CancellationToken cancellationToken)
     {
         // One row per (user, role): a member may hold several roles.
         var rows = await _db.UserRoles
             .Where(ur => ur.GroupId == request.GroupId)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         if (rows.Count == 0)
         {
@@ -30,11 +30,11 @@ public sealed class GetGroupMembersHandler : IRequestHandler<GetGroupMembersRequ
 
         var roleNames = await _db.Roles
             .Where(r => rows.Select(ur => ur.RoleId).Distinct().Contains(r.Id))
-            .ToDictionaryAsync(r => r.Id, r => r.Name, ct);
+            .ToDictionaryAsync(r => r.Id, r => r.Name, cancellationToken);
 
         var users = await _db.Users
             .Where(u => rows.Select(ur => ur.UserId).Distinct().Contains(u.Id))
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return users
             .OrderBy(u => u.DisplayName)

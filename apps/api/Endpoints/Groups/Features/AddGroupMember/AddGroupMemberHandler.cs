@@ -1,3 +1,4 @@
+using Aegis.Api.Common.Email;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Groups.Data;
 using Aegis.Api.Endpoints.Groups.Dtos;
@@ -5,7 +6,6 @@ using Aegis.Api.Endpoints.Groups.Exceptions;
 using Aegis.Api.Endpoints.Groups.Mappings;
 using Aegis.Api.Endpoints.Users.Data;
 using Aegis.Api.Endpoints.Users.Exceptions;
-using Aegis.Api.Shared.Email;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,23 +30,23 @@ public sealed class AddGroupMemberHandler : IRequestHandler<AddGroupMemberReques
         _emailSender = emailSender;
     }
 
-    public async Task<GroupDto> Handle(AddGroupMemberRequest request, CancellationToken ct)
+    public async Task<GroupDto> Handle(AddGroupMemberRequest request, CancellationToken cancellationToken)
     {
-        var group = await _db.Groups.FindAsync([request.GroupId], ct)
+        var group = await _db.Groups.FindAsync([request.GroupId], cancellationToken)
             ?? throw new GroupNotFoundException(request.GroupId);
 
-        var user = await _db.Users.FindAsync([request.UserId], ct)
+        var user = await _db.Users.FindAsync([request.UserId], cancellationToken)
             ?? throw new UserNotFoundException(request.UserId);
 
         var alreadyMember = await _db.UserRoles.AnyAsync(
-            ur => ur.UserId == request.UserId && ur.GroupId == request.GroupId, ct);
+            ur => ur.UserId == request.UserId && ur.GroupId == request.GroupId, cancellationToken);
         if (alreadyMember)
         {
             return group.ToDto();
         }
 
         var roleName = string.IsNullOrWhiteSpace(request.Role) ? GroupRoles.Submitter : request.Role;
-        var role = await _db.Roles.FirstOrDefaultAsync(r => r.Name == roleName, ct)
+        var role = await _db.Roles.FirstOrDefaultAsync(r => r.Name == roleName, cancellationToken)
             ?? throw new InvalidOperationException($"Role '{roleName}' not found.");
 
         _db.UserRoles.Add(new GroupUserRole
@@ -59,7 +59,7 @@ public sealed class AddGroupMemberHandler : IRequestHandler<AddGroupMemberReques
         });
 
         group.UpdatedAt = DateTimeOffset.UtcNow;
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         // Best-effort welcome email: the membership already saved, so
         // a mail failure must never break the request.
@@ -68,7 +68,7 @@ public sealed class AddGroupMemberHandler : IRequestHandler<AddGroupMemberReques
             await _emailSender.SendAsync(new EmailMessage(
                 user.Email,
                 $"You were added to the group \"{group.Name}\"",
-                $"Hello {user.DisplayName}, you were added to the group \"{group.Name}\" on AEGIS with the role {roleName}."), ct);
+                $"Hello {user.DisplayName}, you were added to the group \"{group.Name}\" on AEGIS with the role {roleName}."), cancellationToken);
         }
         catch
         {

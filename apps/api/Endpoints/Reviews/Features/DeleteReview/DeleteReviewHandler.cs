@@ -10,13 +10,13 @@ public sealed class DeleteReviewHandler : IRequestHandler<DeleteReviewRequest, U
 
     public DeleteReviewHandler(AegisDbContext db) => _db = db;
 
-    public async Task<Unit> Handle(DeleteReviewRequest request, CancellationToken ct)
+    public async Task<Unit> Handle(DeleteReviewRequest request, CancellationToken cancellationToken)
     {
-        var review = await _db.Reviews.FindAsync([request.Id], ct)
+        var review = await _db.Reviews.FindAsync([request.Id], cancellationToken)
             ?? throw new ReviewNotFoundException(request.Id);
 
         _db.Reviews.Remove(review);
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
     }

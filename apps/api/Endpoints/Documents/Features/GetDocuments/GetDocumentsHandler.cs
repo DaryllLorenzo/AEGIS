@@ -1,8 +1,8 @@
+using Aegis.Api.Common.Paging;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Documents.Dtos;
 using Aegis.Api.Endpoints.Documents.Mappings;
 using Aegis.Api.Endpoints.Documents.Services;
-using Aegis.Api.Shared.Paging;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,7 +19,7 @@ public sealed class GetDocumentsHandler : IRequestHandler<GetDocumentsRequest, P
         _sieve = sieve;
     }
 
-    public async Task<PaginatedList<DocumentDto>> Handle(GetDocumentsRequest request, CancellationToken ct)
+    public async Task<PaginatedList<DocumentDto>> Handle(GetDocumentsRequest request, CancellationToken cancellationToken)
     {
         var query = _db.Documents.AsQueryable();
 
@@ -30,11 +30,11 @@ public sealed class GetDocumentsHandler : IRequestHandler<GetDocumentsRequest, P
 
         var paged = _sieve.Apply(request.Sieve, query);
 
-        var totalCount = await paged.CountAsync(ct);
+        var totalCount = await paged.CountAsync(cancellationToken);
 
         var items = await paged
             .Select(d => d.ToDto())
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return new PaginatedList<DocumentDto>
         {

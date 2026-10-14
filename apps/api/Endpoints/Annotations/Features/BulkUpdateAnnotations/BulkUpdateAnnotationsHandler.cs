@@ -21,7 +21,7 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<List<AnnotationDto>> Handle(BulkUpdateAnnotationsRequest request, CancellationToken ct)
+    public async Task<List<AnnotationDto>> Handle(BulkUpdateAnnotationsRequest request, CancellationToken cancellationToken)
     {
         Guid? currentUserId = null;
         if (_httpContextAccessor.HttpContext?.User
@@ -37,7 +37,7 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
         var latestReview = await _db.Reviews
             .Where(r => r.DocumentId == request.DocumentId)
             .OrderByDescending(r => r.CreatedAt)
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (latestReview is null || latestReview.Status != ReviewStatus.InProgress)
         {
@@ -48,10 +48,10 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
         // (Submitters and creator-submitters are read-only).
         if (currentUserId.HasValue)
         {
-            var document = await _db.Documents.FindAsync([request.DocumentId], ct)
+            var document = await _db.Documents.FindAsync([request.DocumentId], cancellationToken)
                 ?? throw new AnnotationsLockedException(request.DocumentId);
 
-            var myRoles = await GroupRoles.RolesOfUserAsync(_db, currentUserId.Value, document.GroupId, ct);
+            var myRoles = await GroupRoles.RolesOfUserAsync(_db, currentUserId.Value, document.GroupId, cancellationToken);
             if (!myRoles.Contains(GroupRoles.Reviewer))
             {
                 throw new AnnotationsPermissionException(request.DocumentId);
@@ -60,7 +60,7 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
 
         var existing = await _db.Annotations
             .Where(a => a.DocumentId == request.DocumentId)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var incomingIds = request.Annotations
             .Where(a => a.Id.HasValue)
@@ -119,7 +119,7 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
         }
 
         _db.Annotations.AddRange(toCreate);
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         var resultAnnotations = toUpdate.Concat(toCreate).ToList();
 
@@ -133,7 +133,7 @@ public sealed class BulkUpdateAnnotationsHandler : IRequestHandler<BulkUpdateAnn
             ? new Dictionary<Guid, string>()
             : await _db.Users
                 .Where(u => resultAuthorIds.Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id, u => u.DisplayName, ct);
+                .ToDictionaryAsync(u => u.Id, u => u.DisplayName, cancellationToken);
 
         var result = resultAnnotations.Select(a => new AnnotationDto
         {

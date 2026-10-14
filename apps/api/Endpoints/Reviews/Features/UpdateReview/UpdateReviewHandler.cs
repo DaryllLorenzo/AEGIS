@@ -22,9 +22,9 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<ReviewDto> Handle(UpdateReviewRequest request, CancellationToken ct)
+    public async Task<ReviewDto> Handle(UpdateReviewRequest request, CancellationToken cancellationToken)
     {
-        var review = await _db.Reviews.FindAsync([request.Id], ct)
+        var review = await _db.Reviews.FindAsync([request.Id], cancellationToken)
             ?? throw new ReviewNotFoundException(request.Id);
 
         if (review.Status == ReviewStatus.Completed)
@@ -54,12 +54,12 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
             //  - Complete (InProgress -> Completed): needs to be the review's
             //    assignee. No one else can complete a review.
             var me = CurrentUserId();
-            var document = await _db.Documents.FindAsync([review.DocumentId], ct)
+            var document = await _db.Documents.FindAsync([review.DocumentId], cancellationToken)
                 ?? throw new DocumentNotFoundException(review.DocumentId);
 
             if (newStatus == ReviewStatus.InProgress && me.HasValue)
             {
-                var roles = await GroupRoles.RolesOfUserAsync(_db, me.Value, document.GroupId, ct);
+                var roles = await GroupRoles.RolesOfUserAsync(_db, me.Value, document.GroupId, cancellationToken);
                 if (!roles.Contains(GroupRoles.Reviewer))
                 {
                     throw new ReviewPermissionException("Only Reviewers in this group can start a review.");
@@ -86,11 +86,11 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
         {
             if (request.AssigneeId.HasValue)
             {
-                var document = await _db.Documents.FindAsync([review.DocumentId], ct)
+                var document = await _db.Documents.FindAsync([review.DocumentId], cancellationToken)
                     ?? throw new DocumentNotFoundException(review.DocumentId);
 
                 var isGroupMember = await _db.UserRoles.AnyAsync(
-                    ur => ur.UserId == request.AssigneeId.Value && ur.GroupId == document.GroupId, ct);
+                    ur => ur.UserId == request.AssigneeId.Value && ur.GroupId == document.GroupId, cancellationToken);
 
                 if (!isGroupMember)
                 {
@@ -101,9 +101,9 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
             review.AssigneeId = request.AssigneeId;
         }
 
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
-        await _db.Entry(review).Reference(r => r.AssigneeUser).LoadAsync(ct);
+        await _db.Entry(review).Reference(r => r.AssigneeUser).LoadAsync(cancellationToken);
 
         return review.ToDto();
     }

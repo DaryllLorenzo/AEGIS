@@ -1,5 +1,5 @@
+using Aegis.Api.Common.Paging;
 using Aegis.Api.Endpoints.Groups.Dtos;
-using Aegis.Api.Shared.Paging;
 using MediatR;
 
 namespace Aegis.Api.Endpoints.Groups.Features.GetGroups;

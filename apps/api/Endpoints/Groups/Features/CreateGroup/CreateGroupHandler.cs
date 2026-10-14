@@ -1,10 +1,10 @@
 using System.Security.Claims;
+using Aegis.Api.Common.Email;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Groups.Data;
 using Aegis.Api.Endpoints.Groups.Dtos;
 using Aegis.Api.Endpoints.Groups.Mappings;
 using Aegis.Api.Endpoints.Users.Data;
-using Aegis.Api.Shared.Email;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +23,7 @@ public sealed class CreateGroupHandler : IRequestHandler<CreateGroupRequest, Gro
         _emailSender = emailSender;
     }
 
-    public async Task<GroupDto> Handle(CreateGroupRequest request, CancellationToken ct)
+    public async Task<GroupDto> Handle(CreateGroupRequest request, CancellationToken cancellationToken)
     {
         Guid? creatorId = null;
         if (_httpContextAccessor.HttpContext?.User
@@ -46,7 +46,7 @@ public sealed class CreateGroupHandler : IRequestHandler<CreateGroupRequest, Gro
         _db.Groups.Add(group);
 
         var now = DateTimeOffset.UtcNow;
-        var roles = await _db.Roles.ToDictionaryAsync(r => r.Name, r => r.Id, ct);
+        var roles = await _db.Roles.ToDictionaryAsync(r => r.Name, r => r.Id, cancellationToken);
 
         // Each creator holds BOTH the implicit "Creator" row AND one
         // explicit group role (Submitter or Reviewer). Every other user
@@ -107,7 +107,7 @@ public sealed class CreateGroupHandler : IRequestHandler<CreateGroupRequest, Gro
             }
         }
 
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         // Welcome email to every member linked at creation. The
         // group is already saved, so mail failures are logged
@@ -117,7 +117,7 @@ public sealed class CreateGroupHandler : IRequestHandler<CreateGroupRequest, Gro
             var memberIds = request.Members.Select(m => m.UserId).Distinct().ToList();
             var memberUsers = await _db.Users
                 .Where(u => memberIds.Contains(u.Id))
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             foreach (var memberUser in memberUsers)
             {
@@ -131,7 +131,7 @@ public sealed class CreateGroupHandler : IRequestHandler<CreateGroupRequest, Gro
                     await _emailSender.SendAsync(new EmailMessage(
                         memberUser.Email,
                         $"You were added to the group \"{group.Name}\"",
-                        $"Hello {memberUser.DisplayName}, you were added to the group \"{group.Name}\" on AEGIS with the role(s): {roleLabel}."), ct);
+                        $"Hello {memberUser.DisplayName}, you were added to the group \"{group.Name}\" on AEGIS with the role(s): {roleLabel}."), cancellationToken);
                 }
                 catch
                 {

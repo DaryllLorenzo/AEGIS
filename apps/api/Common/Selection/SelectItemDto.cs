@@ -1,4 +1,4 @@
-namespace Aegis.Api.Shared.Select;
+namespace Aegis.Api.Common.Selection;
 
 /// <summary>
 /// The shared shape for entity pickers (dropdowns, autocomplete).

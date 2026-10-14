@@ -1,8 +1,8 @@
+using Aegis.Api.Common.Paging;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Reviews.Dtos;
 using Aegis.Api.Endpoints.Reviews.Mappings;
 using Aegis.Api.Endpoints.Reviews.Services;
-using Aegis.Api.Shared.Paging;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,7 +19,7 @@ public sealed class GetReviewsHandler : IRequestHandler<GetReviewsRequest, Pagin
         _sieve = sieve;
     }
 
-    public async Task<PaginatedList<ReviewDto>> Handle(GetReviewsRequest request, CancellationToken ct)
+    public async Task<PaginatedList<ReviewDto>> Handle(GetReviewsRequest request, CancellationToken cancellationToken)
     {
         var query = _db.Reviews.AsQueryable();
 
@@ -31,11 +31,11 @@ public sealed class GetReviewsHandler : IRequestHandler<GetReviewsRequest, Pagin
 
         var paged = _sieve.Apply(request.Sieve, query);
 
-        var totalCount = await paged.CountAsync(ct);
+        var totalCount = await paged.CountAsync(cancellationToken);
 
         var items = await paged
             .Select(r => r.ToDto())
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return new PaginatedList<ReviewDto>
         {

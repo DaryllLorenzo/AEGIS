@@ -21,18 +21,18 @@ public sealed class CreateReviewHandler : IRequestHandler<CreateReviewRequest, R
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<ReviewDto> Handle(CreateReviewRequest request, CancellationToken ct)
+    public async Task<ReviewDto> Handle(CreateReviewRequest request, CancellationToken cancellationToken)
     {
         var userId = Guid.Parse(_httpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        var document = await _db.Documents.FindAsync([request.DocumentId], ct)
+        var document = await _db.Documents.FindAsync([request.DocumentId], cancellationToken)
             ?? throw new DocumentNotFoundException(request.DocumentId);
 
         // The assignee must be a member of the document's group.
         if (request.AssigneeId.HasValue)
         {
             var isGroupMember = await _db.UserRoles.AnyAsync(
-                ur => ur.UserId == request.AssigneeId.Value && ur.GroupId == document.GroupId, ct);
+                ur => ur.UserId == request.AssigneeId.Value && ur.GroupId == document.GroupId, cancellationToken);
 
             if (!isGroupMember)
             {
@@ -56,9 +56,9 @@ public sealed class CreateReviewHandler : IRequestHandler<CreateReviewRequest, R
         };
 
         _db.Reviews.Add(review);
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
-        await _db.Entry(review).Reference(r => r.AssigneeUser).LoadAsync(ct);
+        await _db.Entry(review).Reference(r => r.AssigneeUser).LoadAsync(cancellationToken);
 
         return review.ToDto();
     }

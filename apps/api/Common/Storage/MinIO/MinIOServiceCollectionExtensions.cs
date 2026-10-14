@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Options;
 using Minio;
 
-namespace Aegis.Api.Shared.Storage.MinIO;
+namespace Aegis.Api.Common.Storage.MinIO;
 
-public static class MinIOServiceCollectionExtensions
+public static partial class MinIOServiceCollectionExtensions
 {
     public static IServiceCollection AddMinIOStorage(this IServiceCollection services, IConfiguration configuration)
     {
@@ -20,9 +20,7 @@ public static class MinIOServiceCollectionExtensions
                 endpoint = uri.IsDefaultPort ? uri.Host : $"{uri.Host}:{uri.Port}";
             }
 
-            logger.LogInformation(
-                "Building MinIO client — Endpoint: {Endpoint}, AccessKey: {AccessKey}, UseSsl: {UseSsl}",
-                endpoint, opts.AccessKey, opts.UseSsl);
+            LogBuildingClient(logger, endpoint, opts.AccessKey, opts.UseSsl);
 
             var clientBuilder = new MinioClient()
                 .WithEndpoint(endpoint)
@@ -41,4 +39,7 @@ public static class MinIOServiceCollectionExtensions
 
         return services;
     }
+
+    [LoggerMessage(1, LogLevel.Information, "Building MinIO client — Endpoint: {Endpoint}, AccessKey: {AccessKey}, UseSsl: {UseSsl}")]
+    private static partial void LogBuildingClient(ILogger logger, string endpoint, string accessKey, bool useSsl);
 }

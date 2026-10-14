@@ -1,5 +1,5 @@
+using Aegis.Api.Common.Selection;
 using Aegis.Api.Data;
-using Aegis.Api.Shared.Select;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +22,7 @@ public sealed class GetUserSelectHandler : IRequestHandler<GetUserSelectRequest,
 
     public GetUserSelectHandler(AegisDbContext db) => _db = db;
 
-    public async Task<List<SelectItemDto>> Handle(GetUserSelectRequest request, CancellationToken ct)
+    public async Task<List<SelectItemDto>> Handle(GetUserSelectRequest request, CancellationToken cancellationToken)
     {
         // Label = DisplayName. In an assignment workflow the reviewer is
         // chosen by the name colleagues know them by (the same value the
@@ -48,6 +48,6 @@ public sealed class GetUserSelectHandler : IRequestHandler<GetUserSelectRequest,
             .OrderBy(u => u.DisplayName)
             .Take(MaxResults)
             .Select(u => new SelectItemDto { Id = u.Id, Label = u.DisplayName })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
     }
 }

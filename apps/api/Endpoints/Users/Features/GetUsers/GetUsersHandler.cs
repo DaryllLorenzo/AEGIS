@@ -1,8 +1,8 @@
+using Aegis.Api.Common.Paging;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Users.Dtos;
 using Aegis.Api.Endpoints.Users.Mappings;
 using Aegis.Api.Endpoints.Users.Services;
-using Aegis.Api.Shared.Paging;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,17 +19,17 @@ public sealed class GetUsersHandler : IRequestHandler<GetUsersRequest, Paginated
         _sieve = sieve;
     }
 
-    public async Task<PaginatedList<UserDto>> Handle(GetUsersRequest request, CancellationToken ct)
+    public async Task<PaginatedList<UserDto>> Handle(GetUsersRequest request, CancellationToken cancellationToken)
     {
         var query = _db.Users.AsQueryable();
 
         var paged = _sieve.Apply(request.Sieve, query);
 
-        var totalCount = await paged.CountAsync(ct);
+        var totalCount = await paged.CountAsync(cancellationToken);
 
         var items = await paged
             .Select(u => u.ToDto())
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return new PaginatedList<UserDto>
         {

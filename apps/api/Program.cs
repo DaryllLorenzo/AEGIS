@@ -1,4 +1,6 @@
 using System.Text;
+using Aegis.Api.Common.Email;
+using Aegis.Api.Common.Storage.MinIO;
 using Aegis.Api.Configuration;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints;
@@ -9,8 +11,6 @@ using Aegis.Api.Endpoints.Groups;
 using Aegis.Api.Endpoints.Reviews;
 using Aegis.Api.Endpoints.Roles;
 using Aegis.Api.Endpoints.Users;
-using Aegis.Api.Shared.Email;
-using Aegis.Api.Shared.Storage.MinIO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

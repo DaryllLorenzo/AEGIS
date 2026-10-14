@@ -19,26 +19,26 @@ public sealed class RefreshHandler : IRequestHandler<RefreshRequest, RefreshResp
         _refreshToken = refreshToken;
     }
 
-    public async Task<RefreshResponse> Handle(RefreshRequest request, CancellationToken ct)
+    public async Task<RefreshResponse> Handle(RefreshRequest request, CancellationToken cancellationToken)
     {
-        var existingRefreshToken = await _refreshToken.ValidateRefreshTokenAsync(request.RefreshToken, ct)
+        var existingRefreshToken = await _refreshToken.ValidateRefreshTokenAsync(request.RefreshToken, cancellationToken)
             ?? throw new UnauthorizedAccessException("Invalid or expired refresh token.");
 
         var user = await _db.Users
-            .FirstOrDefaultAsync(u => u.Id == existingRefreshToken.UserId && u.IsActive, ct)
+            .FirstOrDefaultAsync(u => u.Id == existingRefreshToken.UserId && u.IsActive, cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found or inactive.");
 
         var roles = await _db.UserRoles
             .Where(ur => ur.UserId == user.Id)
             .Join(_db.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         // Revoke the old refresh token (token rotation)
-        await _refreshToken.RevokeRefreshTokenAsync(request.RefreshToken, ct);
+        await _refreshToken.RevokeRefreshTokenAsync(request.RefreshToken, cancellationToken);
 
         // Generate new tokens
         var newAccessToken = _jwt.GenerateToken(user, roles);
-        var newRefreshToken = await _refreshToken.GenerateRefreshTokenAsync(user.Id, ct);
+        var newRefreshToken = await _refreshToken.GenerateRefreshTokenAsync(user.Id, cancellationToken);
         var expiresAt = DateTime.UtcNow.AddHours(24);
 
         return new RefreshResponse

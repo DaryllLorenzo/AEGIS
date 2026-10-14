@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Aegis.Api.Shared.Email;
+namespace Aegis.Api.Common.Email;
 
 public sealed class EmailOptions
 {

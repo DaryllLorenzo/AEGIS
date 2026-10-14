@@ -15,9 +15,9 @@ public sealed class GetReviewByIdHandler : IRequestHandler<GetReviewByIdRequest,
         _db = db;
     }
 
-    public async Task<ReviewDto> Handle(GetReviewByIdRequest request, CancellationToken ct)
+    public async Task<ReviewDto> Handle(GetReviewByIdRequest request, CancellationToken cancellationToken)
     {
-        var review = await _db.Reviews.FindAsync([request.Id], ct)
+        var review = await _db.Reviews.FindAsync([request.Id], cancellationToken)
             ?? throw new ReviewNotFoundException(request.Id);
 
         return review.ToDto();

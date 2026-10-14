@@ -1,8 +1,8 @@
+using Aegis.Api.Common.Paging;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Faculties.Data;
 using Aegis.Api.Endpoints.Faculties.Dtos;
 using Aegis.Api.Endpoints.Faculties.Mappings;
-using Aegis.Api.Shared.Paging;
 using MediatR;
 
 namespace Aegis.Api.Endpoints.Faculties.Features.CreateFaculty;
@@ -16,7 +16,7 @@ public sealed class CreateFacultyHandler : IRequestHandler<CreateFacultyRequest,
         _db = db;
     }
 
-    public async Task<FacultyDto> Handle(CreateFacultyRequest request, CancellationToken ct)
+    public async Task<FacultyDto> Handle(CreateFacultyRequest request, CancellationToken cancellationToken)
     {
         var faculty = new Faculty
         {
@@ -29,7 +29,7 @@ public sealed class CreateFacultyHandler : IRequestHandler<CreateFacultyRequest,
         };
 
         _db.Faculties.Add(faculty);
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         return faculty.ToDto();
     }

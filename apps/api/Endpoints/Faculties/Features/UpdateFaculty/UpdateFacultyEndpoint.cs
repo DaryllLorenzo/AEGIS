@@ -1,6 +1,6 @@
+using Aegis.Api.Common.Authz;
 using Aegis.Api.Endpoints.Faculties.Dtos;
 using Aegis.Api.Endpoints.Faculties.Exceptions;
-using Aegis.Api.Shared.Authz;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;

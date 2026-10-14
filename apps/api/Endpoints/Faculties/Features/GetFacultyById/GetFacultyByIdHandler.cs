@@ -15,9 +15,9 @@ public sealed class GetFacultyByIdHandler : IRequestHandler<GetFacultyByIdReques
         _db = db;
     }
 
-    public async Task<FacultyDto> Handle(GetFacultyByIdRequest request, CancellationToken ct)
+    public async Task<FacultyDto> Handle(GetFacultyByIdRequest request, CancellationToken cancellationToken)
     {
-        var faculty = await _db.Faculties.FindAsync([request.Id], ct)
+        var faculty = await _db.Faculties.FindAsync([request.Id], cancellationToken)
             ?? throw new FacultyNotFoundException(request.Id);
 
         return faculty.ToDto();

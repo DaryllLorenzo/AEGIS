@@ -12,7 +12,7 @@ public sealed class CreateUserHandler : IRequestHandler<CreateUserRequest, UserD
 
     public CreateUserHandler(AegisDbContext db) => _db = db;
 
-    public async Task<UserDto> Handle(CreateUserRequest request, CancellationToken ct)
+    public async Task<UserDto> Handle(CreateUserRequest request, CancellationToken cancellationToken)
     {
         var user = new User
         {
@@ -25,7 +25,7 @@ public sealed class CreateUserHandler : IRequestHandler<CreateUserRequest, UserD
         };
 
         _db.Users.Add(user);
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         return user.ToDto();
     }

@@ -13,13 +13,13 @@ public sealed class DeleteFacultyHandler : IRequestHandler<DeleteFacultyRequest,
         _db = db;
     }
 
-    public async Task<Unit> Handle(DeleteFacultyRequest request, CancellationToken ct)
+    public async Task<Unit> Handle(DeleteFacultyRequest request, CancellationToken cancellationToken)
     {
-        var faculty = await _db.Faculties.FindAsync([request.Id], ct)
+        var faculty = await _db.Faculties.FindAsync([request.Id], cancellationToken)
             ?? throw new FacultyNotFoundException(request.Id);
 
         _db.Faculties.Remove(faculty);
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
     }

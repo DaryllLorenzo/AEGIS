@@ -11,13 +11,13 @@ public sealed class GetAnnotationsByDocumentIdHandler : IRequestHandler<GetAnnot
 
     public GetAnnotationsByDocumentIdHandler(AegisDbContext db) => _db = db;
 
-    public async Task<List<AnnotationDto>> Handle(GetAnnotationsByDocumentIdRequest request, CancellationToken ct)
+    public async Task<List<AnnotationDto>> Handle(GetAnnotationsByDocumentIdRequest request, CancellationToken cancellationToken)
     {
         var annotations = await _db.Annotations
             .Where(a => a.DocumentId == request.DocumentId && a.IsActive)
             .OrderBy(a => a.PageNumber)
             .ThenBy(a => a.CreatedAt)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         // Resolve authors so the UI can show who made each annotation.
         var authorIds = annotations
@@ -30,7 +30,7 @@ public sealed class GetAnnotationsByDocumentIdHandler : IRequestHandler<GetAnnot
             ? new Dictionary<Guid, string>()
             : await _db.Users
                 .Where(u => authorIds.Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id, u => u.DisplayName, ct);
+                .ToDictionaryAsync(u => u.Id, u => u.DisplayName, cancellationToken);
 
         return annotations
             .Select(a => new AnnotationDto

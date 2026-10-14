@@ -21,20 +21,20 @@ public sealed class RemoveGroupMemberHandler : IRequestHandler<RemoveGroupMember
 
     public RemoveGroupMemberHandler(AegisDbContext db) => _db = db;
 
-    public async Task<GroupDto> Handle(RemoveGroupMemberRequest request, CancellationToken ct)
+    public async Task<GroupDto> Handle(RemoveGroupMemberRequest request, CancellationToken cancellationToken)
     {
-        var group = await _db.Groups.FindAsync([request.GroupId], ct)
+        var group = await _db.Groups.FindAsync([request.GroupId], cancellationToken)
             ?? throw new GroupNotFoundException(request.GroupId);
 
         var membership = await _db.UserRoles
             .FirstOrDefaultAsync(
-                ur => ur.UserId == request.UserId && ur.GroupId == request.GroupId, ct);
+                ur => ur.UserId == request.UserId && ur.GroupId == request.GroupId, cancellationToken);
 
         if (membership is not null)
         {
             _db.UserRoles.Remove(membership);
             group.UpdatedAt = DateTimeOffset.UtcNow;
-            await _db.SaveChangesAsync(ct);
+            await _db.SaveChangesAsync(cancellationToken);
         }
 
         return group.ToDto();

@@ -26,6 +26,29 @@ libs/          Shared projects (e.g. Aegis.ServiceDefaults)
 | Web production build | `cd apps/web && npm run build` |
 | Lint | `npm run lint` — **no-op** (Next 16 has no `next lint`, no ESLint config). Gates are typecheck + build. |
 | Tests | None exist. typecheck + build are the gates. |
+| **CI gate — always run before finishing** | See below. Must exit 0. |
+
+### CI gate — run this always before you finish
+
+CI is `.github/workflows/net-code-quality.yml`. Run these three, from the repo root, verbatim:
+
+```bash
+dotnet restore
+dotnet format --verify-no-changes --no-restore
+dotnet build --no-restore --configuration Release \
+  -p:TreatWarningsAsErrors=true \
+  -p:AnalysisMode=Recommended \
+  -p:EnforceCodeStyleInBuild=true
+```
+
+- Plain `dotnet build` is **not** the gate: it uses `AnalysisMode=Default`, so it passes while CI
+  (Recommended-level rules + `dotnet format`) fails.
+- `AnalysisMode` stays `Recommended`. Never `All` — it enables library-only rules (ConfigureAwait,
+  public→internal) and fails the build with hundreds of errors.
+- `System.Security.Cryptography.Pkcs` is pinned to 10.0.13 in `Directory.Packages.props` because
+  PDFsharp drags in the vulnerable 8.0.1 (NU1902/NU1903 audit findings; keep them at zero).
+- After touching any `.cs` file, run `dotnet format --no-restore` (it fixes final newline,
+  import order and IDE0011 braces).
 
 ## Backend conventions (`apps/api`)
 

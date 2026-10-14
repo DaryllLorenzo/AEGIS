@@ -15,9 +15,9 @@ public sealed class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdRequ
         _db = db;
     }
 
-    public async Task<DocumentDto> Handle(GetDocumentByIdRequest request, CancellationToken ct)
+    public async Task<DocumentDto> Handle(GetDocumentByIdRequest request, CancellationToken cancellationToken)
     {
-        var document = await _db.Documents.FindAsync([request.Id], ct)
+        var document = await _db.Documents.FindAsync([request.Id], cancellationToken)
             ?? throw new DocumentNotFoundException(request.Id);
 
         return document.ToDto();

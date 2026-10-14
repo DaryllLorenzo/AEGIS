@@ -1,5 +1,5 @@
+using Aegis.Api.Common.Paging;
 using Aegis.Api.Endpoints.Users.Dtos;
-using Aegis.Api.Shared.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 
