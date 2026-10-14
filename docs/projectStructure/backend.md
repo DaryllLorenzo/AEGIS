@@ -24,7 +24,7 @@ apps/api/
 ├── Data/
 │   ├── AegisDbContext.cs               # EF Core DbContext (9 DbSets)
 │   └── AegisDbContextFactory.cs        # Design-time factory for dotnet ef
-├── Endpoints/
+├── Modules/
 │   ├── Annotations/                    # Annotation CRUD vertical slice
 │   │   ├── Data/
 │   │   │   ├── Annotation.cs
@@ -51,8 +51,6 @@ apps/api/
 │   │   │   └── FacultyConfiguration.cs
 │   │   ├── Dtos/
 │   │   │   └── FacultyDto.cs
-│   │   ├── Exceptions/
-│   │   │   └── FacultyNotFoundException.cs
 │   │   ├── Features/
 │   │   │   ├── CreateFaculty/
 │   │   │   ├── GetFaculties/
@@ -101,9 +99,6 @@ apps/api/
 │   │   │   └── GroupUserRoleConfiguration.cs
 │   │   ├── Dtos/
 │   │   │   └── UserDto.cs
-│   │   ├── Exceptions/
-│   │   │   ├── InvalidCredentialsException.cs
-│   │   │   └── UserNotFoundException.cs
 │   │   ├── Features/
 │   │   │   ├── CreateUser/
 │   │   │   ├── DeleteUser/
@@ -122,16 +117,17 @@ apps/api/
 │   │   │   ├── RefreshTokenService.cs # Refresh token generation + validation + revocation
 │   │   │   └── UserSieveProcessor.cs
 │   │   └── UsersConfigurations.cs
-│   └── MinIOTestEndpoints.cs           # Test endpoints (remove before prod)
 ├── Common/
-│   └── Authz/
-│       └── RequireAdminFilter.cs      # RequireAdmin endpoint filter (needs the DbContext)
+│   ├── Authz/
+│   │   └── RequireAdminFilter.cs      # RequireAdmin endpoint filter (needs the DbContext)
+│   └── Results/
+│       └── ResultHttpExtensions.cs    # Result<T> → TypedResults helpers (ToOkOrNotFound, …)
 └── Migrations/                         # EF Core migrations (applied on startup)
 ```
 
 ## Architecture: Vertical Slices + CQRS
 
-Each domain feature is a self-contained **slice** under `Endpoints/{SliceName}/`. Slices do not depend on each other.
+Each domain feature is a self-contained **slice** under `Modules/{SliceName}/`. Slices do not depend on each other.
 
 ### Request/Response Flow
 
@@ -142,8 +138,12 @@ HTTP Request
       -> MediatR Request
         -> MediatR Handler
           -> DbContext / external services
-            -> Response DTO
+            -> Result<T> (success DTO or typed Error)
+              -> ResultHttpExtensions helper → TypedResults union
 ```
+
+Expected failures (not found, validation, forbidden, …) are values (`Error` from
+`Aegis.Common.Result`), never exceptions; exceptions are reserved for bugs and infra failures.
 
 ### File Naming Convention
 
@@ -159,12 +159,14 @@ HTTP Request
 Domain-agnostic, reusable code lives in class libraries the API composes:
 
 - **`Aegis.Common`** -- `PaginatedList<T>`, `SieveRequest` (base for paginated queries), `SelectItemDto`
+- **`Aegis.Result`** -- `Result`/`Result<T>` + `Error` (Result pattern: expected failures as values)
 - **`Aegis.Storage`** -- `IStorageService` contract + MinIO implementation (owns the `Minio` dependency)
 - **`Aegis.Email`** -- `IEmailSender` contract + SMTP implementation
 - **`Aegis.ServiceDefaults`** -- Aspire defaults: OpenTelemetry, health checks, service discovery
 
 `apps/api/Common/` keeps app-specific helpers that cannot be extracted — today
-`Authz/RequireAdminFilter.cs`, which queries `AegisDbContext` directly.
+`Authz/RequireAdminFilter.cs`, which queries `AegisDbContext` directly, and
+`Results/ResultHttpExtensions.cs`, which maps `Result<T>`/`Error` to TypedResults unions.
 
 A new project under `packages/dotnet/` needs a new external dependency or a second
 consumer; a new folder alone is not a reason.

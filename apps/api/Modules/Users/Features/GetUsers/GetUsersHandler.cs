@@ -1,0 +1,42 @@
+using Aegis.Api.Data;
+using Aegis.Api.Modules.Users.Dtos;
+using Aegis.Api.Modules.Users.Mappings;
+using Aegis.Api.Modules.Users.Services;
+using Aegis.Common.Paging;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace Aegis.Api.Modules.Users.Features.GetUsers;
+
+public sealed class GetUsersHandler : IRequestHandler<GetUsersRequest, PaginatedList<UserDto>>
+{
+    private readonly AegisDbContext _db;
+    private readonly UserSieveProcessor _sieve;
+
+    public GetUsersHandler(AegisDbContext db, UserSieveProcessor sieve)
+    {
+        _db = db;
+        _sieve = sieve;
+    }
+
+    public async Task<PaginatedList<UserDto>> Handle(GetUsersRequest request, CancellationToken cancellationToken)
+    {
+        var query = _db.Users.AsQueryable();
+
+        var paged = _sieve.Apply(request.Sieve, query);
+
+        var totalCount = await paged.CountAsync(cancellationToken);
+
+        var items = await paged
+            .Select(u => u.ToDto())
+            .ToListAsync(cancellationToken);
+
+        return new PaginatedList<UserDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = request.Sieve.Page ?? 1,
+            PageSize = request.Sieve.PageSize ?? 10,
+        };
+    }
+}

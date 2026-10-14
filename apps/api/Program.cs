@@ -1,14 +1,13 @@
 using System.Text;
 using Aegis.Api.Configuration;
 using Aegis.Api.Data;
-using Aegis.Api.Endpoints;
-using Aegis.Api.Endpoints.Annotations;
-using Aegis.Api.Endpoints.Documents;
-using Aegis.Api.Endpoints.Faculties;
-using Aegis.Api.Endpoints.Groups;
-using Aegis.Api.Endpoints.Reviews;
-using Aegis.Api.Endpoints.Roles;
-using Aegis.Api.Endpoints.Users;
+using Aegis.Api.Modules.Annotations;
+using Aegis.Api.Modules.Documents;
+using Aegis.Api.Modules.Faculties;
+using Aegis.Api.Modules.Groups;
+using Aegis.Api.Modules.Reviews;
+using Aegis.Api.Modules.Roles;
+using Aegis.Api.Modules.Users;
 using Aegis.Email;
 using Aegis.Storage.MinIO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -100,9 +99,6 @@ await using (var scope = app.Services.CreateAsyncScope())
 
 // "/health" and "/alive" from Aegis.ServiceDefaults.
 app.MapDefaultEndpoints();
-
-// Test endpoints — remove before going to production.
-app.MapMinIOTestEndpoints();
 
 // Module endpoints
 app.MapFacultiesModuleEndpoints();

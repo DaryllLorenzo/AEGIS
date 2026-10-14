@@ -4,10 +4,10 @@ This guide walks through creating a new vertical slice (e.g., `Documents`) follo
 
 ## Step 1: Create the Entity
 
-Create `Endpoints/{SliceName}/Data/{EntityName}.cs`:
+Create `Modules/{SliceName}/Data/{EntityName}.cs`:
 
 ```csharp
-namespace Aegis.Api.Endpoints.Documents.Data;
+namespace Aegis.Api.Modules.Documents.Data;
 
 public sealed class Document
 {
@@ -23,13 +23,13 @@ public sealed class Document
 
 ## Step 2: Create the EF Core Configuration
 
-Create `Endpoints/{SliceName}/Data/{EntityName}Configuration.cs`:
+Create `Modules/{SliceName}/Data/{EntityName}Configuration.cs`:
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Aegis.Api.Endpoints.Documents.Data;
+namespace Aegis.Api.Modules.Documents.Data;
 
 public sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
 {
@@ -58,7 +58,7 @@ public sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
 Add the `DbSet` and configuration to `Data/AegisDbContext.cs`:
 
 ```csharp
-using Aegis.Api.Endpoints.Documents.Data;
+using Aegis.Api.Modules.Documents.Data;
 
 public class AegisDbContext(…) : DbContext(…)
 {
@@ -74,10 +74,10 @@ public class AegisDbContext(…) : DbContext(…)
 
 ## Step 4: Create the DTO
 
-Create `Endpoints/{SliceName}/Dtos/{EntityName}Dto.cs`:
+Create `Modules/{SliceName}/Dtos/{EntityName}Dto.cs`:
 
 ```csharp
-namespace Aegis.Api.Endpoints.Documents.Dtos;
+namespace Aegis.Api.Modules.Documents.Dtos;
 
 public sealed record DocumentDto
 {
@@ -91,20 +91,33 @@ public sealed record DocumentDto
 }
 ```
 
-## Step 5: Create the Exception
+## Step 5: Model Expected Failures with Result (no exceptions)
 
-Create `Endpoints/{SliceName}/Exceptions/{EntityName}NotFoundException.cs`:
+Handlers never throw for expected failures (not found, validation, permission).
+A failure-capable feature returns `Result<EntityDto>` and the handler returns typed
+errors from `Aegis.Common.Result`:
 
 ```csharp
-namespace Aegis.Api.Endpoints.Documents.Exceptions;
+using Aegis.Common.Result;
 
-public sealed class DocumentNotFoundException : Exception
+public async Task<Result<DocumentDto>> Handle(GetDocumentByIdRequest request, CancellationToken ct)
 {
-    public DocumentNotFoundException(Guid id)
-        : base($"Document with ID '{id}' was not found.")
+    var doc = await _db.Documents.FindAsync([request.Id], ct);
+
+    if (doc is null)
     {
+        return Error.NotFound("Document.NotFound", $"Document with ID '{request.Id}' was not found.");
     }
+
+    return doc.ToDto(); // implicit conversion from the DTO
 }
+```
+
+Factories: `Error.NotFound(code, message)`, `Error.Validation(field, message)`,
+`Error.Unauthorized(code, message)`, `Error.Forbidden(code, message)`, `Error.Failure(code, message)`.
+No `Exceptions/` folder is needed. Features that cannot fail (list queries, simple
+creates) return the DTO directly. Exceptions are reserved for bugs/infra failures
+(e.g. missing seeded data) and surface as 500 via `UseExceptionHandler`.
 ```
 
 ## Step 6: Create the Features
@@ -115,11 +128,11 @@ Each feature is a folder under `Features/` with 3-4 files.
 
 **Request** -- `Features/GetDocuments/GetDocumentsRequest.cs`:
 ```csharp
-using Aegis.Api.Endpoints.Documents.Dtos;
+using Aegis.Api.Modules.Documents.Dtos;
 using Aegis.Common.Paging;
 using MediatR;
 
-namespace Aegis.Api.Endpoints.Documents.Features.GetDocuments;
+namespace Aegis.Api.Modules.Documents.Features.GetDocuments;
 
 public sealed record GetDocumentsRequest : SieveRequest, IRequest<PaginatedList<DocumentDto>>;
 ```
@@ -127,13 +140,13 @@ public sealed record GetDocumentsRequest : SieveRequest, IRequest<PaginatedList<
 **Handler** -- `Features/GetDocuments/GetDocumentsHandler.cs`:
 ```csharp
 using Aegis.Api.Data;
-using Aegis.Api.Endpoints.Documents.Dtos;
-using Aegis.Api.Endpoints.Documents.Services;
+using Aegis.Api.Modules.Documents.Dtos;
+using Aegis.Api.Modules.Documents.Services;
 using Aegis.Common.Paging;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aegis.Api.Endpoints.Documents.Features.GetDocuments;
+namespace Aegis.Api.Modules.Documents.Features.GetDocuments;
 
 public sealed class GetDocumentsHandler : IRequestHandler<GetDocumentsRequest, PaginatedList<DocumentDto>>
 {
@@ -180,13 +193,13 @@ public sealed class GetDocumentsHandler : IRequestHandler<GetDocumentsRequest, P
 
 **Endpoint** -- `Features/GetDocuments/GetDocumentsEndpoint.cs`:
 ```csharp
-using Aegis.Api.Endpoints.Documents.Dtos;
+using Aegis.Api.Modules.Documents.Dtos;
 using Aegis.Common.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Sieve.Models;
 
-namespace Aegis.Api.Endpoints.Documents.Features.GetDocuments;
+namespace Aegis.Api.Modules.Documents.Features.GetDocuments;
 
 internal static class GetDocumentsEndpoint
 {
@@ -232,58 +245,57 @@ internal sealed record GetDocumentsParameters
 
 **Request** -- `Features/GetDocumentById/GetDocumentByIdRequest.cs`:
 ```csharp
-using Aegis.Api.Endpoints.Documents.Dtos;
+using Aegis.Api.Modules.Documents.Dtos;
+using Aegis.Common.Result;
 using MediatR;
 
-namespace Aegis.Api.Endpoints.Documents.Features.GetDocumentById;
+namespace Aegis.Api.Modules.Documents.Features.GetDocumentById;
 
-public sealed record GetDocumentByIdRequest(Guid Id) : IRequest<DocumentDto>;
+public sealed record GetDocumentByIdRequest(Guid Id) : IRequest<Result<DocumentDto>>;
 ```
 
 **Handler** -- `Features/GetDocumentById/GetDocumentByIdHandler.cs`:
 ```csharp
 using Aegis.Api.Data;
-using Aegis.Api.Endpoints.Documents.Dtos;
-using Aegis.Api.Endpoints.Documents.Exceptions;
+using Aegis.Api.Modules.Documents.Dtos;
+using Aegis.Api.Modules.Documents.Mappings;
+using Aegis.Common.Result;
 using MediatR;
 
-namespace Aegis.Api.Endpoints.Documents.Features.GetDocumentById;
+namespace Aegis.Api.Modules.Documents.Features.GetDocumentById;
 
-public sealed class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdRequest, DocumentDto>
+public sealed class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdRequest, Result<DocumentDto>>
 {
     private readonly AegisDbContext _db;
 
     public GetDocumentByIdHandler(AegisDbContext db) => _db = db;
 
-    public async Task<DocumentDto> Handle(GetDocumentByIdRequest request, CancellationToken ct)
+    public async Task<Result<DocumentDto>> Handle(GetDocumentByIdRequest request, CancellationToken ct)
     {
-        var doc = await _db.Documents.FindAsync([request.Id], ct)
-            ?? throw new DocumentNotFoundException(request.Id);
+        var doc = await _db.Documents.FindAsync([request.Id], ct);
 
-        return new DocumentDto
+        if (doc is null)
         {
-            Id = doc.Id,
-            Name = doc.Name,
-            MimeType = doc.MimeType,
-            FileSize = doc.FileSize,
-            FacultyId = doc.FacultyId,
-            CreatedAt = doc.CreatedAt,
-            UpdatedAt = doc.UpdatedAt,
-        };
+            return Error.NotFound("Document.NotFound", $"Document with ID '{request.Id}' was not found.");
+        }
+
+        return doc.ToDto();
     }
 }
 ```
 
-**Endpoint** -- Follow the same pattern as `GetFacultyByIdEndpoint.cs`.
+**Endpoint** -- Same shape as `GetFacultyByIdEndpoint.cs`: validate (if needed), send,
+then `return result.ToOkOrNotFound();` (helpers in `Common/Results/ResultHttpExtensions.cs`).
+The `Results<Ok<DocumentDto>, NotFound>` union stays; the helper picks the member.
 
 ### 6c. CREATE (with FluentValidation)
 
 **Request** -- `Features/CreateDocument/CreateDocumentRequest.cs`:
 ```csharp
-using Aegis.Api.Endpoints.Documents.Dtos;
+using Aegis.Api.Modules.Documents.Dtos;
 using MediatR;
 
-namespace Aegis.Api.Endpoints.Documents.Features.CreateDocument;
+namespace Aegis.Api.Modules.Documents.Features.CreateDocument;
 
 public sealed record CreateDocumentRequest : IRequest<DocumentDto>
 {
@@ -297,7 +309,7 @@ public sealed record CreateDocumentRequest : IRequest<DocumentDto>
 ```csharp
 using FluentValidation;
 
-namespace Aegis.Api.Endpoints.Documents.Features.CreateDocument;
+namespace Aegis.Api.Modules.Documents.Features.CreateDocument;
 
 public sealed class CreateDocumentValidator : AbstractValidator<CreateDocumentRequest>
 {
@@ -316,11 +328,11 @@ public sealed class CreateDocumentValidator : AbstractValidator<CreateDocumentRe
 **Handler** -- `Features/CreateDocument/CreateDocumentHandler.cs`:
 ```csharp
 using Aegis.Api.Data;
-using Aegis.Api.Endpoints.Documents.Data;
-using Aegis.Api.Endpoints.Documents.Dtos;
+using Aegis.Api.Modules.Documents.Data;
+using Aegis.Api.Modules.Documents.Dtos;
 using MediatR;
 
-namespace Aegis.Api.Endpoints.Documents.Features.CreateDocument;
+namespace Aegis.Api.Modules.Documents.Features.CreateDocument;
 
 public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentRequest, DocumentDto>
 {
@@ -355,16 +367,16 @@ public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentReques
 }
 ```
 
-**Endpoint** -- Follow the same pattern as `CreateFacultyEndpoint.cs` (validate with `IValidator<T>`, return `Created<T>` or `ValidationProblem`).
+**Endpoint** -- Follow the same pattern as `CreateFacultyEndpoint.cs` (validate with `IValidator<T>`, return `Created<T>` or `ValidationProblem`). If the create itself can fail, return `Result<DocumentDto>` from the handler and map with `result.ToCreatedOrValidation(d => $"/api/documents/{d.Id}")`.
 
 ### 6d. UPDATE
 
 **Request** -- Only updatable fields. ID comes from route:
 ```csharp
-using Aegis.Api.Endpoints.Documents.Dtos;
+using Aegis.Api.Modules.Documents.Dtos;
 using MediatR;
 
-namespace Aegis.Api.Endpoints.Documents.Features.UpdateDocument;
+namespace Aegis.Api.Modules.Documents.Features.UpdateDocument;
 
 public sealed record UpdateDocumentRequest(Guid Id, string Name, string? MimeType) : IRequest<DocumentDto>;
 ```
@@ -379,7 +391,14 @@ static async Task<Results<Ok<DocumentDto>, NotFound, ValidationProblem>> Handle(
     CancellationToken ct)
 {
     var request = new UpdateDocumentRequest(id, body.Name, body.MimeType);
-    // validate, send, return...
+    var validation = await validator.ValidateAsync(request, ct);
+    if (!validation.IsValid)
+    {
+        return TypedResults.ValidationProblem(validation.ToDictionary());
+    }
+
+    var result = await sender.Send(request, ct);
+    return result.ToOkNotFoundOrValidation(); // handler returns Result<DocumentDto>
 }
 
 internal sealed record UpdateDocumentBody
@@ -391,19 +410,21 @@ internal sealed record UpdateDocumentBody
 
 ### 6e. DELETE
 
-Follow the same pattern as `DeleteFaculty`. Returns `204 No Content` on success, `404 NotFound` if not found.
+Follow the same pattern as `DeleteFaculty`: handler returns `Result` (non-generic),
+endpoint `return result.ToNoContentOrNotFound();` — `204 No Content` on success,
+`404 NotFound` if not found.
 
 ## Step 7: Create the Sieve Processor
 
-Create `Endpoints/{SliceName}/Services/{EntityName}SieveProcessor.cs`:
+Create `Modules/{SliceName}/Services/{EntityName}SieveProcessor.cs`:
 
 ```csharp
-using Aegis.Api.Endpoints.Documents.Data;
+using Aegis.Api.Modules.Documents.Data;
 using Microsoft.Extensions.Options;
 using Sieve.Models;
 using Sieve.Services;
 
-namespace Aegis.Api.Endpoints.Documents.Services;
+namespace Aegis.Api.Modules.Documents.Services;
 
 public sealed class DocumentSieveProcessor : SieveProcessor
 {
@@ -421,17 +442,17 @@ public sealed class DocumentSieveProcessor : SieveProcessor
 
 ## Step 8: Create the Configuration File
 
-Create `Endpoints/{SliceName}/{SliceName}Configurations.cs`:
+Create `Modules/{SliceName}/{SliceName}Configurations.cs`:
 
 ```csharp
-using Aegis.Api.Endpoints.Documents.Features.CreateDocument;
-using Aegis.Api.Endpoints.Documents.Features.DeleteDocument;
-using Aegis.Api.Endpoints.Documents.Features.GetDocumentById;
-using Aegis.Api.Endpoints.Documents.Features.GetDocuments;
-using Aegis.Api.Endpoints.Documents.Features.UpdateDocument;
-using Aegis.Api.Endpoints.Documents.Services;
+using Aegis.Api.Modules.Documents.Features.CreateDocument;
+using Aegis.Api.Modules.Documents.Features.DeleteDocument;
+using Aegis.Api.Modules.Documents.Features.GetDocumentById;
+using Aegis.Api.Modules.Documents.Features.GetDocuments;
+using Aegis.Api.Modules.Documents.Features.UpdateDocument;
+using Aegis.Api.Modules.Documents.Services;
 
-namespace Aegis.Api.Endpoints.Documents;
+namespace Aegis.Api.Modules.Documents;
 
 internal static class DocumentsConfigurations
 {
@@ -465,7 +486,7 @@ internal static class DocumentsConfigurations
 Add to `Program.cs`:
 
 ```csharp
-using Aegis.Api.Endpoints.Documents;
+using Aegis.Api.Modules.Documents;
 
 // Services
 builder.AddDocumentsModuleServices();
@@ -486,7 +507,7 @@ dotnet ef migrations add AddDocumentsTable --project apps/api
 - [ ] EF Core configuration in `Data/`
 - [ ] `DbSet` + `ApplyConfiguration` in `AegisDbContext`
 - [ ] DTO in `Dtos/`
-- [ ] Exception in `Exceptions/` (if needed)
+- [ ] Result failures (if any) mapped via `Common/Results/ResultHttpExtensions.cs` helpers
 - [ ] Sieve processor in `Services/` (if paginated)
 - [ ] Feature folders in `Features/` (Request + Handler + Endpoint + Validator)
 - [ ] `{Slice}Configurations.cs` with DI + endpoint mapping

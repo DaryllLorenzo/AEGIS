@@ -1,0 +1,21 @@
+using Aegis.Api.Modules.Documents.Data;
+
+namespace Aegis.Api.Modules.Annotations.Data;
+
+public sealed class Annotation
+{
+    public Guid Id { get; set; }
+    public Guid DocumentId { get; set; }
+    public int PageNumber { get; set; }
+    public required string Type { get; set; }
+    public required string Geometry { get; set; }
+    public string? Content { get; set; }
+    public string? Color { get; set; }
+    public bool IsActive { get; set; } = true;
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
+    /// <summary>User who created this annotation. Nullable for legacy rows.</summary>
+    public Guid? CreatedByUserId { get; set; }
+
+    public Document? Document { get; set; }
+}

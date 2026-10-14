@@ -1,6 +1,6 @@
-using Aegis.Api.Endpoints.Groups.Data;
-using Aegis.Api.Endpoints.Roles.Data;
-using Aegis.Api.Endpoints.Users.Data;
+using Aegis.Api.Modules.Groups.Data;
+using Aegis.Api.Modules.Roles.Data;
+using Aegis.Api.Modules.Users.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aegis.Api.Data;

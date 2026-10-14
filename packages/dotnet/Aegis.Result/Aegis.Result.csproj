@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Aegis.Common.Result, not Aegis.Result: a namespace Aegis.Result would shadow
+         under the Aegis.* root and break every consumer with CS0118. -->
+    <RootNamespace>Aegis.Common.Result</RootNamespace>
+  </PropertyGroup>
+
+</Project>

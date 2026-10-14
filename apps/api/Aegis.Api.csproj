@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\packages\dotnet\Aegis.Common\Aegis.Common.csproj" />
     <ProjectReference Include="..\..\packages\dotnet\Aegis.Email\Aegis.Email.csproj" />
+    <ProjectReference Include="..\..\packages\dotnet\Aegis.Result\Aegis.Result.csproj" />
     <ProjectReference Include="..\..\packages\dotnet\Aegis.ServiceDefaults\Aegis.ServiceDefaults.csproj" />
     <ProjectReference Include="..\..\packages\dotnet\Aegis.Storage\Aegis.Storage.csproj" />
   </ItemGroup>

@@ -53,12 +53,12 @@ dotnet build --no-restore --configuration Release \
 ## Backend conventions (`apps/api`)
 
 - **Shared code**: cross-cutting libraries live in `packages/dotnet/` (`Aegis.Common`,
-  `Aegis.Email`, `Aegis.ServiceDefaults`, `Aegis.Storage`); `apps/api/Common/` keeps only
-  app-specific helpers (e.g. `RequireAdminFilter`, which needs the DbContext). Add a new
-  package only for a new external dependency or a second consumer — a new folder alone is
-  not a reason.
-- **Vertical slices**: each feature folder under `Endpoints/<Area>/Features/<Name>/` has
-  `<Name>Endpoint.cs` (route, handler binding, exception→HTTP mapping), `<Name>Request.cs`,
+  `Aegis.Email`, `Aegis.Result`, `Aegis.ServiceDefaults`, `Aegis.Storage`); `apps/api/Common/`
+  keeps only app-specific helpers (e.g. `RequireAdminFilter`, which needs the DbContext).
+  Add a new package only for a new external dependency or a second consumer — a new folder
+  alone is not a reason.
+- **Vertical slices**: each feature folder under `Modules/<Area>/Features/<Name>/` has
+  `<Name>Endpoint.cs` (route, handler binding, result→HTTP mapping), `<Name>Request.cs`,
   `<Name>Validator.cs`, `<Name>Handler.cs`. Areas register endpoints in their
   `<Area>Configurations.cs` (`Map<Area>Module` extension in `Program.cs`).
 - **EF config**: one `IEntityTypeConfiguration` per entity under `Data/` (`<Entity>Configuration.cs`),
@@ -69,9 +69,13 @@ dotnet build --no-restore --configuration Release \
 - **Sieve** handles paging/filtering on list endpoints (`SieveRequest`, `PaginatedList<T>`).
 - **Auth**: JWT bearer; handlers needing the current user inject `IHttpContextAccessor`
   and parse `ClaimTypes.NameIdentifier` (same pattern in `CreateDocumentHandler`).
-- **Exceptions → HTTP**: map domain exceptions in the Endpoint (`ValidationProblem` for
-  business-rule failures like `NotGroupMemberException`, `ParentDocumentNotFoundException`).
-  A bare `NotFound()` hides the actual reason from the UI.
+- **Result pattern → HTTP**: expected failures never throw. Handlers return
+  `Aegis.Common.Result.Result<T>` with `Error.NotFound/Validation/Unauthorized/Forbidden/Failure`
+  (each error carries a code, message and optional field errors); the Endpoint maps it with a
+  helper from `apps/api/Common/Results/ResultHttpExtensions.cs` (`ToOkOrNotFound`,
+  `ToCreatedOrValidation`, `ToOkValidationOrForbidden`, …). Field-keyed `ValidationProblem`
+  keeps the reason visible to the UI; a bare `NotFound()` hides it. Exceptions are reserved for
+  bugs and infra failures (e.g. missing role seed → 500 via `UseExceptionHandler`).
 
 ## Migration rules (learned the hard way)
 

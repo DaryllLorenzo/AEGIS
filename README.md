@@ -14,9 +14,10 @@ file storage.
 ├── apps/
 │   ├── api/                          # ASP.NET Core minimal API (MediatR vertical slices)
 │   │   ├── Common/Authz/             # RequireAdmin endpoint filter (needs the DbContext)
+│   │   ├── Common/Results/           # Result→HTTP mapping helpers (TypedResults unions)
 │   │   ├── Configuration/            # OpenAPI + Scalar setup
 │   │   ├── Data/                     # EF Core DbContext + design-time factory
-│   │   ├── Endpoints/                # Annotations, Documents, Faculties, Groups,
+│   │   ├── Modules/                  # Annotations, Documents, Faculties, Groups,
 │   │   │                             # Reviews, Roles, Users — one folder per slice
 │   │   ├── Migrations/               # Applied automatically on startup
 │   │   ├── Dockerfile                # Multi-stage build, context = repository root
@@ -28,6 +29,7 @@ file storage.
 │   └── dotnet/                       # Class libraries composed by apps/api
 │       ├── Aegis.Common/             # Paging + Selection (PaginatedList<T>, SieveRequest)
 │       ├── Aegis.Email/              # IEmailSender contract + SMTP implementation
+│       ├── Aegis.Result/             # Result/Error pattern (no exceptions for expected failures)
 │       ├── Aegis.ServiceDefaults/    # Aspire defaults: OpenTelemetry, health checks
 │       └── Aegis.Storage/            # IStorageService contract + MinIO implementation
 ├── aspire/

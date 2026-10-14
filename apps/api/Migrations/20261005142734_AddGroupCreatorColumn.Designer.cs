@@ -25,7 +25,7 @@ namespace Aegis.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Annotations.Data.Annotation", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Annotations.Data.Annotation", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -83,7 +83,7 @@ namespace Aegis.Api.Migrations
                     b.ToTable("Annotations", (string)null);
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Documents.Data.Document", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Documents.Data.Document", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -158,7 +158,7 @@ namespace Aegis.Api.Migrations
                     b.ToTable("Documents", (string)null);
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Faculties.Data.Faculty", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Faculties.Data.Faculty", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -199,7 +199,7 @@ namespace Aegis.Api.Migrations
                     b.ToTable("Faculties", (string)null);
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Groups.Data.Group", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Groups.Data.Group", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -235,7 +235,7 @@ namespace Aegis.Api.Migrations
                     b.ToTable("Groups", (string)null);
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Reviews.Data.Review", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Reviews.Data.Review", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -300,7 +300,7 @@ namespace Aegis.Api.Migrations
                     b.ToTable("Reviews", (string)null);
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Roles.Data.Role", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Roles.Data.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -329,7 +329,7 @@ namespace Aegis.Api.Migrations
                     b.ToTable("Roles", (string)null);
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Users.Data.GroupUserRole", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Users.Data.GroupUserRole", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -361,7 +361,7 @@ namespace Aegis.Api.Migrations
                     b.ToTable("GroupUserRoles", (string)null);
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Users.Data.RefreshToken", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Users.Data.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -396,7 +396,7 @@ namespace Aegis.Api.Migrations
                     b.ToTable("RefreshTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Users.Data.User", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Users.Data.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -438,30 +438,30 @@ namespace Aegis.Api.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Annotations.Data.Annotation", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Annotations.Data.Annotation", b =>
                 {
-                    b.HasOne("Aegis.Api.Endpoints.Documents.Data.Document", null)
+                    b.HasOne("Aegis.Api.Modules.Documents.Data.Document", null)
                         .WithMany()
                         .HasForeignKey("DocumentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Aegis.Api.Endpoints.Documents.Data.Document", "Document")
+                    b.HasOne("Aegis.Api.Modules.Documents.Data.Document", "Document")
                         .WithMany()
                         .HasForeignKey("DocumentId1");
 
                     b.Navigation("Document");
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Documents.Data.Document", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Documents.Data.Document", b =>
                 {
-                    b.HasOne("Aegis.Api.Endpoints.Groups.Data.Group", null)
+                    b.HasOne("Aegis.Api.Modules.Groups.Data.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Aegis.Api.Endpoints.Documents.Data.Document", "Parent")
+                    b.HasOne("Aegis.Api.Modules.Documents.Data.Document", "Parent")
                         .WithMany("Children")
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -469,33 +469,33 @@ namespace Aegis.Api.Migrations
                     b.Navigation("Parent");
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Groups.Data.Group", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Groups.Data.Group", b =>
                 {
-                    b.HasOne("Aegis.Api.Endpoints.Faculties.Data.Faculty", null)
+                    b.HasOne("Aegis.Api.Modules.Faculties.Data.Faculty", null)
                         .WithMany()
                         .HasForeignKey("FacultyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Reviews.Data.Review", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Reviews.Data.Review", b =>
                 {
-                    b.HasOne("Aegis.Api.Endpoints.Users.Data.User", "AssigneeUser")
+                    b.HasOne("Aegis.Api.Modules.Users.Data.User", "AssigneeUser")
                         .WithMany()
                         .HasForeignKey("AssigneeId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Aegis.Api.Endpoints.Documents.Data.Document", null)
+                    b.HasOne("Aegis.Api.Modules.Documents.Data.Document", null)
                         .WithMany()
                         .HasForeignKey("DocumentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Aegis.Api.Endpoints.Documents.Data.Document", "Document")
+                    b.HasOne("Aegis.Api.Modules.Documents.Data.Document", "Document")
                         .WithMany()
                         .HasForeignKey("DocumentId1");
 
-                    b.HasOne("Aegis.Api.Endpoints.Users.Data.User", null)
+                    b.HasOne("Aegis.Api.Modules.Users.Data.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -506,37 +506,37 @@ namespace Aegis.Api.Migrations
                     b.Navigation("Document");
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Users.Data.GroupUserRole", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Users.Data.GroupUserRole", b =>
                 {
-                    b.HasOne("Aegis.Api.Endpoints.Groups.Data.Group", null)
+                    b.HasOne("Aegis.Api.Modules.Groups.Data.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Aegis.Api.Endpoints.Roles.Data.Role", null)
+                    b.HasOne("Aegis.Api.Modules.Roles.Data.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Aegis.Api.Endpoints.Users.Data.User", null)
+                    b.HasOne("Aegis.Api.Modules.Users.Data.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Users.Data.RefreshToken", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Users.Data.RefreshToken", b =>
                 {
-                    b.HasOne("Aegis.Api.Endpoints.Users.Data.User", null)
+                    b.HasOne("Aegis.Api.Modules.Users.Data.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Documents.Data.Document", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Documents.Data.Document", b =>
                 {
                     b.Navigation("Children");
                 });

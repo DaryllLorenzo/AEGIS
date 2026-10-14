@@ -8,6 +8,7 @@
   <Folder Name="/packages/dotnet/">
     <Project Path="packages/dotnet/Aegis.Common/Aegis.Common.csproj" />
     <Project Path="packages/dotnet/Aegis.Email/Aegis.Email.csproj" />
+    <Project Path="packages/dotnet/Aegis.Result/Aegis.Result.csproj" />
     <Project Path="packages/dotnet/Aegis.ServiceDefaults/Aegis.ServiceDefaults.csproj" />
     <Project Path="packages/dotnet/Aegis.Storage/Aegis.Storage.csproj" />
   </Folder>

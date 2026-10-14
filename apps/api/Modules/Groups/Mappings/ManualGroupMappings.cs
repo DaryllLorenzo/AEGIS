@@ -1,0 +1,18 @@
+using Aegis.Api.Modules.Groups.Data;
+using Aegis.Api.Modules.Groups.Dtos;
+
+namespace Aegis.Api.Modules.Groups.Mappings;
+
+public static class ManualGroupMappings
+{
+    public static GroupDto ToDto(this Group group) => new()
+    {
+        Id = group.Id,
+        Name = group.Name,
+        FacultyId = group.FacultyId,
+        Description = group.Description,
+        CreatedByUserId = group.CreatedByUserId,
+        CreatedAt = group.CreatedAt,
+        UpdatedAt = group.UpdatedAt,
+    };
+}

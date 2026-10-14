@@ -25,7 +25,7 @@ namespace Aegis.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Documents.Data.Document", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Documents.Data.Document", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -92,7 +92,7 @@ namespace Aegis.Api.Migrations
                     b.ToTable("Documents", (string)null);
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Faculties.Data.Faculty", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Faculties.Data.Faculty", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -133,21 +133,21 @@ namespace Aegis.Api.Migrations
                     b.ToTable("Faculties", (string)null);
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Documents.Data.Document", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Documents.Data.Document", b =>
                 {
-                    b.HasOne("Aegis.Api.Endpoints.Documents.Data.Document", null)
+                    b.HasOne("Aegis.Api.Modules.Documents.Data.Document", null)
                         .WithMany()
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Aegis.Api.Endpoints.Documents.Data.Document", "Parent")
+                    b.HasOne("Aegis.Api.Modules.Documents.Data.Document", "Parent")
                         .WithMany("Children")
                         .HasForeignKey("ParentId1");
 
                     b.Navigation("Parent");
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Documents.Data.Document", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Documents.Data.Document", b =>
                 {
                     b.Navigation("Children");
                 });

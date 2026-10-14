@@ -1,0 +1,57 @@
+using Aegis.Api.Common.Results;
+using Aegis.Api.Modules.Documents.Dtos;
+using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Aegis.Api.Modules.Documents.Features.UpdateDocument;
+
+internal static class UpdateDocumentEndpoint
+{
+    internal const string Name = "UpdateDocument";
+
+    internal static RouteHandlerBuilder MapUpdateDocumentEndpoint(this IEndpointRouteBuilder endpoints)
+    {
+        return endpoints
+            .MapPatch("/{id:guid}", Handle)
+            .WithTags(DocumentsConfiguration.Tag)
+            .WithName(Name)
+            .WithSummary("Updates an existing document (name, metadata, and optionally replaces the file).")
+            .RequireAuthorization()
+            .DisableAntiforgery();
+
+        static async Task<Results<Ok<DocumentDto>, NotFound, ValidationProblem>> Handle(
+            Guid id,
+            [FromForm] string name,
+            [FromForm] string? parentId,
+            [FromForm] int? totalPages,
+            IFormFile? file,
+            ISender sender,
+            IValidator<UpdateDocumentRequest> validator,
+            CancellationToken cancellationToken)
+        {
+            var request = new UpdateDocumentRequest
+            {
+                Id = id,
+                Name = name,
+                ParentId = Guid.TryParse(parentId, out var pid) ? pid : null,
+                TotalPages = totalPages,
+                FileStream = file?.OpenReadStream(),
+                FileName = file?.FileName,
+                ContentType = file?.ContentType,
+                FileSize = file?.Length,
+            };
+
+            var validation = await validator.ValidateAsync(request, cancellationToken);
+
+            if (!validation.IsValid)
+            {
+                return TypedResults.ValidationProblem(validation.ToDictionary());
+            }
+
+            var result = await sender.Send(request, cancellationToken);
+            return result.ToOkNotFoundOrValidation();
+        }
+    }
+}

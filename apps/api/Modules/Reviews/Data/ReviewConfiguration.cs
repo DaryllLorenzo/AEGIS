@@ -1,0 +1,51 @@
+using Aegis.Api.Modules.Documents.Data;
+using Aegis.Api.Modules.Users.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Aegis.Api.Modules.Reviews.Data;
+
+public sealed class ReviewConfiguration : IEntityTypeConfiguration<Review>
+{
+    public void Configure(EntityTypeBuilder<Review> builder)
+    {
+        builder.ToTable("Reviews");
+
+        builder.HasKey(r => r.Id);
+
+        builder.Property(r => r.Title)
+            .HasMaxLength(300)
+            .IsRequired();
+
+        builder.Property(r => r.Kind)
+            .HasMaxLength(100);
+
+        builder.Property(r => r.Version)
+            .HasMaxLength(50);
+
+        builder.Property(r => r.Status)
+            .HasConversion<int>();
+
+        builder.HasOne<Document>()
+            .WithMany()
+            .HasForeignKey(r => r.DocumentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(r => r.AssigneeUser)
+            .WithMany()
+            .HasForeignKey(r => r.AssigneeId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(r => r.DocumentId);
+        builder.HasIndex(r => r.UserId);
+        builder.HasIndex(r => r.AssigneeId);
+        builder.HasIndex(r => r.Status);
+        builder.HasIndex(r => r.IsActive);
+        builder.HasIndex(r => r.CreatedAt);
+    }
+}

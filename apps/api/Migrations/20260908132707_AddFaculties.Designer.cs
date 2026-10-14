@@ -46,7 +46,7 @@ namespace Aegis.Api.Migrations
                     b.ToTable("Notes");
                 });
 
-            modelBuilder.Entity("Aegis.Api.Endpoints.Faculties.Data.Faculty", b =>
+            modelBuilder.Entity("Aegis.Api.Modules.Faculties.Data.Faculty", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
