@@ -1,0 +1,42 @@
+name: Code Quality
+on:
+  push:
+
+jobs:
+  dotnet-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Cache NuGet packages to avoid re-downloading on every run
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # Check formatting before building — fails fast and cheaply
+      - name: Check code formatting
+        run: dotnet format --verify-no-changes --no-restore
+
+      # Single build step: compiles, runs Roslyn analyzers and enforces code style.
+      # TreatWarningsAsErrors and AnalysisMode only apply to your own code,
+      # not to SDK or third-party package warnings.
+      - name: Build with analyzers
+        run: |
+          dotnet build --no-restore \
+            --configuration Release \
+            -p:TreatWarningsAsErrors=true \
+            -p:AnalysisMode=All \
+            -p:EnforceCodeStyleInBuild=true
