@@ -123,18 +123,9 @@ apps/api/
 │   │   │   └── UserSieveProcessor.cs
 │   │   └── UsersConfigurations.cs
 │   └── MinIOTestEndpoints.cs           # Test endpoints (remove before prod)
-├── Shared/
-│   ├── Binding/                        # Model binding helpers
-│   ├── Paging/
-│   │   ├── PaginatedList.cs            # Generic paginated response
-│   │   └── SieveRequest.cs             # Base record with SieveModel
-│   └── Storage/
-│       ├── IStorageService.cs          # Provider-agnostic contract
-│       ├── StoredObject.cs             # Storage metadata DTO
-│       └── MinIO/
-│           ├── MinIOOptions.cs
-│           ├── MinIOStorageService.cs
-│           └── MinIOServiceCollectionExtensions.cs
+├── Common/
+│   └── Authz/
+│       └── RequireAdminFilter.cs      # RequireAdmin endpoint filter (needs the DbContext)
 └── Migrations/                         # EF Core migrations (applied on startup)
 ```
 
@@ -163,13 +154,20 @@ HTTP Request
 | `{Feature}Endpoint.cs` | Endpoint | Minimal API static class with route mapping |
 | `{Feature}Validator.cs` | Validator | FluentValidation `AbstractValidator<T>` class |
 
-### Shared Layer (`Shared/`)
+### Shared Code: `packages/dotnet/` + `apps/api/Common/`
 
-Reusable, domain-agnostic code:
+Domain-agnostic, reusable code lives in class libraries the API composes:
 
-- **Shared/Binding/** -- Model binding helpers
-- **Shared/Paging/** -- `PaginatedList<T>`, `SieveRequest` (base for paginated queries)
-- **Shared/Storage/** -- `IStorageService` contract + MinIO implementation
+- **`Aegis.Common`** -- `PaginatedList<T>`, `SieveRequest` (base for paginated queries), `SelectItemDto`
+- **`Aegis.Storage`** -- `IStorageService` contract + MinIO implementation (owns the `Minio` dependency)
+- **`Aegis.Email`** -- `IEmailSender` contract + SMTP implementation
+- **`Aegis.ServiceDefaults`** -- Aspire defaults: OpenTelemetry, health checks, service discovery
+
+`apps/api/Common/` keeps app-specific helpers that cannot be extracted — today
+`Authz/RequireAdminFilter.cs`, which queries `AegisDbContext` directly.
+
+A new project under `packages/dotnet/` needs a new external dependency or a second
+consumer; a new folder alone is not a reason.
 
 ## Program.cs Wiring
 

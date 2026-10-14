@@ -1,6 +1,6 @@
 using Sieve.Models;
 
-namespace Aegis.Api.Common.Paging;
+namespace Aegis.Common.Paging;
 
 public record SieveRequest
 {

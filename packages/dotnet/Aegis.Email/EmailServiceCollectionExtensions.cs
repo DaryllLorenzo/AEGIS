@@ -1,6 +1,8 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace Aegis.Api.Common.Email;
+namespace Aegis.Email;
 
 public static class EmailServiceCollectionExtensions
 {

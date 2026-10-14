@@ -12,7 +12,7 @@ Aspire only for local dev orchestration, EF Core + PostgreSQL, MinIO for file st
 apps/api       ASP.NET Core minimal API, MediatR vertical slices (one feature = Endpoint+Request+Validator+Handler)
 apps/web       Next.js App Router frontend (TypeScript, App Shell + AuthGuard for the (auth) group)
 aspire/        .NET Aspire AppHost (dev orchestration only)
-libs/          Shared projects (e.g. Aegis.ServiceDefaults)
+packages/dotnet  Class libraries composed by apps/api: Aegis.Common, Aegis.Email, Aegis.ServiceDefaults, Aegis.Storage
 ```
 
 ## Commands you will actually use
@@ -52,6 +52,11 @@ dotnet build --no-restore --configuration Release \
 
 ## Backend conventions (`apps/api`)
 
+- **Shared code**: cross-cutting libraries live in `packages/dotnet/` (`Aegis.Common`,
+  `Aegis.Email`, `Aegis.ServiceDefaults`, `Aegis.Storage`); `apps/api/Common/` keeps only
+  app-specific helpers (e.g. `RequireAdminFilter`, which needs the DbContext). Add a new
+  package only for a new external dependency or a second consumer — a new folder alone is
+  not a reason.
 - **Vertical slices**: each feature folder under `Endpoints/<Area>/Features/<Name>/` has
   `<Name>Endpoint.cs` (route, handler binding, exception→HTTP mapping), `<Name>Request.cs`,
   `<Name>Validator.cs`, `<Name>Handler.cs`. Areas register endpoints in their

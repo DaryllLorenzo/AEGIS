@@ -1,8 +1,9 @@
 using System.Net;
 using System.Net.Mail;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Aegis.Api.Common.Email;
+namespace Aegis.Email;
 
 public sealed partial class SmtpEmailSender : IEmailSender
 {

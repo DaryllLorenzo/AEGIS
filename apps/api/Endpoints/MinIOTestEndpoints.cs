@@ -1,4 +1,4 @@
-using Aegis.Api.Common.Storage;
+using Aegis.Storage;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aegis.Api.Endpoints;

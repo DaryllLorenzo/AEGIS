@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Aegis.Api.Common.Storage.MinIO;
+namespace Aegis.Storage.MinIO;
 
 public sealed class MinIOOptions
 {

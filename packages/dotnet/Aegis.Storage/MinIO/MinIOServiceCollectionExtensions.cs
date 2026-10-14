@@ -1,7 +1,10 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Minio;
 
-namespace Aegis.Api.Common.Storage.MinIO;
+namespace Aegis.Storage.MinIO;
 
 public static partial class MinIOServiceCollectionExtensions
 {

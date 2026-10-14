@@ -6,7 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\libs\Aegis.ServiceDefaults\Aegis.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\packages\dotnet\Aegis.Common\Aegis.Common.csproj" />
+    <ProjectReference Include="..\..\packages\dotnet\Aegis.Email\Aegis.Email.csproj" />
+    <ProjectReference Include="..\..\packages\dotnet\Aegis.ServiceDefaults\Aegis.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\packages\dotnet\Aegis.Storage\Aegis.Storage.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,7 +26,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Minio" />
     <PackageReference Include="PDFsharp" />
     <PackageReference Include="Scalar.AspNetCore" />
     <PackageReference Include="Sieve" />

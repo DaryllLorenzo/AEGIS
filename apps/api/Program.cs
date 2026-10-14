@@ -1,6 +1,4 @@
 using System.Text;
-using Aegis.Api.Common.Email;
-using Aegis.Api.Common.Storage.MinIO;
 using Aegis.Api.Configuration;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints;
@@ -11,6 +9,8 @@ using Aegis.Api.Endpoints.Groups;
 using Aegis.Api.Endpoints.Reviews;
 using Aegis.Api.Endpoints.Roles;
 using Aegis.Api.Endpoints.Users;
+using Aegis.Email;
+using Aegis.Storage.MinIO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -59,10 +59,10 @@ builder.AddRolesModuleServices();
 builder.AddGroupsModuleServices();
 builder.Services.Configure<SieveOptions>(builder.Configuration.GetSection("Sieve"));
 
-// Object storage — MinIO (extracted to Shared/Storage/MinIO extension).
+// Object storage — MinIO (Aegis.Storage package).
 builder.Services.AddMinIOStorage(builder.Configuration);
 
-// Email sender — SMTP via MailHog locally (extracted to Shared/Email extension).
+// Email sender — SMTP via MailHog locally (Aegis.Email package).
 builder.Services.AddEmail(builder.Configuration);
 
 // The browser talks to the API directly, so the web origin needs an explicit grant.

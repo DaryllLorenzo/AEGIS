@@ -116,7 +116,7 @@ Each feature is a folder under `Features/` with 3-4 files.
 **Request** -- `Features/GetDocuments/GetDocumentsRequest.cs`:
 ```csharp
 using Aegis.Api.Endpoints.Documents.Dtos;
-using Aegis.Api.Common.Paging;
+using Aegis.Common.Paging;
 using MediatR;
 
 namespace Aegis.Api.Endpoints.Documents.Features.GetDocuments;
@@ -129,7 +129,7 @@ public sealed record GetDocumentsRequest : SieveRequest, IRequest<PaginatedList<
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Documents.Dtos;
 using Aegis.Api.Endpoints.Documents.Services;
-using Aegis.Api.Common.Paging;
+using Aegis.Common.Paging;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -181,7 +181,7 @@ public sealed class GetDocumentsHandler : IRequestHandler<GetDocumentsRequest, P
 **Endpoint** -- `Features/GetDocuments/GetDocumentsEndpoint.cs`:
 ```csharp
 using Aegis.Api.Endpoints.Documents.Dtos;
-using Aegis.Api.Common.Paging;
+using Aegis.Common.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Sieve.Models;

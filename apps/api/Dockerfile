@@ -1,4 +1,4 @@
-# Build context is the repository root: the API references libs/Aegis.ServiceDefaults.
+# Build context is the repository root: the API references packages/dotnet/*.
 # Build with:  docker build -f apps/api/Dockerfile .
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
@@ -7,11 +7,14 @@ WORKDIR /src
 # Copy the manifests first so restore is cached until dependencies actually change.
 COPY Directory.Build.props Directory.Packages.props global.json ./
 COPY apps/api/Aegis.Api.csproj apps/api/
-COPY libs/Aegis.ServiceDefaults/Aegis.ServiceDefaults.csproj libs/Aegis.ServiceDefaults/
+COPY packages/dotnet/Aegis.Common/Aegis.Common.csproj packages/dotnet/Aegis.Common/
+COPY packages/dotnet/Aegis.Email/Aegis.Email.csproj packages/dotnet/Aegis.Email/
+COPY packages/dotnet/Aegis.ServiceDefaults/Aegis.ServiceDefaults.csproj packages/dotnet/Aegis.ServiceDefaults/
+COPY packages/dotnet/Aegis.Storage/Aegis.Storage.csproj packages/dotnet/Aegis.Storage/
 RUN dotnet restore apps/api/Aegis.Api.csproj
 
 COPY apps/api/ apps/api/
-COPY libs/ libs/
+COPY packages/ packages/
 RUN dotnet publish apps/api/Aegis.Api.csproj -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final

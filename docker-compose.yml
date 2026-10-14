@@ -30,7 +30,7 @@ services:
 
   api:
     build:
-      # Root context: the API also compiles libs/Aegis.ServiceDefaults.
+      # Root context: the API also compiles packages/dotnet/*.
       context: .
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped

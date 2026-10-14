@@ -1,8 +1,8 @@
-using Aegis.Api.Common.Paging;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Faculties.Data;
 using Aegis.Api.Endpoints.Faculties.Dtos;
 using Aegis.Api.Endpoints.Faculties.Mappings;
+using Aegis.Common.Paging;
 using MediatR;
 
 namespace Aegis.Api.Endpoints.Faculties.Features.CreateFaculty;

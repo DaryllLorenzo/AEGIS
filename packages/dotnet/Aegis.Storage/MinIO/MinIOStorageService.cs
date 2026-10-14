@@ -1,10 +1,11 @@
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
 using Minio.Exceptions;
 
-namespace Aegis.Api.Common.Storage.MinIO;
+namespace Aegis.Storage.MinIO;
 
 public sealed partial class MinIOStorageService : IStorageService
 {

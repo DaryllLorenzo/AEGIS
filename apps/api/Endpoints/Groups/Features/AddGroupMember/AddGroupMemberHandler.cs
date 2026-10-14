@@ -1,4 +1,3 @@
-using Aegis.Api.Common.Email;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Groups.Data;
 using Aegis.Api.Endpoints.Groups.Dtos;
@@ -6,6 +5,7 @@ using Aegis.Api.Endpoints.Groups.Exceptions;
 using Aegis.Api.Endpoints.Groups.Mappings;
 using Aegis.Api.Endpoints.Users.Data;
 using Aegis.Api.Endpoints.Users.Exceptions;
+using Aegis.Email;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 

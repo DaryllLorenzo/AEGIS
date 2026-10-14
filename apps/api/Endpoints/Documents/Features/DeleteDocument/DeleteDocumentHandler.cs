@@ -1,6 +1,6 @@
-using Aegis.Api.Common.Storage;
 using Aegis.Api.Data;
 using Aegis.Api.Endpoints.Documents.Exceptions;
+using Aegis.Storage;
 using MediatR;
 
 namespace Aegis.Api.Endpoints.Documents.Features.DeleteDocument;

@@ -1,5 +1,5 @@
-using Aegis.Api.Common.Selection;
 using Aegis.Api.Endpoints.Users.Features.GetUserSelect;
+using Aegis.Common.Selection;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 

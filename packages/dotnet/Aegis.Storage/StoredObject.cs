@@ -1,4 +1,4 @@
-namespace Aegis.Api.Common.Storage;
+namespace Aegis.Storage;
 
 public sealed record StoredObject
 {
