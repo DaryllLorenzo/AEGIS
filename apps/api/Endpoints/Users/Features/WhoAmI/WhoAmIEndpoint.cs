@@ -33,7 +33,10 @@ internal static class WhoAmIEndpoint
             // Resolve from the DB so the live IsAdmin flag flows to the client
             // (the JWT claims alone may carry stale role state).
             var dbUser = await db.Users.FindAsync([userId], ct);
-            if (dbUser is null) return TypedResults.Unauthorized();
+            if (dbUser is null)
+            {
+                return TypedResults.Unauthorized();
+            }
 
             return TypedResults.Ok(new UserDto
             {

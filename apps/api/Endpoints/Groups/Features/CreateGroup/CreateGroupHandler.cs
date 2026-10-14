@@ -85,7 +85,10 @@ public sealed class CreateGroupHandler : IRequestHandler<CreateGroupRequest, Gro
         {
             foreach (var member in request.Members)
             {
-                if (member.UserId == creatorId) continue;
+                if (member.UserId == creatorId)
+                {
+                    continue;
+                }
 
                 foreach (var roleName in member.Roles.Distinct())
                 {

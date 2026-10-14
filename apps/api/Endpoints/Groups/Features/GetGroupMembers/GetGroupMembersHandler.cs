@@ -23,7 +23,10 @@ public sealed class GetGroupMembersHandler : IRequestHandler<GetGroupMembersRequ
             .Where(ur => ur.GroupId == request.GroupId)
             .ToListAsync(ct);
 
-        if (rows.Count == 0) return [];
+        if (rows.Count == 0)
+        {
+            return [];
+        }
 
         var roleNames = await _db.Roles
             .Where(r => rows.Select(ur => ur.RoleId).Distinct().Contains(r.Id))
