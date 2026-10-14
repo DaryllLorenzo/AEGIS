@@ -20,6 +20,8 @@
     <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.10" />
     <PackageVersion Include="Sieve" Version="2.5.5" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.2" />
+    <!-- Pins past the vulnerable 8.0.1 pulled in by PDFsharp (NU1902/NU1903). -->
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
   <!-- Aspire client integrations used by the services. -->
   <ItemGroup>

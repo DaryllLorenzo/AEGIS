@@ -12,7 +12,7 @@ namespace Microsoft.Extensions.Hosting;
 // Cross-cutting defaults shared by every AEGIS service: service discovery, HTTP resilience,
 // health checks and OpenTelemetry. Every service project references this library and calls
 // AddServiceDefaults() / MapDefaultEndpoints().
-public static class Extensions
+public static class ServiceDefaultsExtensions
 {
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";

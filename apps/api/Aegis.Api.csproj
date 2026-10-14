@@ -28,6 +28,8 @@
     <PackageReference Include="Scalar.AspNetCore" />
     <PackageReference Include="Sieve" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <!-- Overrides PDFsharp's vulnerable transitive System.Security.Cryptography.Pkcs. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
   </ItemGroup>
 
 </Project>

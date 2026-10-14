@@ -31,12 +31,14 @@ jobs:
         run: dotnet format --verify-no-changes --no-restore
 
       # Single build step: compiles, runs Roslyn analyzers and enforces code style.
-      # TreatWarningsAsErrors and AnalysisMode only apply to your own code,
-      # not to SDK or third-party package warnings.
+      # TreatWarningsAsErrors applies only to your own code, not to SDK or
+      # third-party package warnings. AnalysisMode=Recommended enables the code
+      # quality rules that make sense for a web API; "All" also enables
+      # library-only rules (ConfigureAwait, public->internal) and fails the build.
       - name: Build with analyzers
         run: |
           dotnet build --no-restore \
             --configuration Release \
             -p:TreatWarningsAsErrors=true \
-            -p:AnalysisMode=All \
+            -p:AnalysisMode=Recommended \
             -p:EnforceCodeStyleInBuild=true
