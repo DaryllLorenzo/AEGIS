@@ -1,0 +1,21 @@
+{
+  "name": "aegis",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "packages/node/*"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build:web": "npm run build -w @aegis/web"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "prettier": "^3.4.0"
+  }
+}

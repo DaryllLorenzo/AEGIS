@@ -1,12 +1,18 @@
+let _baseUrl = "http://localhost:5180";
+
 /**
- * Base URL of the AEGIS API.
- *
- * API_URL is the address reachable from the Next.js server (the Aspire endpoint in
- * development, the compose service name in Docker). NEXT_PUBLIC_API_URL is the address the
- * browser uses and is the only one inlined into client bundles.
+ * Set the base URL of the AEGIS API. The consuming app calls this once at
+ * startup: API_URL is reachable from the Next.js server (Aspire endpoint /
+ * compose service name), NEXT_PUBLIC_API_URL is the browser address and the
+ * only one inlined into client bundles.
  */
-export const apiBaseUrl =
-  process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5180";
+export function setApiBaseUrl(url: string) {
+  _baseUrl = url;
+}
+
+export function getApiBaseUrl(): string {
+  return _baseUrl;
+}
 
 // ---------------------------------------------------------------------------
 // Auth token management
@@ -48,10 +54,10 @@ let _isRefreshing = false;
 let _refreshPromise: Promise<string | null> | null = null;
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const url = `${apiBaseUrl}${path}`;
+  const url = `${_baseUrl}${path}`;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...init?.headers as Record<string, string>,
+    ...(init?.headers as Record<string, string>),
   };
 
   if (_authToken) {
@@ -118,7 +124,7 @@ async function retryWithNewToken<T>(
 ): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...init?.headers as Record<string, string>,
+    ...(init?.headers as Record<string, string>),
   };
   headers["Authorization"] = `Bearer ${newToken}`;
 

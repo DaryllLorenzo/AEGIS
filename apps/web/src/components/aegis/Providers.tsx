@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import "@/lib/api-config";
 import { AuthProvider } from "@/lib/auth-context";
 import TokenSync from "./TokenSync";
 import SessionWarning from "./SessionWarning";

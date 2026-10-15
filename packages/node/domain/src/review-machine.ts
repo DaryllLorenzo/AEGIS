@@ -1,4 +1,4 @@
-import type { Review, ReviewStatus } from "./api/types";
+import type { Review, ReviewStatus } from "./types";
 
 /**
  * Review state machine — mirrors the backend rules in

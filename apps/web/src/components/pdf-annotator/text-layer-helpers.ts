@@ -15,9 +15,7 @@ export type HighlightLine = {
 };
 
 export function extractWordsFromTextLayer(pageContainer: HTMLElement): WordBox[] {
-  const textLayer = pageContainer.querySelector(
-    ".react-pdf__Page__textContent, .textLayer",
-  );
+  const textLayer = pageContainer.querySelector(".react-pdf__Page__textContent, .textLayer");
   if (!textLayer) return [];
 
   const containerRect = pageContainer.getBoundingClientRect();
@@ -137,9 +135,7 @@ export function computeHighlightLinesFromWords(
 
   const rows: WordBox[][] = [];
   for (const word of selectedWords) {
-    const existing = rows.find((row) =>
-      row.some((w) => Math.abs(w.centerY - word.centerY) < 6),
-    );
+    const existing = rows.find((row) => row.some((w) => Math.abs(w.centerY - word.centerY) < 6));
     if (existing) {
       existing.push(word);
     } else {

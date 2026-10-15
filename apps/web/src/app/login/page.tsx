@@ -6,7 +6,7 @@ import { ArrowRight, LockKeyhole, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 import Brand from "@/components/aegis/Brand";
-import { login as apiLogin } from "@/lib/api";
+import { login as apiLogin } from "@aegis/api-client";
 import { useAuth, decodeJwtPayload } from "@/lib/auth-context";
 
 export default function LoginPage() {
@@ -32,7 +32,7 @@ export default function LoginPage() {
         throw new Error("Failed to decode token.");
       }
 
-      ctxLogin(res.token, res.refreshToken, user, res.expiresAt);
+      ctxLogin(res.token, res.refreshToken, user);
       router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid credentials.");
@@ -45,7 +45,9 @@ export default function LoginPage() {
     <main className="login-page login-page--simple">
       <section className="login-form-panel">
         <div className="login-form-panel__inner">
-          <div className="login-simple-brand"><Brand /></div>
+          <div className="login-simple-brand">
+            <Brand />
+          </div>
           <h2>Sign in to AEGIS</h2>
           <p className="login-intro">Use your institutional account to continue.</p>
 
@@ -61,7 +63,10 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <div className="login-form__label-row"><label htmlFor="password">Password</label><Link href="/login/forgot-password">Forgot password?</Link></div>
+            <div className="login-form__label-row">
+              <label htmlFor="password">Password</label>
+              <Link href="/login/forgot-password">Forgot password?</Link>
+            </div>
             <div className="password-field">
               <input
                 id="password"
@@ -76,18 +81,33 @@ export default function LoginPage() {
               <LockKeyhole size={17} />
             </div>
             {error && <p style={{ color: "red", fontSize: 14 }}>{error}</p>}
-            <button className="button button--primary login-submit" type="submit" disabled={submitting}>
+            <button
+              className="button button--primary login-submit"
+              type="submit"
+              disabled={submitting}
+            >
               {submitting ? (
-                <><Loader2 size={17} className="animate-spin" /> Signing in...</>
+                <>
+                  <Loader2 size={17} className="animate-spin" /> Signing in...
+                </>
               ) : (
-                <>Sign in <ArrowRight size={17} /></>
+                <>
+                  Sign in <ArrowRight size={17} />
+                </>
               )}
             </button>
           </form>
 
-          <div className="login-divider"><span>or</span></div>
-          <button className="button button--secondary login-sso" type="button">Continue with university SSO</button>
-          <p className="login-support">Need access? <a href="mailto:research-admin@aegis.local">Contact your research administrator</a></p>
+          <div className="login-divider">
+            <span>or</span>
+          </div>
+          <button className="button button--secondary login-sso" type="button">
+            Continue with university SSO
+          </button>
+          <p className="login-support">
+            Need access?{" "}
+            <a href="mailto:research-admin@aegis.local">Contact your research administrator</a>
+          </p>
         </div>
       </section>
     </main>

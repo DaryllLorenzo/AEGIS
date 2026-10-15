@@ -24,14 +24,17 @@ file storage.
 │   │   └── Program.cs                # Composition root (DI, CORS, JWT, seeding)
 │   └── web/                          # Next.js App Router frontend
 │       └── src/                      # app/ (auth group + public login), components/,
-│                                     # hooks/, lib/api/ (typed API client), styles/
+│                                     # hooks/, lib/, styles/
 ├── packages/
-│   └── dotnet/                       # Class libraries composed by apps/api
-│       ├── Aegis.Common/             # Paging + Selection (PaginatedList<T>, SieveRequest)
-│       ├── Aegis.Email/              # IEmailSender contract + SMTP implementation
-│       ├── Aegis.Result/             # Result/Error pattern (no exceptions for expected failures)
-│       ├── Aegis.ServiceDefaults/    # Aspire defaults: OpenTelemetry, health checks
-│       └── Aegis.Storage/            # IStorageService contract + MinIO implementation
+│   ├── dotnet/                       # Class libraries composed by apps/api
+│   │   ├── Aegis.Common/             # Paging + Selection (PaginatedList<T>, SieveRequest)
+│   │   ├── Aegis.Email/              # IEmailSender contract + SMTP implementation
+│   │   ├── Aegis.Result/             # Result/Error pattern (no exceptions for expected failures)
+│   │   ├── Aegis.ServiceDefaults/    # Aspire defaults: OpenTelemetry, health checks
+│   │   └── Aegis.Storage/            # IStorageService contract + MinIO implementation
+│   └── node/                         # npm workspace packages consumed by apps/web
+│       ├── domain/                   # @aegis/domain — DTO types, review-machine, display utils
+│       └── api-client/               # @aegis/api-client — typed fetch + endpoint modules
 ├── aspire/
 │   └── Aegis.AppHost/                # Dev orchestration only — never deployed
 ├── infra/postgres/init/              # One-shot DB bootstrap SQL (extension creation)
@@ -41,9 +44,9 @@ file storage.
 └── docker-compose.yml                # Self-hosting stack
 ```
 
-`apps/` holds what ships; `packages/dotnet/` holds the libraries the API composes.
-A new package needs a new external dependency or a second consumer — a new folder alone
-is not a reason.
+`apps/` holds what ships; `packages/dotnet/` holds the libraries the API composes and
+`packages/node/` the shared TypeScript packages the web app composes. A new package needs
+a new external dependency or a second consumer — a new folder alone is not a reason.
 
 ## Getting started
 
@@ -55,6 +58,7 @@ git clone <repository-url>
 cd AEGIS
 
 dotnet tool restore   # pinned Aspire CLI + dotnet-ef
+npm install           # node workspaces (apps/web + packages/node/*), one root lockfile
 dotnet aspire run     # Postgres container + API + web dev server
 ```
 
@@ -62,10 +66,10 @@ That is the whole setup. The API applies its EF Core migrations on startup and s
 users: `admin@aegis.com` / `Admin1234!` and `student@aegis.com` / `Student1234!`.
 The first run pulls images and installs packages; after that a warm start takes ~15s.
 
-| Resource | Address |
-|---|---|
+| Resource                            | Address               |
+| ----------------------------------- | --------------------- |
 | API (Scalar reference at `/scalar`) | http://localhost:5180 |
-| Web | http://localhost:3000 |
+| Web                                 | http://localhost:3000 |
 
 Day-to-day:
 
@@ -73,7 +77,8 @@ Day-to-day:
 dotnet aspire run                    # everything, attached to the terminal
 dotnet aspire logs <resource>        # tail one resource
 dotnet build AEGIS.slnx              # build all .NET projects
-cd apps/web && npm run typecheck     # type-check the frontend
+npm run typecheck                    # type-check every node workspace
+npm run lint && npm run format       # ESLint + Prettier on the frontend
 dotnet ef migrations add <Name> --project apps/api   # new migration (no DB needed)
 ```
 

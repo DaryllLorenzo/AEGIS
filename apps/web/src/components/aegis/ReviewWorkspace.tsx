@@ -20,14 +20,16 @@ import {
   getAuthToken,
   getGroupMembers,
   updateReview,
+} from "@aegis/api-client";
+import {
   reviewNextAction,
   nextReviewStatus,
-  type Review,
-  type DocumentDto,
-} from "@/lib/api";
+  reviewStatusLabel,
+  initialsFromName,
+} from "@aegis/domain";
+import type { Review, DocumentDto } from "@aegis/domain";
 import { useFetch } from "@/hooks/useFetch";
 import { useAuth } from "@/lib/auth-context";
-import { reviewStatusLabel, initialsFromName } from "@/lib/utils";
 
 import Brand from "./Brand";
 import PdfAnnotator from "../pdf-annotator/PdfAnnotator";
@@ -52,7 +54,6 @@ export default function ReviewWorkspace({ reviewId }: Props) {
 
   // Permission context: this user's roles inside the review's group.
   const { data: membersData } = useFetch(
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     () => (doc ? getGroupMembers(doc.groupId) : Promise.resolve([])),
     [doc?.groupId],
   );
@@ -139,7 +140,16 @@ export default function ReviewWorkspace({ reviewId }: Props) {
     if (a.type === "rectangle") {
       return (
         <svg viewBox="0 0 24 16" className="annotation-card__svg">
-          <rect x="1" y="1" width="22" height="14" rx="2" stroke="currentColor" fill="none" strokeWidth="2" />
+          <rect
+            x="1"
+            y="1"
+            width="22"
+            height="14"
+            rx="2"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="2"
+          />
         </svg>
       );
     }
@@ -153,7 +163,15 @@ export default function ReviewWorkspace({ reviewId }: Props) {
     if (a.type === "ellipse") {
       return (
         <svg viewBox="0 0 24 16" className="annotation-card__svg">
-          <ellipse cx="12" cy="8" rx="11" ry="7" stroke="currentColor" fill="none" strokeWidth="2" />
+          <ellipse
+            cx="12"
+            cy="8"
+            rx="11"
+            ry="7"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="2"
+          />
         </svg>
       );
     }
@@ -161,7 +179,6 @@ export default function ReviewWorkspace({ reviewId }: Props) {
   }
 
   const isCompleted = review?.status === "Completed";
-  const isInProgress = review?.status === "InProgress";
   const nextAction = review ? reviewNextAction(review.status) : null;
 
   /**
@@ -232,7 +249,11 @@ export default function ReviewWorkspace({ reviewId }: Props) {
   return (
     <main className="workspace">
       <header className="workspace-header">
-        <Link className="icon-button" href={doc ? `/groups/${doc.groupId}` : "/groups"} aria-label="Back to group">
+        <Link
+          className="icon-button"
+          href={doc ? `/groups/${doc.groupId}` : "/groups"}
+          aria-label="Back to group"
+        >
           <ArrowLeft size={22} />
         </Link>
         <span className="workspace-header__divider" />
@@ -270,11 +291,7 @@ export default function ReviewWorkspace({ reviewId }: Props) {
                     : nextAction.hint
               }
             >
-              {nextAction.verb === "start" ? (
-                <Play size={17} />
-              ) : (
-                <CheckCircle2 size={17} />
-              )}
+              {nextAction.verb === "start" ? <Play size={17} /> : <CheckCircle2 size={17} />}
               {saving ? "Saving..." : nextAction.label}
             </button>
           ) : (
@@ -318,7 +335,10 @@ export default function ReviewWorkspace({ reviewId }: Props) {
       {error && (
         <div className="workspace-error" role="alert">
           <p>{error}</p>
-          <Link className="button button--secondary" href={doc ? `/groups/${doc.groupId}` : "/groups"}>
+          <Link
+            className="button button--secondary"
+            href={doc ? `/groups/${doc.groupId}` : "/groups"}
+          >
             Back to group
           </Link>
         </div>
@@ -336,11 +356,7 @@ export default function ReviewWorkspace({ reviewId }: Props) {
             >
               Try again
             </button>
-            <button
-              className="text-button"
-              type="button"
-              onClick={() => setStatusError(null)}
-            >
+            <button className="text-button" type="button" onClick={() => setStatusError(null)}>
               Dismiss
             </button>
           </div>
@@ -349,9 +365,7 @@ export default function ReviewWorkspace({ reviewId }: Props) {
 
       <div className="workspace-body">
         <section className="document-stage">
-          {loading && !error && (
-            <div className="annotator-status">Loading document...</div>
-          )}
+          {loading && !error && <div className="annotator-status">Loading document...</div>}
           {!loading && !error && pdfFile && (
             <PdfAnnotator
               documentId={review?.documentId}
@@ -408,20 +422,22 @@ export default function ReviewWorkspace({ reviewId }: Props) {
                     <div className="annotation-card__author">
                       <span
                         className="annotation-card__avatar"
-                        style={{ background: `${authorChipColor(a.authorName)}1a`, borderColor: `${authorChipColor(a.authorName)}55`, color: authorChipColor(a.authorName) }}
+                        style={{
+                          background: `${authorChipColor(a.authorName)}1a`,
+                          borderColor: `${authorChipColor(a.authorName)}55`,
+                          color: authorChipColor(a.authorName),
+                        }}
                       >
                         {initialsFromName(a.authorName ?? "?")}
                       </span>
-                      <span className="annotation-card__author-name">{a.authorName ?? "Unknown author"}</span>
+                      <span className="annotation-card__author-name">
+                        {a.authorName ?? "Unknown author"}
+                      </span>
                     </div>
                     {a.geometry && (
-                      <div className="annotation-card__preview">
-                        {renderMiniPreview(a)}
-                      </div>
+                      <div className="annotation-card__preview">{renderMiniPreview(a)}</div>
                     )}
-                    {a.content ? (
-                      <p className="annotation-card__comment">{a.content}</p>
-                    ) : null}
+                    {a.content ? <p className="annotation-card__comment">{a.content}</p> : null}
                   </article>
                 ))
             )}

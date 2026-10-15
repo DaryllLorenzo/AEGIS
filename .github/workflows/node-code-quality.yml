@@ -1,0 +1,39 @@
+name: Code Quality (Node)
+on:
+  push:
+
+jobs:
+  node-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      # Installs every workspace (apps/web + packages/node/*) from the root lockfile.
+      - name: Install dependencies
+        run: npm ci
+
+      # Check formatting before linting — fails fast and cheaply (dotnet format equivalent).
+      - name: Check code formatting
+        run: npm run format:check
+
+      # ESLint: Next.js core-web-vitals + typescript-eslint + prettier compatibility.
+      - name: Lint
+        run: npm run lint
+
+      # TypeScript gate for every workspace, including the shared packages.
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Full production build: catches route, bundling and client/server issues
+      # that typecheck alone cannot see.
+      - name: Build web app
+        run: npm run build -w @aegis/web
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8080

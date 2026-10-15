@@ -4,8 +4,8 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import type { DocumentDto, Review } from "@/lib/api";
-import { reviewStatusLabel } from "@/lib/utils";
+import { reviewStatusLabel } from "@aegis/domain";
+import type { DocumentDto, Review } from "@aegis/domain";
 
 type VersionChainProps = {
   docs: DocumentDto[];
@@ -74,9 +74,7 @@ export default function VersionChain({
                       {reviewStatusLabel(review.status)}
                     </em>
                   )}
-                  {isCurrent && (
-                    <em className="lineage-chip__current">Current</em>
-                  )}
+                  {isCurrent && <em className="lineage-chip__current">Current</em>}
                 </Link>
               ) : (
                 <span
@@ -85,9 +83,7 @@ export default function VersionChain({
                 >
                   <code>v{version}</code>
                   {showNames && <span>{doc.name}</span>}
-                  {isCurrent && (
-                    <em className="lineage-chip__current">Current</em>
-                  )}
+                  {isCurrent && <em className="lineage-chip__current">Current</em>}
                 </span>
               )}
             </li>

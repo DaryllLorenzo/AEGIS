@@ -16,9 +16,18 @@ export function useFetch<T>(
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Flip loading during render when deps change: setState inside an effect is
+  // not allowed (react-hooks/set-state-in-effect). Callers pass primitive deps,
+  // so a JSON key matches React's element-wise dep comparison.
+  const depsKey = JSON.stringify(deps);
+  const [prevDepsKey, setPrevDepsKey] = useState(depsKey);
+  if (prevDepsKey !== depsKey) {
+    setPrevDepsKey(depsKey);
+    setLoading(true);
+  }
+
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
 
     fetcher()
       .then((result) => {
@@ -36,7 +45,9 @@ export function useFetch<T>(
         if (!cancelled) setLoading(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 

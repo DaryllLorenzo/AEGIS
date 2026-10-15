@@ -3,11 +3,8 @@
 import { useEffect, useState } from "react";
 import { Loader2, X } from "lucide-react";
 
-import {
-  createGroup,
-  getFaculties,
-  type FacultyDto,
-} from "@/lib/api";
+import { createGroup, getFaculties } from "@aegis/api-client";
+import type { FacultyDto } from "@aegis/domain";
 import { useAuth } from "@/lib/auth-context";
 import MemberAutocomplete, { type MemberSelection } from "./MemberAutocomplete";
 
@@ -29,6 +26,21 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Reset the form during render when the dialog opens; setState
+  // synchronously inside an effect is not allowed.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setName("");
+      setFacultyId("");
+      setDescription("");
+      setMembers([]);
+      setCreatorRole("Submitter");
+      setError(null);
+    }
+  }
+
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
@@ -42,17 +54,6 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
     return () => {
       cancelled = true;
     };
-  }, [open]);
-
-  useEffect(() => {
-    if (open) {
-      setName("");
-      setFacultyId("");
-      setDescription("");
-      setMembers([]);
-      setCreatorRole("Submitter");
-      setError(null);
-    }
   }, [open]);
 
   useEffect(() => {
@@ -75,9 +76,7 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
         facultyId,
         description: description.trim() || undefined,
         members:
-          members.length > 0
-            ? members.map((m) => ({ userId: m.id, roles: [m.role] }))
-            : undefined,
+          members.length > 0 ? members.map((m) => ({ userId: m.id, roles: [m.role] })) : undefined,
         creatorRole,
       });
       onCreated?.();
@@ -132,7 +131,8 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
               <option value="">Select a faculty</option>
               {faculties.map((f) => (
                 <option key={f.id} value={f.id}>
-                  {f.name}{f.code ? ` (${f.code})` : ""}
+                  {f.name}
+                  {f.code ? ` (${f.code})` : ""}
                 </option>
               ))}
             </select>
@@ -179,7 +179,9 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
             />
           </div>
           {error && (
-            <p className="form-error" role="alert">{error}</p>
+            <p className="form-error" role="alert">
+              {error}
+            </p>
           )}
           <div className="modal__footer">
             <button className="button button--secondary" type="button" onClick={onClose}>
@@ -191,7 +193,9 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
               disabled={submitting || !name.trim() || !facultyId}
             >
               {submitting ? (
-                <><Loader2 size={16} className="animate-spin" /> Creating...</>
+                <>
+                  <Loader2 size={16} className="animate-spin" /> Creating...
+                </>
               ) : (
                 "Create group"
               )}

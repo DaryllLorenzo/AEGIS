@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  ArrowLeft,
-  FileUp,
-  FolderTree,
-  Info,
-  Loader2,
-  Tag,
-  Upload,
-  UserRound,
-} from "lucide-react";
+import { ArrowLeft, FileUp, FolderTree, Info, Loader2, Tag, Upload, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
@@ -21,11 +12,8 @@ import {
   getDocuments,
   getDocumentById,
   getUserSelect,
-  type GroupDto,
-  type DocumentDto,
-  type DocumentType,
-  type SelectItem,
-} from "@/lib/api";
+} from "@aegis/api-client";
+import type { GroupDto, DocumentDto, DocumentType, SelectItem } from "@aegis/domain";
 
 function NewReviewForm() {
   const router = useRouter();
@@ -56,6 +44,25 @@ function NewReviewForm() {
   // requires a fresh PDF upload.
   const isVersion = !!preParentId;
 
+  // Reset dependent state during render when the branch flips; setState
+  // synchronously inside an effect is not allowed.
+  const needsDocReset = !groupId || isVersion;
+  const [prevDocReset, setPrevDocReset] = useState(needsDocReset);
+  if (needsDocReset !== prevDocReset) {
+    setPrevDocReset(needsDocReset);
+    if (needsDocReset) setDocuments([]);
+  }
+
+  const noGroup = !groupId;
+  const [prevNoGroup, setPrevNoGroup] = useState(noGroup);
+  if (noGroup !== prevNoGroup) {
+    setPrevNoGroup(noGroup);
+    if (noGroup) {
+      setAssigneeOptions([]);
+      setAssigneeId("");
+    }
+  }
+
   useEffect(() => {
     getGroups(1, 50)
       .then((r) => setGroups(r.items))
@@ -63,10 +70,7 @@ function NewReviewForm() {
   }, []);
 
   useEffect(() => {
-    if (!groupId || isVersion) {
-      setDocuments([]);
-      return;
-    }
+    if (!groupId || isVersion) return;
     getDocuments(1, 50, groupId)
       .then((r) => setDocuments(r.items))
       .catch(() => setDocuments([]));
@@ -91,12 +95,9 @@ function NewReviewForm() {
 
   // Assignee picker: only members of the selected group may be
   // assigned (enforced by the backend; the picker lists them).
+  // The no-group reset happens during render (see prevNoGroup above).
   useEffect(() => {
-    if (!groupId) {
-      setAssigneeOptions([]);
-      setAssigneeId("");
-      return;
-    }
+    if (!groupId) return;
     let cancelled = false;
     getUserSelect(groupId)
       .then((items) => {
@@ -176,9 +177,8 @@ function NewReviewForm() {
         <div className="banner banner--success" role="status">
           <Info size={16} />
           <p>
-            Creating a new version. A fresh PDF is required — the new
-            document inherits its parent&apos;s name and the next version
-            number.
+            Creating a new version. A fresh PDF is required — the new document inherits its
+            parent&apos;s name and the next version number.
           </p>
         </div>
       )}
@@ -205,7 +205,9 @@ function NewReviewForm() {
             >
               <option value="">Select a group</option>
               {groups.map((g) => (
-                <option key={g.id} value={g.id}>{g.name}</option>
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
               ))}
             </select>
             {selectedGroup && (
@@ -246,7 +248,9 @@ function NewReviewForm() {
                   required
                 />
                 {fileError ? (
-                  <p className="field__error" role="alert">{fileError}</p>
+                  <p className="field__error" role="alert">
+                    {fileError}
+                  </p>
                 ) : (
                   file && <p className="field__hint">{file.name}</p>
                 )}
@@ -299,7 +303,9 @@ function NewReviewForm() {
                       required
                     />
                     {fileError && (
-                      <p className="field__error" role="alert">{fileError}</p>
+                      <p className="field__error" role="alert">
+                        {fileError}
+                      </p>
                     )}
                   </div>
                   <div className="field">
@@ -391,7 +397,9 @@ function NewReviewForm() {
               >
                 <option value="">Unassigned</option>
                 {assigneeOptions.map((u) => (
-                  <option key={u.id} value={u.id}>{u.label}</option>
+                  <option key={u.id} value={u.id}>
+                    {u.label}
+                  </option>
                 ))}
               </select>
               {!groupId ? (
@@ -417,17 +425,17 @@ function NewReviewForm() {
         </div>
       </section>
 
-      {error && <p className="form-error" role="alert">{error}</p>}
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
 
       <div className="form-actions">
         <Link className="button button--secondary" href={`/groups/${groupId}`}>
           <ArrowLeft size={16} /> Cancel
         </Link>
-        <button
-          className="button button--primary"
-          type="submit"
-          disabled={!canSubmit}
-        >
+        <button className="button button--primary" type="submit" disabled={!canSubmit}>
           {submitting ? (
             <>
               <Loader2 size={16} className="animate-spin" /> Creating...
@@ -458,7 +466,9 @@ export default function NewReviewPage() {
       <div className="page-heading">
         <p className="eyebrow">Create document</p>
         <h1>New document</h1>
-        <p>Upload a document or select an existing one inside this group to start a review round.</p>
+        <p>
+          Upload a document or select an existing one inside this group to start a review round.
+        </p>
       </div>
       <Suspense fallback={<p className="muted">Loading...</p>}>
         <NewReviewForm />

@@ -3,24 +3,18 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { useParams } from "next/navigation";
-import {
-  ArrowUpRight,
-  FileUp,
-} from "lucide-react";
+import { ArrowUpRight, FileUp } from "lucide-react";
 
-import DocumentTree, {
-  buildDocumentTree,
-  buildReviewMap,
-} from "@/components/aegis/DocumentTree";
+import DocumentTree, { buildDocumentTree, buildReviewMap } from "@/components/aegis/DocumentTree";
 import StatusPill from "@/components/aegis/StatusPill";
 import TypeBadge from "@/components/aegis/TypeBadge";
 import { useGroup } from "@/hooks/useGroup";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useReviews } from "@/hooks/useReviews";
 import { useFetch } from "@/hooks/useFetch";
-import { getGroupMembers, initialsFromName } from "@/lib/api";
-import { reviewStatusLabel } from "@/lib/utils";
-import type { GroupMember } from "@/lib/api";
+import { getGroupMembers } from "@aegis/api-client";
+import { initialsFromName, reviewStatusLabel } from "@aegis/domain";
+import type { GroupMember } from "@aegis/domain";
 
 export default function GroupOverviewPage() {
   const params = useParams();
@@ -31,34 +25,27 @@ export default function GroupOverviewPage() {
   const { data: reviewData } = useReviews(1, 100);
   const { data: membersData } = useFetch(
     () => getGroupMembers(groupId),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [groupId],
   );
 
   const members: GroupMember[] = membersData ?? [];
-  const documents = docData?.items ?? [];
+  const documents = useMemo(() => docData?.items ?? [], [docData]);
   const docIds = useMemo(() => new Set(documents.map((d) => d.id)), [documents]);
   const reviews = useMemo(
     () => (reviewData?.items ?? []).filter((r) => docIds.has(r.documentId)),
     [reviewData, docIds],
   );
-  const docById = useMemo(
-    () => new Map(documents.map((d) => [d.id, d])),
-    [documents],
-  );
+  const docById = useMemo(() => new Map(documents.map((d) => [d.id, d])), [documents]);
   const nodes = useMemo(() => buildDocumentTree(documents), [documents]);
-  const reviewsByDocument = useMemo(
-    () => buildReviewMap(reviews),
-    [reviews],
-  );
+  const reviewsByDocument = useMemo(() => buildReviewMap(reviews), [reviews]);
 
   const openCount = reviews.filter((r) => r.status !== "Completed").length;
   const completedCount = reviews.filter((r) => r.status === "Completed").length;
   const latestReview = useMemo(
     () =>
-      reviews.reduce<typeof reviews[number] | null>(
-        (latest, r) =>
-          !latest || new Date(r.createdAt) > new Date(latest.createdAt) ? r : latest,
+      reviews.reduce<(typeof reviews)[number] | null>(
+        (latest, r) => (!latest || new Date(r.createdAt) > new Date(latest.createdAt) ? r : latest),
         null,
       ),
     [reviews],
@@ -99,10 +86,7 @@ export default function GroupOverviewPage() {
                 <FileUp size={28} />
                 <strong>No document in review yet in this group.</strong>
                 <p>Upload a PDF to start the first review round in this group.</p>
-                <Link
-                  className="button button--primary"
-                  href={`/groups/${groupId}/documents/new`}
-                >
+                <Link className="button button--primary" href={`/groups/${groupId}/documents/new`}>
                   <FileUp size={16} />
                   Upload document
                 </Link>
@@ -147,12 +131,16 @@ export default function GroupOverviewPage() {
                   </div>
                 </div>
                 {reviews.length === 0 ? (
-                  <p className="muted">No review rounds yet. Each uploaded version can start one.</p>
+                  <p className="muted">
+                    No review rounds yet. Each uploaded version can start one.
+                  </p>
                 ) : (
                   <ul className="review-list">
                     {reviews
                       .slice()
-                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      .sort(
+                        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+                      )
                       .map((review) => {
                         const rDoc = docById.get(review.documentId);
                         return (
@@ -230,10 +218,7 @@ export default function GroupOverviewPage() {
                     <span className="member-list__name">{m.displayName}</span>
                     <span className="member-list__roles">
                       {m.roles.map((role) => (
-                        <span
-                          key={role}
-                          className={`role-badge role-badge--${role.toLowerCase()}`}
-                        >
+                        <span key={role} className={`role-badge role-badge--${role.toLowerCase()}`}>
                           {role}
                         </span>
                       ))}

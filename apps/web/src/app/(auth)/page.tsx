@@ -18,7 +18,7 @@ import StatusPill from "@/components/aegis/StatusPill";
 import NewGroupDialog from "@/components/aegis/NewGroupDialog";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useReviews } from "@/hooks/useReviews";
-import { reviewStatusLabel, reviewStatusClass } from "@/lib/utils";
+import { reviewStatusLabel, reviewStatusClass } from "@aegis/domain";
 
 export default function Home() {
   const { data } = useReviews(1, 20);
@@ -26,10 +26,12 @@ export default function Home() {
   const { data: docData } = useDocuments(1, 100);
   const docById = useMemo(() => new Map((docData?.items ?? []).map((d) => [d.id, d])), [docData]);
   const [newGroupOpen, setNewGroupOpen] = useState(false);
+  // Snapshot of "now" for the metrics: calling Date.now() on every render is
+  // impure (react-hooks/purity).
+  const [now] = useState(() => Date.now());
 
   const hour = new Date().getHours();
-  const greeting =
-    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   const metrics = [
     {
@@ -42,7 +44,7 @@ export default function Home() {
     {
       label: "Due soon",
       value: reviews.filter(
-        (r) => r.dueDate && new Date(r.dueDate).getTime() - Date.now() < 48 * 60 * 60 * 1000,
+        (r) => r.dueDate && new Date(r.dueDate).getTime() - now < 48 * 60 * 60 * 1000,
       ).length,
       note: "Next 48 hours",
       icon: Clock3,
@@ -106,9 +108,15 @@ export default function Home() {
           <p>Here is the status of your research reviews.</p>
         </div>
         <div className="status-legend" aria-label="Review status legend">
-          <span><i className="legend-dot legend-dot--green" /> Completed</span>
-          <span><i className="legend-dot legend-dot--amber" /> In progress</span>
-          <span><i className="legend-dot legend-dot--blue" /> Open</span>
+          <span>
+            <i className="legend-dot legend-dot--green" /> Completed
+          </span>
+          <span>
+            <i className="legend-dot legend-dot--amber" /> In progress
+          </span>
+          <span>
+            <i className="legend-dot legend-dot--blue" /> Open
+          </span>
         </div>
       </div>
 
@@ -216,10 +224,7 @@ export default function Home() {
         </div>
       </section>
 
-      <NewGroupDialog
-        open={newGroupOpen}
-        onClose={() => setNewGroupOpen(false)}
-      />
+      <NewGroupDialog open={newGroupOpen} onClose={() => setNewGroupOpen(false)} />
     </div>
   );
 }

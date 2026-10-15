@@ -2,14 +2,14 @@
 
 ## Stack
 
-| Technology | Version | Purpose |
-|---|---|---|
-| Next.js | 16 | React framework (App Router, Turbopack) |
-| React | 19 | UI library |
-| TypeScript | 5.9 | Type safety |
-| react-pdf | 10.5 | PDF rendering |
-| react-konva / konva | 19.2 / 10.3 | Canvas-based PDF annotation |
-| lucide-react | 1.16 | Icons |
+| Technology          | Version     | Purpose                                 |
+| ------------------- | ----------- | --------------------------------------- |
+| Next.js             | 16          | React framework (App Router, Turbopack) |
+| React               | 19          | UI library                              |
+| TypeScript          | 5.9         | Type safety                             |
+| react-pdf           | 10.5        | PDF rendering                           |
+| react-konva / konva | 19.2 / 10.3 | Canvas-based PDF annotation             |
+| lucide-react        | 1.16        | Icons                                   |
 
 No UI framework (Tailwind, MUI, etc.). All styling via modular CSS in `src/styles/`.
 
@@ -105,26 +105,26 @@ apps/web/
 
 File-based routing under `src/app/`. The `(auth)` route group wraps all protected pages with `AuthGuard` + `AppShell` via its `layout.tsx`.
 
-| Route | Description | Auth |
-|---|---|---|
-| `/` | Dashboard with metrics | Yes |
-| `/login` | Sign-in form | No |
-| `/login/forgot-password` | Password recovery | No |
-| `/groups` | Research groups directory | Yes |
-| `/groups/[id]` | Group overview | Yes |
-| `/groups/[id]/documents` | Group documents | Yes |
-| `/groups/[id]/reviews` | Group reviews | Yes |
-| `/groups/[id]/members` | Group members | Yes |
-| `/groups/[id]/activity` | Group activity feed | Yes |
-| `/groups/[id]/discussion` | Group discussion | Yes |
-| `/reviews` | Review queue | Yes |
-| `/reviews/[id]` | Review overview | Yes |
+| Route                     | Description                              | Auth                |
+| ------------------------- | ---------------------------------------- | ------------------- |
+| `/`                       | Dashboard with metrics                   | Yes                 |
+| `/login`                  | Sign-in form                             | No                  |
+| `/login/forgot-password`  | Password recovery                        | No                  |
+| `/groups`                 | Research groups directory                | Yes                 |
+| `/groups/[id]`            | Group overview                           | Yes                 |
+| `/groups/[id]/documents`  | Group documents                          | Yes                 |
+| `/groups/[id]/reviews`    | Group reviews                            | Yes                 |
+| `/groups/[id]/members`    | Group members                            | Yes                 |
+| `/groups/[id]/activity`   | Group activity feed                      | Yes                 |
+| `/groups/[id]/discussion` | Group discussion                         | Yes                 |
+| `/reviews`                | Review queue                             | Yes                 |
+| `/reviews/[id]`           | Review overview                          | Yes                 |
 | `/reviews/[id]/workspace` | Full review workspace (Client Component) | Yes (own AuthGuard) |
-| `/submissions` | User submissions | Yes |
-| `/submissions/new` | New submission form | Yes |
-| `/notifications` | Notification list | Yes |
-| `/profile` | User profile | Yes |
-| `/settings` | Preferences | Yes |
+| `/submissions`            | User submissions                         | Yes                 |
+| `/submissions/new`        | New submission form                      | Yes                 |
+| `/notifications`          | Notification list                        | Yes                 |
+| `/profile`                | User profile                             | Yes                 |
+| `/settings`               | Preferences                              | Yes                 |
 
 ## Component Types
 
@@ -133,19 +133,19 @@ File-based routing under `src/app/`. The `(auth)` route group wraps all protecte
 
 ## API Client
 
-The API layer is split into domain modules under `src/lib/api/`:
+The API layer lives in the shared `@aegis/api-client` package (`packages/node/api-client/`):
 
-- `client.ts` -- `apiFetch<T>()` wrapper with Bearer token injection, 401 interceptor, coalesced token refresh, and automatic retry
-- `auth.ts` -- `login()`, `refreshAccessToken()`, `logoutUser()`, `getMe()`
-- `users.ts`, `groups.ts`, `reviews.ts`, `documents.ts`, `annotations.ts` -- Domain-specific API calls
-- `types.ts` -- Shared TypeScript types
-- `index.ts` -- Barrel re-export
+- `src/client.ts` -- `apiFetch<T>()` wrapper with Bearer token injection, 401 interceptor, coalesced token refresh, and automatic retry
+- `src/api/auth.ts` -- `login()`, `refreshAccessToken()`, `logoutUser()`, `getMe()`
+- `src/api/users.ts`, `groups.ts`, `reviews.ts`, `documents.ts`, `annotations.ts` -- Domain-specific API calls
+- Shared TypeScript types, the review state machine and display utils live in `@aegis/domain` (`packages/node/domain/`)
 
 ## Authentication
 
 JWT-based with refresh token rotation. See [docs/auth.md](../../docs/auth.md) for full details.
 
 Key components:
+
 - `auth-context.tsx` -- React Context provider with proactive refresh (5 min before expiry)
 - `TokenSync.tsx` -- Bridges React auth state to the module-level `apiFetch`
 - `AuthGuard.tsx` -- Route protection (used in `(auth)/layout.tsx` and workspace page)
@@ -155,14 +155,14 @@ Key components:
 
 Custom hooks in `src/hooks/` encapsulate data fetching:
 
-| Hook | Purpose |
-|---|---|
-| `useFetch` | Base fetch hook with loading/error state |
-| `useGroups` | Fetches paginated groups list |
-| `useGroup` | Fetches a single group by ID |
-| `useDocuments` | Fetches paginated documents list |
-| `useReviews` | Fetches paginated reviews list |
-| `useReview` | Fetches a single review by ID |
+| Hook           | Purpose                                  |
+| -------------- | ---------------------------------------- |
+| `useFetch`     | Base fetch hook with loading/error state |
+| `useGroups`    | Fetches paginated groups list            |
+| `useGroup`     | Fetches a single group by ID             |
+| `useDocuments` | Fetches paginated documents list         |
+| `useReviews`   | Fetches paginated reviews list           |
+| `useReview`    | Fetches a single review by ID            |
 
 ## Styling
 
@@ -175,6 +175,7 @@ Pure CSS architecture (no Tailwind/PostCSS). Styles are split into modules under
 - **Variants:** `responsive.css` (breakpoints), `compact.css` (dense layout)
 
 CSS custom properties for theming:
+
 - Colors: green/amber/blue palette
 - Layout: fixed sidebar (264px), sticky topbar (68px), fluid content (max 1240px)
 - Naming: BEM-like (`.button--primary`, `.status-pill--open`)

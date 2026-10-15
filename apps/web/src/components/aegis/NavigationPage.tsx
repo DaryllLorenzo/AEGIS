@@ -19,7 +19,14 @@ type NavigationPageProps = {
   toolbar?: React.ReactNode;
 };
 
-export default function NavigationPage({ eyebrow, title, description, items, action, toolbar }: NavigationPageProps) {
+export default function NavigationPage({
+  eyebrow,
+  title,
+  description,
+  items,
+  action,
+  toolbar,
+}: NavigationPageProps) {
   return (
     <div className="page-container route-page">
       <div className="page-heading page-heading--split">
@@ -34,7 +41,9 @@ export default function NavigationPage({ eyebrow, title, description, items, act
       <div className="navigation-grid">
         {items.map(({ href, title: itemTitle, description: itemDescription, meta, icon: Icon }) => (
           <Link className="navigation-card" href={href} key={href}>
-            <span className="navigation-card__icon"><Icon size={21} /></span>
+            <span className="navigation-card__icon">
+              <Icon size={21} />
+            </span>
             <span className="navigation-card__copy">
               <h2>{itemTitle}</h2>
               <p>{itemDescription}</p>

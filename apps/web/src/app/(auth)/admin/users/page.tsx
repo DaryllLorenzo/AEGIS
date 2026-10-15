@@ -3,13 +3,8 @@
 import { useState } from "react";
 import { Pencil, Plus, Trash2, X, Check } from "lucide-react";
 
-import {
-  createUser,
-  deleteUser,
-  getUsers,
-  updateUser,
-  type UserDto,
-} from "@/lib/api";
+import { createUser, deleteUser, getUsers, updateUser } from "@aegis/api-client";
+import type { UserDto } from "@aegis/domain";
 import { useFetch } from "@/hooks/useFetch";
 import { useAuth } from "@/lib/auth-context";
 
@@ -18,7 +13,7 @@ export default function AdminUsersPage() {
   const [nonce, setNonce] = useState(0);
   const { data } = useFetch(
     () => getUsers(1, 100),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [nonce],
   );
   const users = data?.items ?? [];
@@ -96,7 +91,9 @@ export default function AdminUsersPage() {
   return (
     <div className="page-container admin-page">
       <div className="breadcrumb">
-        <span>Admin</span><span>/</span><span>Users</span>
+        <span>Admin</span>
+        <span>/</span>
+        <span>Users</span>
       </div>
       <div className="page-heading">
         <p className="eyebrow">Administration</p>
@@ -137,22 +134,43 @@ export default function AdminUsersPage() {
                         required
                       />
                     </td>
-                    <td>{u.isAdmin ? <span className="role-badge role-badge--creator">Admin</span> : "Member"}</td>
                     <td>
-                      <button className="icon-button" onClick={handleUpdate} aria-label="Save"><Check size={16} /></button>
-                      <button className="icon-button" onClick={() => setEditing(null)} aria-label="Cancel"><X size={16} /></button>
+                      {u.isAdmin ? (
+                        <span className="role-badge role-badge--creator">Admin</span>
+                      ) : (
+                        "Member"
+                      )}
+                    </td>
+                    <td>
+                      <button className="icon-button" onClick={handleUpdate} aria-label="Save">
+                        <Check size={16} />
+                      </button>
+                      <button
+                        className="icon-button"
+                        onClick={() => setEditing(null)}
+                        aria-label="Cancel"
+                      >
+                        <X size={16} />
+                      </button>
                     </td>
                   </>
                 ) : (
                   <>
-                    <td>{u.displayName}{u.isAdmin ? " · Admin" : ""}</td>
+                    <td>
+                      {u.displayName}
+                      {u.isAdmin ? " · Admin" : ""}
+                    </td>
                     <td>{u.email}</td>
                     <td>{u.isActive ? "Active" : "Inactive"}</td>
                     <td>
                       <button
                         className="icon-button"
                         aria-label={`Edit ${u.displayName}`}
-                        onClick={() => { setEditing(u); setEditName(u.displayName); setEditEmail(u.email); }}
+                        onClick={() => {
+                          setEditing(u);
+                          setEditName(u.displayName);
+                          setEditEmail(u.email);
+                        }}
                       >
                         <Pencil size={15} />
                       </button>
@@ -169,7 +187,11 @@ export default function AdminUsersPage() {
               </tr>
             ))}
             {users.length === 0 && (
-              <tr><td colSpan={4} className="muted">No users found.</td></tr>
+              <tr>
+                <td colSpan={4} className="muted">
+                  No users found.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -210,7 +232,11 @@ export default function AdminUsersPage() {
               minLength={8}
             />
           </div>
-          {formError && <p className="form-error" role="alert">{formError}</p>}
+          {formError && (
+            <p className="form-error" role="alert">
+              {formError}
+            </p>
+          )}
           <div className="form-actions">
             <button className="button button--primary" type="submit" disabled={busy}>
               <Plus size={16} /> Create user

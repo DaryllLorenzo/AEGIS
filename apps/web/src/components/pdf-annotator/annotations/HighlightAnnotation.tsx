@@ -19,10 +19,7 @@ export default function HighlightAnnotation({
   onSelect,
 }: Props) {
   return (
-    <Group
-      onClick={onSelect}
-      onTap={onSelect}
-    >
+    <Group onClick={onSelect} onTap={onSelect}>
       {geometry.lines.map((line, i) => (
         <Rect
           key={i}

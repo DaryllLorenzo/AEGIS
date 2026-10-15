@@ -1,5 +1,5 @@
-import type { LoginPayload, LoginResponse, RefreshResponse, UserDto } from "./types";
-import { apiFetch } from "./client";
+import type { LoginPayload, LoginResponse, RefreshResponse, UserDto } from "@aegis/domain";
+import { apiFetch } from "../client";
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
   return apiFetch<LoginResponse>("/api/users/login", {

@@ -2,33 +2,27 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  CalendarDays,
-  FileUp,
-  GitBranchPlus,
-  Search,
-  ShieldCheck,
-} from "lucide-react";
+import { CalendarDays, FileUp, GitBranchPlus, Search, ShieldCheck } from "lucide-react";
 
-import DocumentTree, {
-  buildDocumentTree,
-  buildReviewMap,
-} from "@/components/aegis/DocumentTree";
-import { getReviews } from "@/lib/api";
+import DocumentTree, { buildDocumentTree, buildReviewMap } from "@/components/aegis/DocumentTree";
+import { getReviews } from "@aegis/api-client";
+import { isReviewOverdue, submissionStatusLabel } from "@aegis/domain";
 import { useFetch } from "@/hooks/useFetch";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useAuth } from "@/lib/auth-context";
-import { isReviewOverdue, submissionStatusLabel } from "@/lib/api";
-import type { DocumentDto, Review } from "@/lib/api";
 
 type SortKey = "updated" | "name";
 
 export default function SubmissionsPage() {
   const { user } = useAuth();
   const [nonce, setNonce] = useState(0);
-  const { data: reviewData, error, loading } = useFetch(
+  const {
+    data: reviewData,
+    error,
+    loading,
+  } = useFetch(
     () => getReviews(1, 100),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [nonce],
   );
   const { data: docData } = useDocuments(1, 100);
@@ -36,14 +30,13 @@ export default function SubmissionsPage() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("updated");
 
-  const reviews = reviewData?.items ?? [];
-  const docs = docData?.items ?? [];
+  const reviews = useMemo(() => reviewData?.items ?? [], [reviewData]);
+  const docs = useMemo(() => docData?.items ?? [], [docData]);
   const myUserId = user?.userId;
 
   // My submissions = reviews I created (the document I submitted for review).
   const myReviews = useMemo(
-    () =>
-      myUserId ? reviews.filter((r) => r.userId === myUserId) : [],
+    () => (myUserId ? reviews.filter((r) => r.userId === myUserId) : []),
     [reviews, myUserId],
   );
 
@@ -96,19 +89,10 @@ export default function SubmissionsPage() {
     [filteredDocs, sort],
   );
 
-  const nodes = useMemo(
-    () => buildDocumentTree(sortedDocs),
-    [sortedDocs],
-  );
-  const reviewsByDocument = useMemo(
-    () => buildReviewMap(reviews),
-    [reviews],
-  );
+  const nodes = useMemo(() => buildDocumentTree(sortedDocs), [sortedDocs]);
+  const reviewsByDocument = useMemo(() => buildReviewMap(reviews), [reviews]);
 
-  const myDocIds = useMemo(
-    () => new Set(myReviews.map((r) => r.documentId)),
-    [myReviews],
-  );
+  const myDocIds = useMemo(() => new Set(myReviews.map((r) => r.documentId)), [myReviews]);
 
   const counts = useMemo(() => {
     const mine = myReviews;
@@ -131,9 +115,8 @@ export default function SubmissionsPage() {
             <p className="eyebrow">Research objects</p>
             <h1>My submissions</h1>
             <p>
-              Documents you have submitted for review, with every version
-              nested underneath. Track whether each version is submitted,
-              under review, or approved.
+              Documents you have submitted for review, with every version nested underneath. Track
+              whether each version is submitted, under review, or approved.
             </p>
           </div>
         </div>
@@ -248,8 +231,8 @@ export default function SubmissionsPage() {
             <>
               <strong>No submissions yet</strong>
               <p>
-                Upload a document to start your first review round. Each new
-                version you upload is nested under the previous one.
+                Upload a document to start your first review round. Each new version you upload is
+                nested under the previous one.
               </p>
               <Link className="button button--primary" href="/groups">
                 <FileUp size={16} />

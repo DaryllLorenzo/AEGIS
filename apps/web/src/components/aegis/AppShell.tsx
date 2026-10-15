@@ -65,12 +65,23 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
         <Menu size={21} />
       </button>
 
-      {mobileOpen && <button className="nav-backdrop" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
+      {mobileOpen && (
+        <button
+          className="nav-backdrop"
+          aria-label="Close navigation"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
 
       <aside className={`sidebar${mobileOpen ? " sidebar--open" : ""}`}>
         <div className="sidebar__header">
           <Brand />
-          <button className="sidebar__close icon-button" type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)}>
+          <button
+            className="sidebar__close icon-button"
+            type="button"
+            aria-label="Close navigation"
+            onClick={() => setMobileOpen(false)}
+          >
             <X size={20} />
           </button>
         </div>
@@ -88,7 +99,6 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
             </Link>
           ))}
         </nav>
-
       </aside>
 
       <div className="app-frame">

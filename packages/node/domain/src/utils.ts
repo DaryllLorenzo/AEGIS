@@ -1,20 +1,26 @@
-import type { ReviewStatus } from "./api/types";
+import type { ReviewStatus } from "./types";
 
 /** Map backend ReviewStatus to display label */
 export function reviewStatusLabel(status: ReviewStatus): string {
   switch (status) {
-    case "Pending": return "Open";
-    case "InProgress": return "In progress";
-    case "Completed": return "Completed";
+    case "Pending":
+      return "Open";
+    case "InProgress":
+      return "In progress";
+    case "Completed":
+      return "Completed";
   }
 }
 
 /** Map backend ReviewStatus to CSS class suffix */
 export function reviewStatusClass(status: ReviewStatus): string {
   switch (status) {
-    case "Pending": return "open";
-    case "InProgress": return "in-progress";
-    case "Completed": return "completed";
+    case "Pending":
+      return "open";
+    case "InProgress":
+      return "in-progress";
+    case "Completed":
+      return "completed";
   }
 }
 

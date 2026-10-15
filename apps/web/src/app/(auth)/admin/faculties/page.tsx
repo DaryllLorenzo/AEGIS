@@ -3,13 +3,8 @@
 import { useState } from "react";
 import { Pencil, Plus, Trash2, X, Check } from "lucide-react";
 
-import {
-  createFaculty,
-  deleteFaculty,
-  getFaculties,
-  updateFaculty,
-  type FacultyDto,
-} from "@/lib/api";
+import { createFaculty, deleteFaculty, getFaculties, updateFaculty } from "@aegis/api-client";
+import type { FacultyDto } from "@aegis/domain";
 import { useFetch } from "@/hooks/useFetch";
 import { useAuth } from "@/lib/auth-context";
 
@@ -18,7 +13,7 @@ export default function AdminFacultiesPage() {
   const [nonce, setNonce] = useState(0);
   const { data } = useFetch(
     () => getFaculties(1, 100),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [nonce],
   );
   const faculties = data?.items ?? [];
@@ -103,7 +98,9 @@ export default function AdminFacultiesPage() {
   return (
     <div className="page-container admin-page">
       <div className="breadcrumb">
-        <span>Admin</span><span>/</span><span>Faculties</span>
+        <span>Admin</span>
+        <span>/</span>
+        <span>Faculties</span>
       </div>
       <div className="page-heading">
         <p className="eyebrow">Administration</p>
@@ -142,8 +139,16 @@ export default function AdminFacultiesPage() {
                       />
                     </td>
                     <td>
-                      <button className="icon-button" onClick={handleUpdate} aria-label="Save"><Check size={16} /></button>
-                      <button className="icon-button" onClick={() => setEditing(null)} aria-label="Cancel"><X size={16} /></button>
+                      <button className="icon-button" onClick={handleUpdate} aria-label="Save">
+                        <Check size={16} />
+                      </button>
+                      <button
+                        className="icon-button"
+                        onClick={() => setEditing(null)}
+                        aria-label="Cancel"
+                      >
+                        <X size={16} />
+                      </button>
                     </td>
                   </>
                 ) : (
@@ -179,7 +184,11 @@ export default function AdminFacultiesPage() {
               </tr>
             ))}
             {faculties.length === 0 && (
-              <tr><td colSpan={3} className="muted">No faculties found.</td></tr>
+              <tr>
+                <td colSpan={3} className="muted">
+                  No faculties found.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -216,7 +225,11 @@ export default function AdminFacultiesPage() {
               rows={3}
             />
           </div>
-          {formError && <p className="form-error" role="alert">{formError}</p>}
+          {formError && (
+            <p className="form-error" role="alert">
+              {formError}
+            </p>
+          )}
           <div className="form-actions">
             <button className="button button--primary" type="submit" disabled={busy}>
               <Plus size={16} /> Create faculty

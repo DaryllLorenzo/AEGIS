@@ -2,18 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  ArrowRight,
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  GitBranchPlus,
-} from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronRight, FileText, GitBranchPlus } from "lucide-react";
 
-import type { DocumentDto, Review, ReviewStatus } from "@/lib/api";
+import { reviewStatusLabel } from "@aegis/domain";
+import type { DocumentDto, Review, ReviewStatus } from "@aegis/domain";
 import StatusPill from "./StatusPill";
 import TypeBadge from "./TypeBadge";
-import { reviewStatusLabel } from "@/lib/utils";
 
 export type DocNode = {
   doc: DocumentDto;

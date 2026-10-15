@@ -7,7 +7,8 @@ import NavigationPage from "@/components/aegis/NavigationPage";
 import NewGroupDialog from "@/components/aegis/NewGroupDialog";
 import { useFetch } from "@/hooks/useFetch";
 import { useGroups } from "@/hooks/useGroups";
-import { getFaculties, type FacultyDto } from "@/lib/api";
+import { getFaculties } from "@aegis/api-client";
+import type { FacultyDto } from "@aegis/domain";
 
 const groupIcons = [Users];
 
@@ -16,10 +17,7 @@ export default function GroupsPage() {
   const [facultyId, setFacultyId] = useState("");
   const [newGroupOpen, setNewGroupOpen] = useState(false);
 
-  const { data: facultyData } = useFetch(
-    () => getFaculties(1, 50),
-    [],
-  );
+  const { data: facultyData } = useFetch(() => getFaculties(1, 50), []);
   const faculties: FacultyDto[] = (facultyData?.items ?? []).filter((f) => f.isActive);
 
   const { data } = useGroups(1, 50, { mine: true, facultyId: facultyId || undefined }, nonce);
@@ -41,7 +39,11 @@ export default function GroupsPage() {
         description="Groups you belong to. Roles are scoped per group — submitters, reviewers, and creators."
         items={items}
         action={
-          <button className="button button--primary" type="button" onClick={() => setNewGroupOpen(true)}>
+          <button
+            className="button button--primary"
+            type="button"
+            onClick={() => setNewGroupOpen(true)}
+          >
             <Plus size={16} />
             New group
           </button>
@@ -57,7 +59,8 @@ export default function GroupsPage() {
               <option value="">All faculties</option>
               {faculties.map((f) => (
                 <option key={f.id} value={f.id}>
-                  {f.name}{f.code ? ` (${f.code})` : ""}
+                  {f.name}
+                  {f.code ? ` (${f.code})` : ""}
                 </option>
               ))}
             </select>

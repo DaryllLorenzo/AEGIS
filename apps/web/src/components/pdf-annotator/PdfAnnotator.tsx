@@ -3,6 +3,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { Stage, Layer } from "react-konva";
+import type Konva from "konva";
 
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -19,10 +20,7 @@ import type {
   HighlightGeometry,
 } from "./types";
 import type { WordBox } from "./text-layer-helpers";
-import {
-  extractWordsFromTextLayer,
-  computeHighlightLinesFromWords,
-} from "./text-layer-helpers";
+import { extractWordsFromTextLayer, computeHighlightLinesFromWords } from "./text-layer-helpers";
 import Toolbar from "./Toolbar";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -31,19 +29,10 @@ import {
   EllipseAnnotation,
   HighlightAnnotation,
 } from "./annotations";
-import {
-  RectanglePreview,
-  CirclePreview,
-  EllipsePreview,
-  HighlightPreview,
-} from "./previews";
+import { RectanglePreview, CirclePreview, EllipsePreview, HighlightPreview } from "./previews";
 
-import {
-  getAnnotationsByDocumentId,
-  bulkUpdateAnnotations,
-  type AnnotationDto,
-  type AnnotationPayload,
-} from "@/lib/api";
+import { getAnnotationsByDocumentId, bulkUpdateAnnotations } from "@aegis/api-client";
+import type { AnnotationDto, AnnotationPayload } from "@aegis/domain";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -89,7 +78,10 @@ function getAnnotationBounds(
   if ("lines" in g) {
     const lines = (g as HighlightGeometry).lines;
     if (lines.length === 0) return { x: 0, y: 0, width: 0, height: 0 };
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
     for (const l of lines) {
       minX = Math.min(minX, l.x * pageWidth);
       minY = Math.min(minY, l.y * pageHeight);
@@ -203,7 +195,9 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [documentId, onAnnotationsChange]);
 
   // -- Sync annotations to BE (debounced) ----------------------------------
@@ -247,9 +241,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
 
   useImperativeHandle(ref, () => ({
     setAnnotationContent(id: string, content: string | null) {
-      updateAnnotations((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, content } : a)),
-      );
+      updateAnnotations((prev) => prev.map((a) => (a.id === id ? { ...a, content } : a)));
     },
   }));
 
@@ -274,28 +266,22 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
 
   // -- PDF callbacks --------------------------------------------------------
 
-  const handleDocumentLoadSuccess = useCallback(
-    ({ numPages: count }: { numPages: number }) => {
-      setNumPages(count);
+  const handleDocumentLoadSuccess = useCallback(({ numPages: count }: { numPages: number }) => {
+    setNumPages(count);
+  }, []);
+
+  const handlePageLoadSuccess = useCallback(
+    (page: { getViewport(options: { scale: number }): { width: number; height: number } }) => {
+      const viewport = page.getViewport({ scale: 1 });
+      setPageSize({ width: viewport.width, height: viewport.height });
     },
     [],
   );
 
-  const handlePageLoadSuccess = useCallback((page: any) => {
-    const viewport = page.getViewport({ scale: 1 });
-    setPageSize({ width: viewport.width, height: viewport.height });
-  }, []);
-
   // -- Coordinate helpers ---------------------------------------------------
 
-  const normalizeX = useCallback(
-    (x: number) => x / pageSize.width,
-    [pageSize.width],
-  );
-  const normalizeY = useCallback(
-    (x: number) => x / pageSize.height,
-    [pageSize.height],
-  );
+  const normalizeX = useCallback((x: number) => x / pageSize.width, [pageSize.width]);
+  const normalizeY = useCallback((x: number) => x / pageSize.height, [pageSize.height]);
 
   // -- Delete ----------------------------------------------------------------
 
@@ -335,8 +321,9 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
   // -- Stage handlers -------------------------------------------------------
 
   const handleMouseDown = useCallback(
-    (event: any) => {
+    (event: Konva.KonvaEventObject<MouseEvent>) => {
       const stage = event.target.getStage();
+      if (!stage) return;
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
 
@@ -359,9 +346,10 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
   );
 
   const handleMouseMove = useCallback(
-    (event: any) => {
+    (event: Konva.KonvaEventObject<MouseEvent>) => {
       if (!isDrawing) return;
       const stage = event.target.getStage();
+      if (!stage) return;
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
       setCurrentPointer(pointer);
@@ -393,10 +381,11 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
   );
 
   const handleMouseUp = useCallback(
-    (event: any) => {
+    (event: Konva.KonvaEventObject<MouseEvent>) => {
       if (!isDrawing || !startPoint.current) return;
 
       const stage = event.target.getStage();
+      if (!stage) return;
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
 
@@ -534,7 +523,8 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
       ? {
           cx: Math.min(drawStart.x, drawEnd.x) + Math.abs(drawEnd.x - drawStart.x) / 2,
           cy: Math.min(drawStart.y, drawEnd.y) + Math.abs(drawEnd.y - drawStart.y) / 2,
-          radius: Math.max(Math.abs(drawEnd.x - drawStart.x), Math.abs(drawEnd.y - drawStart.y)) / 2,
+          radius:
+            Math.max(Math.abs(drawEnd.x - drawStart.x), Math.abs(drawEnd.y - drawStart.y)) / 2,
         }
       : null;
 
@@ -566,10 +556,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
       {!documentId && (
         <div className="annotator-header">
           <h1>PDF Annotation POC</h1>
-          <button
-            className="btn"
-            onClick={() => fileInputRef.current?.click()}
-          >
+          <button className="btn" onClick={() => fileInputRef.current?.click()}>
             Load PDF
           </button>
           <input
@@ -586,7 +573,10 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
       {file && (
         <Toolbar
           tool={tool}
-          onToolChange={(t) => { setTool(t); setSelectedId(null); }}
+          onToolChange={(t) => {
+            setTool(t);
+            setSelectedId(null);
+          }}
           selectedId={selectedId}
           onDeleteSelected={deleteSelected}
           pageNumber={pageNumber}
@@ -607,10 +597,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
       {/* PDF + annotations */}
       {file && (
         <div className="annotator-body">
-          <div
-            className="annotator-canvas-wrapper"
-            ref={pageContainerRef}
-          >
+          <div className="annotator-canvas-wrapper" ref={pageContainerRef}>
             <Document
               file={file}
               onLoadSuccess={handleDocumentLoadSuccess}
@@ -631,10 +618,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
             </Document>
 
             {/* Konva annotation layer */}
-            <div
-              className="annotator-overlay"
-              style={{ pointerEvents: "auto" }}
-            >
+            <div className="annotator-overlay" style={{ pointerEvents: "auto" }}>
               <Stage
                 width={800}
                 height={scaledHeight}
@@ -761,7 +745,6 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
               )}
             </div>
           </div>
-
         </div>
       )}
     </main>

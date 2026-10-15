@@ -1,4 +1,4 @@
-import type { ReviewStatus } from "@/lib/api";
+import type { ReviewStatus } from "@aegis/domain";
 
 type StatusPillProps = {
   status: ReviewStatus | "Under review" | "Draft" | string;

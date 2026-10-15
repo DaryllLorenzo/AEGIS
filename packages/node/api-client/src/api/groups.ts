@@ -1,5 +1,5 @@
-import type { GroupDto, GroupMember, PaginatedList, SelectItem, UserDto } from "./types";
-import { apiFetch } from "./client";
+import type { GroupDto, GroupMember, PaginatedList } from "@aegis/domain";
+import { apiFetch } from "../client";
 
 export type GetGroupsOptions = {
   /** When true, only groups the current user belongs to. */
@@ -38,10 +38,7 @@ export async function addGroupMember(
   });
 }
 
-export async function removeGroupMember(
-  groupId: string,
-  userId: string,
-): Promise<GroupDto> {
+export async function removeGroupMember(groupId: string, userId: string): Promise<GroupDto> {
   return apiFetch<GroupDto>(`/api/groups/${groupId}/members/${userId}`, {
     method: "DELETE",
   });

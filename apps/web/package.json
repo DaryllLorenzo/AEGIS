@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@aegis/api-client": "*",
+    "@aegis/domain": "*",
     "konva": "^10.3.2",
     "lucide-react": "^1.16.0",
     "next": "^16.0.0",

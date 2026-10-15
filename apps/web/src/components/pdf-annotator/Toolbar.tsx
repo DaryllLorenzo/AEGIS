@@ -44,11 +44,7 @@ export default function Toolbar({
       ))}
 
       {selectedId && (
-        <button
-          className="btn btn-danger"
-          disabled={disabled}
-          onClick={onDeleteSelected}
-        >
+        <button className="btn btn-danger" disabled={disabled} onClick={onDeleteSelected}>
           Delete selected
         </button>
       )}

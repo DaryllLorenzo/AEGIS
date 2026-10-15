@@ -1,11 +1,9 @@
 "use client";
 
 import { useFetch } from "./useFetch";
-import { getGroupById, type GroupDto } from "@/lib/api";
+import { getGroupById } from "@aegis/api-client";
+import type { GroupDto } from "@aegis/domain";
 
 export function useGroup(id: string | undefined) {
-  return useFetch<GroupDto>(
-    () => getGroupById(id!),
-    [id],
-  );
+  return useFetch<GroupDto>(() => getGroupById(id!), [id]);
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Loader2, X } from "lucide-react";
 
-import { getUserSelect, type SelectItem } from "@/lib/api";
+import { getUserSelect } from "@aegis/api-client";
+import type { SelectItem } from "@aegis/domain";
 
 export type MemberRole = "Submitter" | "Reviewer";
 export type MemberSelection = { id: string; label: string; role: MemberRole };
@@ -25,14 +26,26 @@ export default function MemberAutocomplete({ members, onChange, excludeUserIds =
 
   const excludeSet = useMemo(() => new Set(excludeUserIds), [excludeUserIds]);
 
+  // Clear results / show loading during render when the search input or the
+  // open state changes; setState synchronously inside an effect is not allowed.
+  const trimmedQuery = query.trim();
+  const idle = !trimmedQuery && !open;
+  const searchKey = `${open}:${trimmedQuery}`;
+  const [prevIdle, setPrevIdle] = useState(idle);
+  const [prevSearchKey, setPrevSearchKey] = useState(searchKey);
+  if (idle !== prevIdle) {
+    setPrevIdle(idle);
+    if (idle) setResults([]);
+  }
+  if (searchKey !== prevSearchKey) {
+    setPrevSearchKey(searchKey);
+    if (!idle) setLoading(true);
+  }
+
   useEffect(() => {
     const trimmed = query.trim();
-    if (!trimmed && !open) {
-      setResults([]);
-      return;
-    }
+    if (!trimmed && !open) return;
     let cancelled = false;
-    setLoading(true);
     const timer = setTimeout(() => {
       getUserSelect(undefined, trimmed || undefined)
         .then((items) => {

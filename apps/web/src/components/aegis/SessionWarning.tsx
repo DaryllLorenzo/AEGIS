@@ -51,15 +51,20 @@ export default function SessionWarning() {
   if (!show || timeLeft <= 0) return null;
 
   return (
-    <div className="session-warning-overlay" role="dialog" aria-modal="true" aria-label="Session expiring">
+    <div
+      className="session-warning-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Session expiring"
+    >
       <div className="session-warning-modal">
         <div className="session-warning-icon">
           <AlertTriangle size={24} />
         </div>
         <h3>Session expiring soon</h3>
         <p>
-          Your session will expire in <strong>{formatTimeRemaining(timeLeft)}</strong>.
-          Save any unsaved work before you are signed out.
+          Your session will expire in <strong>{formatTimeRemaining(timeLeft)}</strong>. Save any
+          unsaved work before you are signed out.
         </p>
         <div className="session-warning-actions">
           <button className="button button--secondary" onClick={() => setShow(false)}>

@@ -1,5 +1,5 @@
-import type { DocumentDto, DocumentType, PaginatedList } from "./types";
-import { apiFetch, apiBaseUrl, getAuthToken } from "./client";
+import type { DocumentDto, DocumentType, PaginatedList } from "@aegis/domain";
+import { apiFetch, getApiBaseUrl, getAuthToken } from "../client";
 
 // Backend serializes the DocumentType enum as a numeric value
 // (0 = Thesis, 1 = Article). Normalize to the string union the UI expects.
@@ -7,9 +7,12 @@ import { apiFetch, apiBaseUrl, getAuthToken } from "./client";
 function normalizeDocumentType(raw: unknown): DocumentType {
   if (typeof raw === "number") {
     switch (raw) {
-      case 0: return "Thesis";
-      case 1: return "Article";
-      default: return "Thesis";
+      case 0:
+        return "Thesis";
+      case 1:
+        return "Article";
+      default:
+        return "Thesis";
     }
   }
   return raw as DocumentType;
@@ -36,7 +39,7 @@ export async function getDocumentById(id: string): Promise<DocumentDto> {
 }
 
 export function getDocumentDownloadUrl(id: string): string {
-  return `${apiBaseUrl}/api/documents/${id}/download`;
+  return `${getApiBaseUrl()}/api/documents/${id}/download`;
 }
 
 export async function uploadDocument(
@@ -59,7 +62,7 @@ export async function uploadDocument(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const url = `${apiBaseUrl}/api/documents`;
+  const url = `${getApiBaseUrl()}/api/documents`;
   const res = await fetch(url, { method: "POST", body: formData, headers });
 
   if (!res.ok) {

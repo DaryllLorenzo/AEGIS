@@ -2,17 +2,17 @@
 
 ## Stack
 
-| Technology | Version | Purpose |
-|---|---|---|
-| ASP.NET Core | 10 | Minimal API |
-| Entity Framework Core | 10 | ORM |
-| PostgreSQL | 18 | Database |
-| MediatR | 14.2 | CQRS request/handler pipeline |
-| FluentValidation | 12.1 | Input validation |
-| Sieve | 2.5 | Filtering, sorting, pagination |
-| MinIO | 7.0 | S3-compatible object storage |
-| Scalar | 2.17 | OpenAPI documentation UI |
-| .NET Aspire | 13.5 | Development orchestration |
+| Technology            | Version | Purpose                        |
+| --------------------- | ------- | ------------------------------ |
+| ASP.NET Core          | 10      | Minimal API                    |
+| Entity Framework Core | 10      | ORM                            |
+| PostgreSQL            | 18      | Database                       |
+| MediatR               | 14.2    | CQRS request/handler pipeline  |
+| FluentValidation      | 12.1    | Input validation               |
+| Sieve                 | 2.5     | Filtering, sorting, pagination |
+| MinIO                 | 7.0     | S3-compatible object storage   |
+| Scalar                | 2.17    | OpenAPI documentation UI       |
+| .NET Aspire           | 13.5    | Development orchestration      |
 
 ## Directory Layout
 
@@ -147,11 +147,11 @@ Expected failures (not found, validation, forbidden, …) are values (`Error` fr
 
 ### File Naming Convention
 
-| File | Suffix | Purpose |
-|---|---|---|
-| `{Feature}Request.cs` | Request | MediatR `IRequest<T>` record |
-| `{Feature}Handler.cs` | Handler | MediatR `IRequestHandler<T, R>` class |
-| `{Feature}Endpoint.cs` | Endpoint | Minimal API static class with route mapping |
+| File                    | Suffix    | Purpose                                       |
+| ----------------------- | --------- | --------------------------------------------- |
+| `{Feature}Request.cs`   | Request   | MediatR `IRequest<T>` record                  |
+| `{Feature}Handler.cs`   | Handler   | MediatR `IRequestHandler<T, R>` class         |
+| `{Feature}Endpoint.cs`  | Endpoint  | Minimal API static class with route mapping   |
 | `{Feature}Validator.cs` | Validator | FluentValidation `AbstractValidator<T>` class |
 
 ### Shared Code: `packages/dotnet/` + `apps/api/Common/`
@@ -209,6 +209,7 @@ app.MapGroupsModuleEndpoints();
 ```
 
 Each slice exposes two extension methods:
+
 - `Add{Slice}ModuleServices(this WebApplicationBuilder)` -- DI registration
 - `Map{Slice}ModuleEndpoints(this IEndpointRouteBuilder)` -- Route mapping
 
@@ -218,24 +219,24 @@ JWT-based with refresh token rotation. See [docs/auth.md](../../docs/auth.md) fo
 
 ### Services
 
-| Service | Responsibility |
-|---|---|
-| `JwtTokenService` | Generates and validates JWT access tokens |
+| Service               | Responsibility                                   |
+| --------------------- | ------------------------------------------------ |
+| `JwtTokenService`     | Generates and validates JWT access tokens        |
 | `RefreshTokenService` | Generates, validates, and revokes refresh tokens |
 
 ### Endpoints
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| POST | `/api/users/login` | No | Login, returns access + refresh token |
-| POST | `/api/users/refresh` | No | Renews tokens with valid refresh token |
-| POST | `/api/users/logout` | Yes | Revokes the refresh token |
-| GET | `/api/users/me` | Yes | Validates that the token is valid |
-| POST | `/api/users` | No | Create user |
-| GET | `/api/users` | Yes | List users (paginated) |
-| GET | `/api/users/{id}` | Yes | Get user by ID |
-| PUT | `/api/users/{id}` | Yes | Update user |
-| DELETE | `/api/users/{id}` | Yes | Delete user |
+| Method | Path                 | Auth | Description                            |
+| ------ | -------------------- | ---- | -------------------------------------- |
+| POST   | `/api/users/login`   | No   | Login, returns access + refresh token  |
+| POST   | `/api/users/refresh` | No   | Renews tokens with valid refresh token |
+| POST   | `/api/users/logout`  | Yes  | Revokes the refresh token              |
+| GET    | `/api/users/me`      | Yes  | Validates that the token is valid      |
+| POST   | `/api/users`         | No   | Create user                            |
+| GET    | `/api/users`         | Yes  | List users (paginated)                 |
+| GET    | `/api/users/{id}`    | Yes  | Get user by ID                         |
+| PUT    | `/api/users/{id}`    | Yes  | Update user                            |
+| DELETE | `/api/users/{id}`    | Yes  | Delete user                            |
 
 ### RefreshTokens table
 

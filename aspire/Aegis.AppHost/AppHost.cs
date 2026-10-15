@@ -169,7 +169,9 @@ if (enableApi)
 // ---------------------------------------------------------------------------
 if (enableWeb && string.Equals(webMode, "container", StringComparison.OrdinalIgnoreCase))
 {
-    IResourceBuilder<ContainerResource> web = builder.AddDockerfile("web", "../../apps/web");
+    // Context is the repo root: the web image needs the packages/node workspaces.
+    IResourceBuilder<ContainerResource> web =
+        builder.AddDockerfile("web", "../..", "apps/web/Dockerfile");
 
     web = web.WithHttpEndpoint(port: webPort, targetPort: 3000)
         // Next.js inlines NEXT_PUBLIC_* at build time and a build argument cannot reference

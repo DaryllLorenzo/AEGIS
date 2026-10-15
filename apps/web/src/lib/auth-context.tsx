@@ -1,7 +1,16 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { getMe, refreshAccessToken, setAuthToken } from "@/lib/api";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { getMe, refreshAccessToken, setAuthToken } from "@aegis/api-client";
 
 export type AuthUser = {
   userId: string;
@@ -15,7 +24,7 @@ type AuthContextValue = {
   user: AuthUser | null;
   token: string | null;
   loading: boolean;
-  login: (token: string, refreshToken: string, user: AuthUser, expiresAt: string) => void;
+  login: (token: string, refreshToken: string, user: AuthUser) => void;
   logout: () => void;
   refreshTokenValue: string | null;
 };
@@ -66,8 +75,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Schedule proactive token refresh
-  const scheduleRefresh = useCallback((expiresAtMs: number) => {
+  // Schedule proactive token refresh.
+  // Named function expression so the timer callback can re-schedule itself
+  // without referencing the const before its initializer finishes.
+  const scheduleRefresh = useCallback(function scheduleRefreshImpl(expiresAtMs: number) {
     if (refreshTimerRef.current) {
       clearTimeout(refreshTimerRef.current);
     }
@@ -95,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Re-schedule with new expiry
         const newExpiry = getTokenExpiry(result.token);
         if (newExpiry) {
-          scheduleRefresh(newExpiry);
+          scheduleRefreshImpl(newExpiry);
         }
       } catch {
         // Refresh failed, will be caught on next API call
@@ -181,39 +192,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [scheduleRefresh]);
 
-  function login(newToken: string, newRefreshToken: string, newUser: AuthUser, expiresAt: string) {
-    localStorage.setItem(TOKEN_KEY, newToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
-    setToken(newToken);
-    setRefreshToken(newRefreshToken);
-    setUser(newUser);
-    setAuthToken(newToken);
+  const login = useCallback(
+    (newToken: string, newRefreshToken: string, newUser: AuthUser) => {
+      localStorage.setItem(TOKEN_KEY, newToken);
+      localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+      setToken(newToken);
+      setRefreshToken(newRefreshToken);
+      setUser(newUser);
+      setAuthToken(newToken);
 
-    // The JWT payload has no IsAdmin claim; correct the flag from the DB
-    // right after login so admin-only UI appears without a full reload.
-    getMe()
-      .then((me) => {
-        if (me) {
-          setUser({
-            userId: me.id,
-            email: me.email,
-            displayName: me.displayName,
-            roles: [],
-            isAdmin: me.isAdmin,
-          });
-        }
-      })
-      .catch(() => {});
+      // The JWT payload has no IsAdmin claim; correct the flag from the DB
+      // right after login so admin-only UI appears without a full reload.
+      getMe()
+        .then((me) => {
+          if (me) {
+            setUser({
+              userId: me.id,
+              email: me.email,
+              displayName: me.displayName,
+              roles: [],
+              isAdmin: me.isAdmin,
+            });
+          }
+        })
+        .catch(() => {});
 
-    const expiry = getTokenExpiry(newToken);
-    if (expiry) scheduleRefresh(expiry);
-  }
+      const expiry = getTokenExpiry(newToken);
+      if (expiry) scheduleRefresh(expiry);
+    },
+    [scheduleRefresh],
+  );
 
-  function logout() {
+  const logout = useCallback(() => {
     // Call the backend logout endpoint to revoke the refresh token
     const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (storedRefreshToken && token) {
-      import("@/lib/api").then(({ logoutUser }) => {
+      import("@aegis/api-client").then(({ logoutUser }) => {
         logoutUser(storedRefreshToken).catch(() => {});
       });
     }
@@ -228,7 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearTimeout(refreshTimerRef.current);
       refreshTimerRef.current = null;
     }
-  }
+  }, [token]);
 
   const value = useMemo(
     () => ({
@@ -239,7 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       refreshTokenValue: refreshToken,
     }),
-    [user, token, loading, refreshToken],
+    [user, token, loading, refreshToken, login, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

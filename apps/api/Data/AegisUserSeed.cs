@@ -1,3 +1,4 @@
+using Aegis.Api.Modules.Faculties.Data;
 using Aegis.Api.Modules.Groups.Data;
 using Aegis.Api.Modules.Roles.Data;
 using Aegis.Api.Modules.Users.Data;
@@ -60,15 +61,31 @@ public static class AegisUserSeed
 
             db.Users.Add(admin);
 
-            // Assign Admin role (needs a group - create a default one if none exists)
+            // Assign Admin role (needs a group - create a default one if none exists).
+            // Groups require a real Faculty (non-nullable FK), so seed one when the
+            // table is empty instead of falling back to a random Guid.
             var defaultGroup = await db.Groups.FirstOrDefaultAsync();
             if (defaultGroup is null)
             {
+                var faculty = await db.Faculties.FirstOrDefaultAsync();
+                if (faculty is null)
+                {
+                    faculty = new Faculty
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "General",
+                        Description = "Default faculty for system groups.",
+                        IsActive = true,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                    };
+                    db.Faculties.Add(faculty);
+                }
+
                 defaultGroup = new Group
                 {
                     Id = Guid.NewGuid(),
                     Name = "Default",
-                    FacultyId = (await db.Faculties.FirstOrDefaultAsync())?.Id ?? Guid.NewGuid(),
+                    FacultyId = faculty.Id,
                     Description = "Default system group.",
                     CreatedAt = DateTimeOffset.UtcNow,
                 };

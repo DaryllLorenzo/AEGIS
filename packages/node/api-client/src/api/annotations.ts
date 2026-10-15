@@ -1,9 +1,7 @@
-import type { AnnotationDto, AnnotationPayload } from "./types";
-import { apiFetch } from "./client";
+import type { AnnotationDto, AnnotationPayload } from "@aegis/domain";
+import { apiFetch } from "../client";
 
-export async function getAnnotationsByDocumentId(
-  documentId: string,
-): Promise<AnnotationDto[]> {
+export async function getAnnotationsByDocumentId(documentId: string): Promise<AnnotationDto[]> {
   return apiFetch<AnnotationDto[]>(`/api/annotations/document/${documentId}`);
 }
 

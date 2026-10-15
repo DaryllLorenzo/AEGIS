@@ -26,8 +26,12 @@ export default function CircleAnnotation({
       stroke={isSelected ? "#2563eb" : "red"}
       strokeWidth={isSelected ? 3 : 2}
       draggable={isSelectTool}
-      onClick={() => { if (isSelectTool) onSelect(); }}
-      onTap={() => { if (isSelectTool) onSelect(); }}
+      onClick={() => {
+        if (isSelectTool) onSelect();
+      }}
+      onTap={() => {
+        if (isSelectTool) onSelect();
+      }}
     />
   );
 }

@@ -1,5 +1,5 @@
-import type { PaginatedList, SelectItem, UserDto } from "./types";
-import { apiFetch } from "./client";
+import type { PaginatedList, SelectItem, UserDto } from "@aegis/domain";
+import { apiFetch } from "../client";
 
 /**
  * Shared entity-picker endpoint: GET /api/users/select
@@ -47,4 +47,3 @@ export async function updateUser(
 export async function deleteUser(id: string): Promise<void> {
   await apiFetch(`/api/users/${id}`, { method: "DELETE" });
 }
-

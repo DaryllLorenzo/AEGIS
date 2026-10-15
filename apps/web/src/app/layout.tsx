@@ -7,9 +7,7 @@ export const metadata: Metadata = {
   description: "Collaborative academic review and research workspace.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body>

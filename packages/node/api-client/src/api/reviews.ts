@@ -1,5 +1,5 @@
-import type { Review, ReviewStatus, PaginatedList } from "./types";
-import { apiFetch } from "./client";
+import type { Review, ReviewStatus, PaginatedList } from "@aegis/domain";
+import { apiFetch } from "../client";
 
 // ---------------------------------------------------------------------------
 // Review status normalization (backend may send numeric 0,1,2)
@@ -8,10 +8,14 @@ import { apiFetch } from "./client";
 function normalizeReviewStatus(raw: unknown): ReviewStatus {
   if (typeof raw === "number") {
     switch (raw) {
-      case 0: return "Pending";
-      case 1: return "InProgress";
-      case 2: return "Completed";
-      default: return "Pending";
+      case 0:
+        return "Pending";
+      case 1:
+        return "InProgress";
+      case 2:
+        return "Completed";
+      default:
+        return "Pending";
     }
   }
   return raw as ReviewStatus;
@@ -23,9 +27,12 @@ function normalizeReview<T extends { status: unknown }>(review: T): T {
 
 function reviewStatusToNumber(status: ReviewStatus): number {
   switch (status) {
-    case "Pending": return 0;
-    case "InProgress": return 1;
-    case "Completed": return 2;
+    case "Pending":
+      return 0;
+    case "InProgress":
+      return 1;
+    case "Completed":
+      return 2;
   }
 }
 
@@ -33,10 +40,7 @@ function reviewStatusToNumber(status: ReviewStatus): number {
 // Review API calls
 // ---------------------------------------------------------------------------
 
-export async function getReviews(
-  page = 1,
-  pageSize = 20,
-): Promise<PaginatedList<Review>> {
+export async function getReviews(page = 1, pageSize = 20): Promise<PaginatedList<Review>> {
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   const result = await apiFetch<PaginatedList<Review>>(`/api/reviews?${params}`);
   return { ...result, items: result.items.map(normalizeReview) };

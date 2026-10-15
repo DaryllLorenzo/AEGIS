@@ -54,9 +54,9 @@ services:
 
   web:
     build:
-      # Scoped context: the frontend is self-contained.
-      context: ./apps/web
-      dockerfile: Dockerfile
+      # Repo root context: the web app consumes the packages/node workspaces.
+      context: .
+      dockerfile: apps/web/Dockerfile
       args:
         # Baked into the client bundle at build time, so it must be the public URL.
         NEXT_PUBLIC_API_URL: ${API_PUBLIC_URL:-http://localhost:8080}

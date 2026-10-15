@@ -1,4 +1,4 @@
-import type { DocumentType } from "@/lib/api";
+import type { DocumentType } from "@aegis/domain";
 
 const LABELS: Record<DocumentType, string> = {
   Thesis: "Thesis",
@@ -10,9 +10,5 @@ const LABELS: Record<DocumentType, string> = {
  * (Thesis / Article). Used wherever documents are listed.
  */
 export default function TypeBadge({ type }: { type: DocumentType }) {
-  return (
-    <span className={`type-badge type-badge--${type.toLowerCase()}`}>
-      {LABELS[type]}
-    </span>
-  );
+  return <span className={`type-badge type-badge--${type.toLowerCase()}`}>{LABELS[type]}</span>;
 }

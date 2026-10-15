@@ -12,16 +12,16 @@ description: Use when adding or editing a backend feature, endpoint, EF configur
    - `<Name>Endpoint.cs` — `internal static class <Name>Endpoint` with an
      `internal static RouteHandlerBuilder Map<Name>Endpoint(this IEndpointRouteBuilder)`.
      Routes are relative to the area group (e.g. `/`, `/{id}`, `/select`). Take
-      `ISender`, `IValidator<TRequest>`, `CancellationToken`. Validate with the
-      `IValidator<TRequest>`, then map the handler's `Result<T>` with a helper from
-      `apps/api/Common/Results/ResultHttpExtensions.cs` (`ToOkOrNotFound`,
-      `ToCreatedOrValidation`, `ToNoContentOrNotFound`, `ToOkValidationOrForbidden`, …).
+     `ISender`, `IValidator<TRequest>`, `CancellationToken`. Validate with the
+     `IValidator<TRequest>`, then map the handler's `Result<T>` with a helper from
+     `apps/api/Common/Results/ResultHttpExtensions.cs` (`ToOkOrNotFound`,
+     `ToCreatedOrValidation`, `ToNoContentOrNotFound`, `ToOkValidationOrForbidden`, …).
    - `<Name>Request.cs` — `public sealed record <Name>Request : IRequest<Result<<Name>Dto>>`
      (or plain `IRequest<<Name>Dto>` when the feature has no failure path).
    - `<Name>Validator.cs` — `AbstractValidator<<Name>Request>` (always include one).
    - `<Name>Handler.cs` — `public sealed class <Name>Handler : IRequestHandler<...>`.
-      Expected failures return `Error.NotFound/Validation/Unauthorized/Forbidden` from
-      `Aegis.Common.Result` — never throw. No `Exceptions/` folders.
+     Expected failures return `Error.NotFound/Validation/Unauthorized/Forbidden` from
+     `Aegis.Common.Result` — never throw. No `Exceptions/` folders.
 3. Create/edit the DTO and mapper: `Dtos/<Entity>Dto.cs` + a
    `<Entity>.ToDto()` extension under `Mappings/`.
 4. Register the endpoint in `<Area>Configurations.cs` (`Map<Area>Module` is called

@@ -13,24 +13,33 @@ apps/api       ASP.NET Core minimal API, MediatR vertical slices (one feature = 
 apps/web       Next.js App Router frontend (TypeScript, App Shell + AuthGuard for the (auth) group)
 aspire/        .NET Aspire AppHost (dev orchestration only)
 packages/dotnet  Class libraries composed by apps/api: Aegis.Common, Aegis.Email, Aegis.ServiceDefaults, Aegis.Storage
+packages/node  npm workspace packages consumed by apps/web: @aegis/domain (DTOs + review-machine + utils), @aegis/api-client (fetch + endpoints)
 ```
+
+Node deps install from the **repo root** (npm workspaces; one `package-lock.json` at the root —
+never add per-app lockfiles).
 
 ## Commands you will actually use
 
-| Task | Command |
-|---|---|
-| Run full stack locally | `dotnet aspire run` (from repo root; starts Postgres + MinIO containers, API process, web dev server) |
-| Build API | `cd apps/api && dotnet build` |
-| Add EF migration | `cd apps/api && dotnet ef migrations add <Name>` (works offline — uses the design-time factory) |
-| Web type check | `cd apps/web && npm run typecheck` |
-| Web production build | `cd apps/web && npm run build` |
-| Lint | `npm run lint` — **no-op** (Next 16 has no `next lint`, no ESLint config). Gates are typecheck + build. |
-| Tests | None exist. typecheck + build are the gates. |
-| **CI gate — always run before finishing** | See below. Must exit 0. |
+| Task                                      | Command                                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Install node deps                         | `npm install` (from repo root — installs every workspace)                                              |
+| Run full stack locally                    | `dotnet aspire run` (from repo root; starts Postgres + MinIO containers, API process, web dev server)  |
+| Build API                                 | `cd apps/api && dotnet build`                                                                          |
+| Add EF migration                          | `cd apps/api && dotnet ef migrations add <Name>` (works offline — uses the design-time factory)        |
+| Web type check                            | `npm run typecheck` (all workspaces) or `npm run typecheck -w @aegis/web`                              |
+| Web production build                      | `npm run build -w @aegis/web`                                                                          |
+| Lint                                      | `npm run lint` — ESLint flat config at repo root (next/core-web-vitals + typescript + prettier).       |
+| Format                                    | `npm run format` / `npm run format:check` — Prettier (config `.prettierrc`, respects `.editorconfig`). |
+| Tests                                     | None exist. For .NET: typecheck + build; for node: lint + typecheck + build are the gates.             |
+| **CI gate — always run before finishing** | See below. Must exit 0.                                                                                |
 
 ### CI gate — run this always before you finish
 
-CI is `.github/workflows/net-code-quality.yml`. Run these three, from the repo root, verbatim:
+CI is `.github/workflows/net-code-quality.yml` (.NET) and
+`.github/workflows/node-code-quality.yml` (node). Run **both** sets from the repo root.
+
+.NET:
 
 ```bash
 dotnet restore
@@ -39,6 +48,15 @@ dotnet build --no-restore --configuration Release \
   -p:TreatWarningsAsErrors=true \
   -p:AnalysisMode=Recommended \
   -p:EnforceCodeStyleInBuild=true
+```
+
+Node (run whenever you touched `apps/web/`, `packages/node/` or root node config):
+
+```bash
+npm run format:check
+npm run lint
+npm run typecheck
+npm run build -w @aegis/web
 ```
 
 - Plain `dotnet build` is **not** the gate: it uses `AnalysisMode=Default`, so it passes while CI
@@ -89,12 +107,16 @@ dotnet build --no-restore --configuration Release \
 ## Web conventions (`apps/web/src`)
 
 - Routes: `(auth)` group = signed-in AppShell; `/login/*` public; `reviews/[id]/workspace` is a full-screen page.
-- API client: `src/lib/api/*.ts` modules (auth, documents, reviews, groups, users, annotations, types, client),
-  re-exported from `src/lib/api/index.ts`. All calls go through these — no fetch in components.
+- **Shared packages**: DTO types + `review-machine` + display utils come from `@aegis/domain`;
+  `fetch`/auth-token plumbing and endpoint functions from `@aegis/api-client` (source-only —
+  they are wired through `transpilePackages` in `next.config.ts`; never import them via a
+  path into `packages/node/`). All HTTP calls go through `@aegis/api-client` — no fetch in components.
+- **API base URL**: the app injects it once via `setApiBaseUrl(...)` in `src/lib/api-config.ts`
+  (imported by `Providers.tsx`); packages read `getApiBaseUrl()`, they never read `process.env`.
 - Hooks in `src/hooks/` (`useFetch`, `useDocuments`, `useReviews`, `useGroup`, `useReview`, ...).
 - **`AuthUser` shape**: `{ userId, email, displayName, roles }` — use `user.userId`, not `user.id`.
 - **Entity pickers**: `GET /api/<area>/select` returning `{ id, label }`. Label = `DisplayName`.
-- **Reviews state machine** lives in `src/lib/review-machine.ts` (`nextReviewStatus`,
+- **Reviews state machine** lives in `@aegis/domain` (`nextReviewStatus`,
   `reviewNextAction`, `isReviewOverdue`, `submissionStatusLabel/Class`). Never write a raw
   optimistic status update — go through `updateReview` with the legal transition.
 - `PdfAnnotator` is gated: editors pass `readOnly={review.status !== "InProgress"}`; the API
@@ -104,12 +126,19 @@ dotnet build --no-restore --configuration Release \
 ## Gotchas
 
 - **EF shadow FKs**: if an entity has a navigation (e.g. `Document.Parent`) but the config uses
-  `HasOne<Document>()` *without* the navigation lambda, EF adds a dead shadow FK column
+  `HasOne<Document>()` _without_ the navigation lambda, EF adds a dead shadow FK column
   (`ParentId1`, `AssigneeUserId`). Bind the config with `HasOne(d => d.Parent).WithMany(d => d.Children)`.
-- **Numeric enums over the wire**: every new enum needs a client-side normalization in the matching
-  `lib/api/*.ts` module (or you get `undefined.toLowerCase()` crashes).
+- **Numeric enums over the wire**: every new enum needs a client-side normalization in the
+  matching `packages/node/api-client/src/api/*.ts` module (or you get `undefined.toLowerCase()` crashes).
 - **New groups**: the creator is added as a member on group creation. Don't rely on membership
   existing in old rows created before this rule.
+- **One npm lockfile at the root**: adding a `package-lock.json` inside a workspace breaks
+  `npm ci` in CI and the Docker build. Same for `.next` or `node_modules` inside a workspace
+  after moving to root installs — delete and reinstall from the root.
+- **`next lint` no longer exists** in Next 16; linting is the ESLint CLI with the root
+  `eslint.config.mjs`. Don't add an `eslint` key to `next.config.ts`.
+- **Web Docker build context is the repo root**: `docker build -f apps/web/Dockerfile .`
+  (compose and the AppHost point there too) because the image needs `packages/node`.
 - `apps/web/AGENTS.md` and `apps/web/CLAUDE.md` are regenerated by `next dev` — heed the
   "NOT the Next.js you know" warning; breaking changes vs. training data. Trust
   `node_modules/next/dist/docs/`, not your memory.

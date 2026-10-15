@@ -3,8 +3,12 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { setAuthToken, setTokenRefresher, setAuthFailureHandler } from "@/lib/api";
-import { refreshAccessToken } from "@/lib/api";
+import {
+  setAuthToken,
+  setTokenRefresher,
+  setAuthFailureHandler,
+  refreshAccessToken,
+} from "@aegis/api-client";
 
 /**
  * Syncs the auth token from React state into the module-level variable

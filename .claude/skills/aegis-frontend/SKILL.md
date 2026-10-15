@@ -1,6 +1,6 @@
 ---
 name: aegis-frontend
-description: Use when adding or changing UI code in apps/web (pages, components, hooks, lib/api). Conventions for client-side API modules, numeric enum normalization, auth shape, and the Next.js version-specific pitfalls.
+description: Use when adding or changing UI code in apps/web or the shared packages in packages/node. Conventions for client-side API modules, numeric enum normalization, auth shape, and the Next.js version-specific pitfalls.
 ---
 
 # Web conventions (`apps/web`)
@@ -8,19 +8,20 @@ description: Use when adding or changing UI code in apps/web (pages, components,
 ## Hard rules
 
 - **No fetch in components.** Every call goes through a function in
-  `src/lib/api/<area>.ts`, re-exported from `src/lib/api/index.ts`.
-  Add new endpoints to the matching module and export them.
+  `packages/node/api-client/src/api/<area>.ts`, re-exported from its barrel
+  (`@aegis/api-client`). DTO types, the review machine and display utils come from
+  `@aegis/domain`. Add new endpoints to the matching module and export them.
 - **State via hooks** in `src/hooks/` (`useFetch`, `useDocuments`, `useReviews`, `useGroup`,
   `useReview`, `useGroups`). Wrap reused fetches; don't inline `useEffect`+fetch.
-- No tests exist. The gates are `cd apps/web && npm run typecheck` and `npm run build`.
-  `npm run lint` is a no-op (Next 16 removed `next lint`; there is no ESLint config).
+- No tests exist. The gates, from the repo root: `npm run typecheck`, `npm run lint`,
+  `npm run format:check`, `npm run build -w @aegis/web`.
 
 ## Enum normalization
 
 Backend serializes enums as numbers. Add a `normalize*` like `normalizeReviewStatus`
-(`src/lib/api/reviews.ts`) or `normalizeDocumentType` (`src/lib/api/documents.ts`)
-for any enum field in DTOs, applied to every fetch/mutation result. Never trust
-`typeof === "string"` for these fields.
+(`packages/node/api-client/src/api/reviews.ts`) or `normalizeDocumentType`
+(`packages/node/api-client/src/api/documents.ts`) for any enum field in DTOs, applied to
+every fetch/mutation result. Never trust `typeof === "string"` for these fields.
 
 ## Auth
 
@@ -29,7 +30,7 @@ for any enum field in DTOs, applied to every fetch/mutation result. Never trust
 
 ## Review state machine
 
-All review status transitions go through `src/lib/review-machine.ts`
+All review status transitions go through `@aegis/domain`
 (`nextReviewStatus`, `reviewNextAction`, `isReviewOverdue`, `submissionStatusLabel/Class`).
 Never do an optimistic status update; call `updateReview` and set state from the
 server response. `PdfAnnotator` takes `readOnly` — the review workspace already

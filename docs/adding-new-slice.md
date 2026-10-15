@@ -118,7 +118,8 @@ Factories: `Error.NotFound(code, message)`, `Error.Validation(field, message)`,
 No `Exceptions/` folder is needed. Features that cannot fail (list queries, simple
 creates) return the DTO directly. Exceptions are reserved for bugs/infra failures
 (e.g. missing seeded data) and surface as 500 via `UseExceptionHandler`.
-```
+
+````
 
 ## Step 6: Create the Features
 
@@ -135,9 +136,10 @@ using MediatR;
 namespace Aegis.Api.Modules.Documents.Features.GetDocuments;
 
 public sealed record GetDocumentsRequest : SieveRequest, IRequest<PaginatedList<DocumentDto>>;
-```
+````
 
 **Handler** -- `Features/GetDocuments/GetDocumentsHandler.cs`:
+
 ```csharp
 using Aegis.Api.Data;
 using Aegis.Api.Modules.Documents.Dtos;
@@ -192,6 +194,7 @@ public sealed class GetDocumentsHandler : IRequestHandler<GetDocumentsRequest, P
 ```
 
 **Endpoint** -- `Features/GetDocuments/GetDocumentsEndpoint.cs`:
+
 ```csharp
 using Aegis.Api.Modules.Documents.Dtos;
 using Aegis.Common.Paging;
@@ -244,6 +247,7 @@ internal sealed record GetDocumentsParameters
 ### 6b. GET by ID
 
 **Request** -- `Features/GetDocumentById/GetDocumentByIdRequest.cs`:
+
 ```csharp
 using Aegis.Api.Modules.Documents.Dtos;
 using Aegis.Common.Result;
@@ -255,6 +259,7 @@ public sealed record GetDocumentByIdRequest(Guid Id) : IRequest<Result<DocumentD
 ```
 
 **Handler** -- `Features/GetDocumentById/GetDocumentByIdHandler.cs`:
+
 ```csharp
 using Aegis.Api.Data;
 using Aegis.Api.Modules.Documents.Dtos;
@@ -291,6 +296,7 @@ The `Results<Ok<DocumentDto>, NotFound>` union stays; the helper picks the membe
 ### 6c. CREATE (with FluentValidation)
 
 **Request** -- `Features/CreateDocument/CreateDocumentRequest.cs`:
+
 ```csharp
 using Aegis.Api.Modules.Documents.Dtos;
 using MediatR;
@@ -306,6 +312,7 @@ public sealed record CreateDocumentRequest : IRequest<DocumentDto>
 ```
 
 **Validator** -- `Features/CreateDocument/CreateDocumentValidator.cs`:
+
 ```csharp
 using FluentValidation;
 
@@ -326,6 +333,7 @@ public sealed class CreateDocumentValidator : AbstractValidator<CreateDocumentRe
 ```
 
 **Handler** -- `Features/CreateDocument/CreateDocumentHandler.cs`:
+
 ```csharp
 using Aegis.Api.Data;
 using Aegis.Api.Modules.Documents.Data;
@@ -372,6 +380,7 @@ public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentReques
 ### 6d. UPDATE
 
 **Request** -- Only updatable fields. ID comes from route:
+
 ```csharp
 using Aegis.Api.Modules.Documents.Dtos;
 using MediatR;
@@ -382,6 +391,7 @@ public sealed record UpdateDocumentRequest(Guid Id, string Name, string? MimeTyp
 ```
 
 **Endpoint** -- Merges route `id` with body, creates the request:
+
 ```csharp
 static async Task<Results<Ok<DocumentDto>, NotFound, ValidationProblem>> Handle(
     Guid id,
