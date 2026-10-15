@@ -2,6 +2,9 @@
   <Folder Name="/apps/">
     <Project Path="apps/api/Aegis.Api.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Aegis.Api.Tests/Aegis.Api.Tests.csproj" />
+  </Folder>
   <Folder Name="/aspire/">
     <Project Path="aspire/Aegis.AppHost/Aegis.AppHost.csproj" />
   </Folder>

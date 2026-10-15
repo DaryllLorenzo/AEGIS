@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Aegis.Api.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\packages\dotnet\Aegis.Common\Aegis.Common.csproj" />
     <ProjectReference Include="..\..\packages\dotnet\Aegis.Email\Aegis.Email.csproj" />
     <ProjectReference Include="..\..\packages\dotnet\Aegis.Result\Aegis.Result.csproj" />

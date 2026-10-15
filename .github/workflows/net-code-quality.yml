@@ -42,3 +42,7 @@ jobs:
             -p:TreatWarningsAsErrors=true \
             -p:AnalysisMode=Recommended \
             -p:EnforceCodeStyleInBuild=true
+
+      # Unit tests reuse the Release build from the gate above (--no-build).
+      - name: Run unit tests
+        run: dotnet test --no-build --configuration Release

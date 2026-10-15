@@ -41,6 +41,13 @@
   <ItemGroup>
     <PackageVersion Include="Scalar.AspNetCore" Version="2.17.2" />
   </ItemGroup>
+  <!-- Unit tests (tests/). -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
   <!-- OpenTelemetry, wired up by Aegis.ServiceDefaults. -->
   <ItemGroup>
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />

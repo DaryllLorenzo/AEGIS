@@ -39,14 +39,7 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
         var newStatus = request.Status;
         if (newStatus != review.Status)
         {
-            var isValidTransition = (review.Status, newStatus) switch
-            {
-                (ReviewStatus.Pending, ReviewStatus.InProgress) => true,
-                (ReviewStatus.InProgress, ReviewStatus.Completed) => true,
-                _ => false,
-            };
-
-            if (!isValidTransition)
+            if (!ReviewTransitions.CanTransition(review.Status, newStatus))
             {
                 return Error.Validation(
                     "status",

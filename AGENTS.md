@@ -12,6 +12,7 @@ Aspire only for local dev orchestration, EF Core + PostgreSQL, MinIO for file st
 apps/api       ASP.NET Core minimal API, MediatR vertical slices (one feature = Endpoint+Request+Validator+Handler)
 apps/web       Next.js App Router frontend (TypeScript, App Shell + AuthGuard for the (auth) group)
 aspire/        .NET Aspire AppHost (dev orchestration only)
+tests/         .NET unit tests (xUnit): Aegis.Api.Tests mirrors the API namespaces
 packages/dotnet  Class libraries composed by apps/api: Aegis.Common, Aegis.Email, Aegis.ServiceDefaults, Aegis.Storage
 packages/node  npm workspace packages consumed by apps/web: @aegis/domain (DTOs + review-machine + utils), @aegis/api-client (fetch + endpoints)
 ```
@@ -31,7 +32,7 @@ never add per-app lockfiles).
 | Web production build                      | `npm run build -w @aegis/web`                                                                          |
 | Lint                                      | `npm run lint` — ESLint flat config at repo root (next/core-web-vitals + typescript + prettier).       |
 | Format                                    | `npm run format` / `npm run format:check` — Prettier (config `.prettierrc`, respects `.editorconfig`). |
-| Tests                                     | None exist. For .NET: typecheck + build; for node: lint + typecheck + build are the gates.             |
+| Tests                                     | `dotnet test` (repo root, all projects) or `dotnet test tests/Aegis.Api.Tests` — .NET unit tests.      |
 | **CI gate — always run before finishing** | See below. Must exit 0.                                                                                |
 
 ### CI gate — run this always before you finish
@@ -48,6 +49,7 @@ dotnet build --no-restore --configuration Release \
   -p:TreatWarningsAsErrors=true \
   -p:AnalysisMode=Recommended \
   -p:EnforceCodeStyleInBuild=true
+dotnet test --no-build --configuration Release
 ```
 
 Node (run whenever you touched `apps/web/`, `packages/node/` or root node config):
@@ -94,6 +96,20 @@ npm run build -w @aegis/web
   `ToCreatedOrValidation`, `ToOkValidationOrForbidden`, …). Field-keyed `ValidationProblem`
   keeps the reason visible to the UI; a bare `NotFound()` hides it. Exceptions are reserved for
   bugs and infra failures (e.g. missing role seed → 500 via `UseExceptionHandler`).
+
+## Test conventions (`tests/`)
+
+- **Unit tests only** (`Aegis.Api.Tests`, xUnit): one test class per handler/validator, mirroring
+  the API namespace under `Modules/…`. Naming: `Handle_Scenario_Expected`.
+- **What gets tested**: only files with business rules that return `Error.*` (review transitions,
+  auth, version lineage, critical validators, Result→HTTP mapping). Skip `Get*`/Sieve endpoints,
+  trivial DTO mappings and adapters (Email/MinIO) — no boilerplate tests for CRUD wiring.
+- **No mock libraries**: `Fixtures/TestDb` (EF InMemory `AegisDbContext`), `Fixtures/HttpContextFactory`
+  (claims), `Fixtures/TestConfig` (Jwt settings), `Fixtures/FakeStorageService`. Add a fixture only
+  when a third one is needed for the same reason.
+- **Pure logic before handlers**: rules embedded in handlers get extracted to a static class in the
+  feature's `Data/` folder (e.g. `ReviewTransitions.CanTransition`) and tested without EF.
+- Tests run in CI after the build: `dotnet test --no-build --configuration Release`.
 
 ## Migration rules (learned the hard way)
 
