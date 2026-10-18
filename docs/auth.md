@@ -10,9 +10,9 @@ AEGIS uses JWT (JSON Web Tokens) with refresh tokens for authentication. The acc
 
 ### Tokens
 
-| Token         | Lifetime | Storage                     | Purpose                       |
-| ------------- | -------- | --------------------------- | ----------------------------- |
-| Access Token  | 24 hours | localStorage (FE)                    | Authenticate each API request |
+| Token         | Lifetime | Storage                             | Purpose                       |
+| ------------- | -------- | ----------------------------------- | ----------------------------- |
+| Access Token  | 24 hours | localStorage (FE)                   | Authenticate each API request |
 | Refresh Token | 7 days   | localStorage (FE) + DB (BE, hashed) | Renew the access token        |
 
 The JWT signing key comes from configuration (`Jwt:Key`, exposed as the `JWT_KEY` / `Jwt__Key`
