@@ -1,10 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, X } from "lucide-react";
+import { ChevronsUpDown, X } from "lucide-react";
 
 import { getUserSelect } from "@aegis/api-client";
 import type { SelectItem } from "@aegis/domain";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "cn";
 
 export type MemberRole = "Submitter" | "Reviewer";
 export type MemberSelection = { id: string; label: string; role: MemberRole };
@@ -26,27 +36,13 @@ export default function MemberAutocomplete({ members, onChange, excludeUserIds =
 
   const excludeSet = useMemo(() => new Set(excludeUserIds), [excludeUserIds]);
 
-  // Clear results / show loading during render when the search input or the
-  // open state changes; setState synchronously inside an effect is not allowed.
-  const trimmedQuery = query.trim();
-  const idle = !trimmedQuery && !open;
-  const searchKey = `${open}:${trimmedQuery}`;
-  const [prevIdle, setPrevIdle] = useState(idle);
-  const [prevSearchKey, setPrevSearchKey] = useState(searchKey);
-  if (idle !== prevIdle) {
-    setPrevIdle(idle);
-    if (idle) setResults([]);
-  }
-  if (searchKey !== prevSearchKey) {
-    setPrevSearchKey(searchKey);
-    if (!idle) setLoading(true);
-  }
-
   useEffect(() => {
-    const trimmed = query.trim();
-    if (!trimmed && !open) return;
+    if (!open) return;
     let cancelled = false;
+    const trimmed = query.trim();
     const timer = setTimeout(() => {
+      if (cancelled) return;
+      setLoading(true);
       getUserSelect(undefined, trimmed || undefined)
         .then((items) => {
           if (!cancelled) setResults(items);
@@ -85,78 +81,61 @@ export default function MemberAutocomplete({ members, onChange, excludeUserIds =
   }
 
   return (
-    <div className="member-autocomplete">
-      <label className="field">
-        <input
-          type="text"
-          value={query}
-          placeholder="Type a name or email to search..."
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
-          role="combobox"
-          aria-expanded={open}
-          aria-controls="member-autocomplete-options"
-          aria-autocomplete="list"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && visibleResults.length > 0) {
-              e.preventDefault();
-              addMember(visibleResults[0]);
-            }
-            if (e.key === "Escape") {
-              setOpen(false);
-            }
-          }}
-        />
-      </label>
-
-      {loading && (
-        <p className="field__hint member-autocomplete__hint">
-          <Loader2 size={13} className="animate-spin" /> Searching users...
-        </p>
-      )}
-
-      {open && !loading && (
-        <ul
-          id="member-autocomplete-options"
-          className="member-autocomplete__results"
-          role="listbox"
+    <div className="grid gap-2">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between font-normal text-muted-foreground"
+          >
+            <span className="truncate">Type a name or email to search...</span>
+            <ChevronsUpDown className="size-4 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          className="w-(--radix-popover-trigger-width) p-0"
+          onOpenAutoFocus={(e) => e.preventDefault()}
         >
-          {visibleResults.length === 0 ? (
-            <li className="member-autocomplete__empty" role="option" aria-selected="false">
-              No users found.
-            </li>
-          ) : (
-            visibleResults.map((r) => (
-              <li key={r.id} role="option" aria-selected="false">
-                <button
-                  type="button"
-                  className="member-autocomplete__option"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    addMember(r);
-                  }}
-                >
-                  {r.label}
-                </button>
-              </li>
-            ))
-          )}
-        </ul>
-      )}
+          <Command shouldFilter={false}>
+            <CommandInput placeholder="Search users..." value={query} onValueChange={setQuery} />
+            <CommandList>
+              {loading ? (
+                <div className="py-6 text-center text-sm text-muted-foreground">Searching...</div>
+              ) : (
+                <>
+                  <CommandEmpty>No users found.</CommandEmpty>
+                  {visibleResults.map((r) => (
+                    <CommandItem
+                      key={r.id}
+                      value={r.id}
+                      onSelect={() => addMember(r)}
+                      className="cursor-pointer"
+                    >
+                      {r.label}
+                    </CommandItem>
+                  ))}
+                </>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
 
       {members.length > 0 && (
-        <ul className="member-chips" aria-label="Selected members">
+        <ul className="flex flex-wrap gap-1.5" aria-label="Selected members">
           {members.map((m) => (
-            <li key={m.id} className="member-chip">
-              <span className="member-chip__label">{m.label}</span>
+            <li
+              key={m.id}
+              className="flex items-center gap-1.5 rounded-full border bg-muted/60 py-1 pr-1.5 pl-3"
+            >
+              <span className="text-xs font-semibold">{m.label}</span>
               <select
                 value={m.role}
                 onChange={(e) => setMemberRole(m.id, e.target.value as MemberRole)}
-                className="member-chip__role"
+                className="rounded border bg-card px-1.5 py-0.5 text-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 aria-label={`Role for ${m.label}`}
               >
                 <option value="Submitter">Submitter</option>
@@ -164,11 +143,14 @@ export default function MemberAutocomplete({ members, onChange, excludeUserIds =
               </select>
               <button
                 type="button"
-                className="member-chip__remove"
+                className={cn(
+                  "flex size-5 items-center justify-center rounded-full text-muted-foreground transition-colors",
+                  "hover:bg-foreground/10 hover:text-foreground",
+                )}
                 aria-label={`Remove ${m.label}`}
                 onClick={() => removeMember(m.id)}
               >
-                <X size={13} />
+                <X className="size-3" />
               </button>
             </li>
           ))}

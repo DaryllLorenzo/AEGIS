@@ -2,16 +2,19 @@
 
 ## Stack
 
-| Technology          | Version     | Purpose                                 |
-| ------------------- | ----------- | --------------------------------------- |
-| Next.js             | 16          | React framework (App Router, Turbopack) |
-| React               | 19          | UI library                              |
-| TypeScript          | 5.9         | Type safety                             |
-| react-pdf           | 10.5        | PDF rendering                           |
-| react-konva / konva | 19.2 / 10.3 | Canvas-based PDF annotation             |
-| lucide-react        | 1.16        | Icons                                   |
+| Technology          | Version     | Purpose                                        |
+| ------------------- | ----------- | ---------------------------------------------- |
+| Next.js             | 16          | React framework (App Router, Turbopack)        |
+| React               | 19          | UI library                                     |
+| TypeScript          | 5.7         | Type safety                                    |
+| Tailwind CSS        | 4           | Utility-first CSS (via `@tailwindcss/postcss`) |
+| shadcn/ui           | latest      | Accessible component primitives on `radix-ui`  |
+| react-pdf           | 10.5        | PDF rendering                                  |
+| react-konva / konva | 19.2 / 10.3 | Canvas-based PDF annotation                    |
+| lucide-react        | 1.16        | Icons                                          |
 
-No UI framework (Tailwind, MUI, etc.). All styling via modular CSS in `src/styles/`.
+Styling is Tailwind CSS v4 with shadcn/ui primitives. There are no CSS modules — the
+only stylesheet is `src/app/globals.css` (design tokens + base layer).
 
 ## Directory Layout
 
@@ -20,44 +23,45 @@ apps/web/
 ├── src/
 │   ├── app/                          # Pages (App Router file-based routing)
 │   │   ├── layout.tsx                # Root layout (html/body/metadata, Providers)
-│   │   ├── globals.css               # CSS imports for all style modules
-│   │   ├── (auth)/                   # Authenticated route group
+│   │   ├── globals.css               # Tailwind import + design tokens (only stylesheet)
+│   │   ├── manifest.ts               # Web app manifest
+│   │   ├── (auth)/                   # Authenticated route group (AuthGuard + AppShell)
 │   │   │   ├── layout.tsx            # AuthGuard + AppShell wrapper
 │   │   │   ├── page.tsx              # Dashboard (/)
-│   │   │   ├── profile/              # /profile
-│   │   │   ├── settings/             # /settings
-│   │   │   ├── notifications/        # /notifications
-│   │   │   ├── submissions/          # /submissions, /submissions/new
-│   │   │   ├── reviews/              # /reviews, /reviews/[id]
-│   │   │   └── groups/               # /groups, /groups/[id]/* (documents, members, reviews, activity, discussion)
-│   │   ├── login/                    # /login (public)
-│   │   │   └── forgot-password/      # /login/forgot-password
-│   │   └── reviews/
-│   │       └── [id]/workspace/       # /reviews/[id]/workspace (outside auth group, has its own AuthGuard)
+│   │   │   ├── groups/               # /groups, /groups/[id]
+│   │   │   │   ├── page.tsx          # Groups directory
+│   │   │   │   └── [id]/
+│   │   │   │       ├── page.tsx      # Group overview
+│   │   │   │       ├── documents/new/page.tsx   # New document / new version
+│   │   │   │       └── reviews/[reviewId]/workspace/page.tsx  # Review workspace
+│   │   │   ├── submissions/page.tsx  # /submissions
+│   │   │   └── admin/                # /admin/users, /admin/faculties
+│   │   └── login/                    # /login (public) + forgot-password/
 │   ├── components/
-│   │   ├── aegis/                    # Core UI components
+│   │   ├── aegis/                    # App UI components
 │   │   │   ├── AppShell.tsx          # Sidebar + topbar layout
 │   │   │   ├── AuthGuard.tsx         # Redirects to /login if unauthenticated
-│   │   │   ├── Avatar.tsx            # Initials avatar
 │   │   │   ├── Brand.tsx             # Logo + brand
-│   │   │   ├── GroupTabs.tsx         # Group sub-navigation
+│   │   │   ├── DocumentTree.tsx      # Version tree (builder + list)
+│   │   │   ├── MemberAutocomplete.tsx# Popover + Command combobox
 │   │   │   ├── NavigationPage.tsx    # Reusable card-grid page
-│   │   │   ├── Providers.tsx         # React context providers
+│   │   │   ├── NewGroupDialog.tsx    # Create-group dialog
+│   │   │   ├── PageContainer.tsx     # Centered content column
+│   │   │   ├── Providers.tsx         # Client providers (TooltipProvider)
 │   │   │   ├── ReviewWorkspace.tsx   # Full review workspace
-│   │   │   ├── SessionWarning.tsx    # Session expiry warning modal
-│   │   │   ├── StatusPill.tsx        # Status badge
-│   │   │   └── TokenSync.tsx         # Bridges React auth state to apiFetch
-│   │   └── pdf-annotator/            # PDF annotation subsystem
-│   │       ├── PdfAnnotator.tsx      # Main annotator component
-│   │       ├── Toolbar.tsx           # Annotation toolbar
-│   │       ├── Sidebar.tsx           # Annotation sidebar
-│   │       ├── types.ts              # Shared types
-│   │       ├── text-layer-helpers.ts # PDF text layer utilities
-│   │       ├── annotator.css
-│   │       ├── sidebar.css
-│   │       ├── toolbar.css
-│   │       ├── annotations/          # Shape components (Highlight, Rectangle, Circle, Ellipse)
-│   │       └── previews/             # Preview thumbnails (same shapes)
+│   │   │   ├── SessionWarning.tsx    # Session expiry warning dialog
+│   │   │   ├── StatusPill.tsx        # Review status badge
+│   │   │   ├── TokenSync.tsx         # Bridges React auth state to apiFetch
+│   │   │   ├── TypeBadge.tsx         # Document type badge
+│   │   │   └── VersionChain.tsx      # Version lineage chips
+│   │   ├── pdf-annotator/            # PDF annotation subsystem (konva)
+│   │   │   ├── PdfAnnotator.tsx      # Main annotator component
+│   │   │   ├── Toolbar.tsx           # Annotation toolbar
+│   │   │   ├── types.ts              # Shared types
+│   │   │   ├── text-layer-helpers.ts # PDF text layer utilities
+│   │   │   ├── annotations/          # Shape components (Highlight, Rectangle, Circle, Ellipse)
+│   │   │   └── previews/             # Preview thumbnails (same shapes)
+│   │   └── ui/                       # shadcn/ui primitives (generated)
 │   ├── hooks/                        # Custom React hooks
 │   │   ├── useFetch.ts               # Base fetch hook
 │   │   ├── useGroups.ts              # Groups list
@@ -65,38 +69,13 @@ apps/web/
 │   │   ├── useDocuments.ts           # Documents list
 │   │   ├── useReviews.ts             # Reviews list
 │   │   └── useReview.ts              # Single review
-│   ├── lib/
-│   │   ├── auth-context.tsx           # Auth provider (JWT, refresh, proactive renewal)
-│   │   ├── utils.ts                   # UI helper functions
-│   │   └── api/                       # API client modules
-│   │       ├── index.ts               # Re-exports all modules
-│   │       ├── client.ts              # apiFetch() with 401 interceptor + auto-refresh
-│   │       ├── types.ts               # Shared API types
-│   │       ├── auth.ts                # login(), refreshAccessToken(), logoutUser(), getMe()
-│   │       ├── users.ts               # User CRUD
-│   │       ├── groups.ts              # Groups API
-│   │       ├── reviews.ts             # Reviews API
-│   │       ├── documents.ts           # Documents API
-│   │       └── annotations.ts         # Annotations API
-│   └── styles/                        # CSS modules (imported via globals.css)
-│       ├── variables.css              # CSS custom properties (colors, spacing)
-│       ├── reset.css                  # CSS reset
-│       ├── layout.css                 # Page layout
-│       ├── shell.css                  # Sidebar + topbar
-│       ├── navigation.css             # Navigation components
-│       ├── components.css             # Shared UI components
-│       ├── buttons.css                # Button variants
-│       ├── login.css                  # Login page
-│       ├── groups.css                 # Groups pages
-│       ├── documents.css              # Documents pages
-│       ├── reviews.css                # Reviews pages
-│       ├── annotations.css            # Annotation workspace
-│       ├── settings.css               # Settings page
-│       ├── session-warning.css        # Session expiry modal
-│       ├── responsive.css             # Responsive breakpoints
-│       └── compact.css                # Compact/dense layout variant
+│   └── lib/
+│       ├── auth-context.tsx          # Auth provider (JWT, refresh, proactive renewal)
+│       └── api-config.ts             # Injects the API base URL into @aegis/api-client
 ├── public/                           # Static assets (logos, favicons)
-├── next.config.ts                    # output: "standalone"
+├── next.config.ts                    # output: "standalone", transpilePackages
+├── postcss.config.mjs                # @tailwindcss/postcss
+├── components.json                   # shadcn/ui config (aliases, style)
 ├── tsconfig.json                     # Path alias: @/* -> ./src/*
 └── package.json
 ```
@@ -105,26 +84,18 @@ apps/web/
 
 File-based routing under `src/app/`. The `(auth)` route group wraps all protected pages with `AuthGuard` + `AppShell` via its `layout.tsx`.
 
-| Route                     | Description                              | Auth                |
-| ------------------------- | ---------------------------------------- | ------------------- |
-| `/`                       | Dashboard with metrics                   | Yes                 |
-| `/login`                  | Sign-in form                             | No                  |
-| `/login/forgot-password`  | Password recovery                        | No                  |
-| `/groups`                 | Research groups directory                | Yes                 |
-| `/groups/[id]`            | Group overview                           | Yes                 |
-| `/groups/[id]/documents`  | Group documents                          | Yes                 |
-| `/groups/[id]/reviews`    | Group reviews                            | Yes                 |
-| `/groups/[id]/members`    | Group members                            | Yes                 |
-| `/groups/[id]/activity`   | Group activity feed                      | Yes                 |
-| `/groups/[id]/discussion` | Group discussion                         | Yes                 |
-| `/reviews`                | Review queue                             | Yes                 |
-| `/reviews/[id]`           | Review overview                          | Yes                 |
-| `/reviews/[id]/workspace` | Full review workspace (Client Component) | Yes (own AuthGuard) |
-| `/submissions`            | User submissions                         | Yes                 |
-| `/submissions/new`        | New submission form                      | Yes                 |
-| `/notifications`          | Notification list                        | Yes                 |
-| `/profile`                | User profile                             | Yes                 |
-| `/settings`               | Preferences                              | Yes                 |
+| Route                                       | Description                                  | Auth                |
+| ------------------------------------------- | -------------------------------------------- | ------------------- |
+| `/`                                         | Dashboard with metrics                       | Yes                 |
+| `/login`                                    | Sign-in form                                 | No                  |
+| `/login/forgot-password`                    | Password recovery                            | No                  |
+| `/groups`                                   | Research groups directory                    | Yes                 |
+| `/groups/[id]`                              | Group overview (documents, members, reviews) | Yes                 |
+| `/groups/[id]/documents/new`                | New document / new version form              | Yes                 |
+| `/groups/[id]/reviews/[reviewId]/workspace` | Full review workspace (Client Component)     | Yes (own AuthGuard) |
+| `/submissions`                              | User submissions                             | Yes                 |
+| `/admin/users`                              | User administration                          | Yes (admin only)    |
+| `/admin/faculties`                          | Faculty administration                       | Yes (admin only)    |
 
 ## Component Types
 
@@ -137,19 +108,22 @@ The API layer lives in the shared `@aegis/api-client` package (`packages/node/ap
 
 - `src/client.ts` -- `apiFetch<T>()` wrapper with Bearer token injection, 401 interceptor, coalesced token refresh, and automatic retry
 - `src/api/auth.ts` -- `login()`, `refreshAccessToken()`, `logoutUser()`, `getMe()`
-- `src/api/users.ts`, `groups.ts`, `reviews.ts`, `documents.ts`, `annotations.ts` -- Domain-specific API calls
+- `src/api/users.ts`, `groups.ts`, `reviews.ts`, `documents.ts`, `annotations.ts`, `faculties.ts` -- Domain-specific API calls
 - Shared TypeScript types, the review state machine and display utils live in `@aegis/domain` (`packages/node/domain/`)
+
+All HTTP calls go through `@aegis/api-client`; components never call `fetch` directly (the one
+exception is the workspace, which fetches the PDF blob with the auth token).
 
 ## Authentication
 
-JWT-based with refresh token rotation. See [docs/auth.md](../../docs/auth.md) for full details.
+JWT-based with refresh token rotation. See [docs/auth.md](../auth.md) for full details.
 
 Key components:
 
 - `auth-context.tsx` -- React Context provider with proactive refresh (5 min before expiry)
 - `TokenSync.tsx` -- Bridges React auth state to the module-level `apiFetch`
-- `AuthGuard.tsx` -- Route protection (used in `(auth)/layout.tsx` and workspace page)
-- `SessionWarning.tsx` -- Modal warning when session is about to expire
+- `AuthGuard.tsx` -- Route protection (used in `(auth)/layout.tsx` and the workspace page)
+- `SessionWarning.tsx` -- Dialog warning when session is about to expire
 
 ## Hooks
 
@@ -166,16 +140,16 @@ Custom hooks in `src/hooks/` encapsulate data fetching:
 
 ## Styling
 
-Pure CSS architecture (no Tailwind/PostCSS). Styles are split into modules under `src/styles/` and imported via `globals.css`:
+Tailwind CSS v4 + shadcn/ui. There are no CSS module files; all styling lives in
+`src/app/globals.css` (tokens) plus utility classes in the JSX.
 
-- **Foundation:** `variables.css` (custom properties), `reset.css`, `layout.css`
-- **Shell:** `shell.css` (sidebar + topbar), `navigation.css`
-- **Components:** `components.css`, `buttons.css`, `status-pill` (in components.css)
-- **Feature:** `groups.css`, `documents.css`, `reviews.css`, `annotations.css`, `login.css`, `settings.css`, `session-warning.css`
-- **Variants:** `responsive.css` (breakpoints), `compact.css` (dense layout)
-
-CSS custom properties for theming:
-
-- Colors: green/amber/blue palette
-- Layout: fixed sidebar (264px), sticky topbar (68px), fluid content (max 1240px)
-- Naming: BEM-like (`.button--primary`, `.status-pill--open`)
+- **Tokens:** `globals.css` defines the green academic palette as CSS variables (`--primary: #005134`,
+  `--background`, `--card`, `--border`, `--success/--warning/--info`, ...), exposes them to Tailwind via
+  `@theme inline`, and sets `--radius`. Dark mode tokens exist under `.dark`, but the app has no toggle.
+- **Base layer:** body typography (Aptos/Inter/Segoe UI stack), headings, `code`, `.eyebrow`.
+- **Primitives:** `src/components/ui/` holds the generated shadcn/ui components (Button, Input, Label,
+  Select, Dialog, AlertDialog, DropdownMenu, Sheet, Badge, Card, Separator, Table, Tooltip, Popover,
+  Command, Skeleton, Avatar, Textarea). They import `cn` from the `cn` package.
+- **Layout:** `PageContainer` provides the centered content column; pages compose plain Tailwind utilities.
+- **Numeric enums:** serialized as numbers by the API; normalize with `normalizeReviewStatus` /
+  `normalizeDocumentType` from `@aegis/domain` before display.

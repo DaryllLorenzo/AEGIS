@@ -1,10 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { createGroup, getFaculties } from "@aegis/api-client";
 import type { FacultyDto } from "@aegis/domain";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import MemberAutocomplete, { type MemberSelection } from "./MemberAutocomplete";
 
@@ -56,15 +75,6 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
     };
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !facultyId) return;
@@ -88,30 +98,21 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
     }
   }
 
-  if (!open) return null;
-
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="new-group-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="modal__header">
-          <div>
-            <p className="eyebrow">Step 1 · Group</p>
-            <h2 id="new-group-title">Create a research group</h2>
-          </div>
-          <button className="icon-button" type="button" aria-label="Close dialog" onClick={onClose}>
-            <X size={20} />
-          </button>
-        </div>
-        <form className="modal__body" onSubmit={handleSubmit}>
-          <div className="field">
-            <label htmlFor="group-name">Group name</label>
-            <input
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="max-h-[calc(100vh-3rem)] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <p className="eyebrow">Step 1 · Group</p>
+          <DialogTitle className="font-heading text-xl">Create a research group</DialogTitle>
+          <DialogDescription className="sr-only">
+            Fill in the details to create a new research group.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form className="grid gap-4" onSubmit={handleSubmit}>
+          <div className="grid gap-2">
+            <Label htmlFor="group-name">Group name</Label>
+            <Input
               id="group-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -120,31 +121,34 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
               maxLength={200}
             />
           </div>
-          <div className="field">
-            <label htmlFor="group-faculty">Faculty</label>
-            <select
-              id="group-faculty"
-              value={facultyId}
-              onChange={(e) => setFacultyId(e.target.value)}
-              required
-            >
-              <option value="">Select a faculty</option>
-              {faculties.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.name}
-                  {f.code ? ` (${f.code})` : ""}
-                </option>
-              ))}
-            </select>
+
+          <div className="grid gap-2">
+            <Label htmlFor="group-faculty">Faculty</Label>
+            <Select value={facultyId} onValueChange={setFacultyId}>
+              <SelectTrigger id="group-faculty" className="w-full">
+                <SelectValue placeholder="Select a faculty" />
+              </SelectTrigger>
+              <SelectContent>
+                {faculties.map((f) => (
+                  <SelectItem key={f.id} value={f.id}>
+                    {f.name}
+                    {f.code ? ` (${f.code})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {facultiesError && (
-              <p className="field__hint">Could not load faculties. Try again in a moment.</p>
+              <p className="text-xs text-muted-foreground">
+                Could not load faculties. Try again in a moment.
+              </p>
             )}
           </div>
-          <div className="field">
-            <label htmlFor="group-description">
-              Description <span className="field__optional">Optional</span>
-            </label>
-            <textarea
+
+          <div className="grid gap-2">
+            <Label htmlFor="group-description">
+              Description <span className="font-normal text-muted-foreground">Optional</span>
+            </Label>
+            <Textarea
               id="group-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -153,23 +157,29 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
               placeholder="What does this group research?"
             />
           </div>
-          <div className="field">
-            <label htmlFor="group-creator-role">Your role in this group</label>
-            <select
-              id="group-creator-role"
+
+          <div className="grid gap-2">
+            <Label htmlFor="group-creator-role">Your role in this group</Label>
+            <Select
               value={creatorRole}
-              onChange={(e) => setCreatorRole(e.target.value as "Submitter" | "Reviewer")}
+              onValueChange={(v) => setCreatorRole(v as "Submitter" | "Reviewer")}
             >
-              <option value="Submitter">Submitter</option>
-              <option value="Reviewer">Reviewer</option>
-            </select>
-            <p className="field__hint">
+              <SelectTrigger id="group-creator-role" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Submitter">Submitter</SelectItem>
+                <SelectItem value="Reviewer">Reviewer</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
               You always hold the Creator role as well; this is your operational group role.
             </p>
           </div>
-          <div className="field">
-            <label>Members</label>
-            <p className="field__hint">
+
+          <div className="grid gap-2">
+            <Label>Members</Label>
+            <p className="text-xs text-muted-foreground">
               Find users by name or email. Each member gets exactly one role in this group.
             </p>
             <MemberAutocomplete
@@ -178,31 +188,32 @@ export default function NewGroupDialog({ open, onClose, onCreated }: NewGroupDia
               excludeUserIds={user?.userId ? [user.userId] : []}
             />
           </div>
+
           {error && (
-            <p className="form-error" role="alert">
+            <p
+              role="alert"
+              className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+            >
               {error}
             </p>
           )}
-          <div className="modal__footer">
-            <button className="button button--secondary" type="button" onClick={onClose}>
+
+          <DialogFooter className="mt-1">
+            <Button variant="outline" type="button" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              className="button button--primary"
-              type="submit"
-              disabled={submitting || !name.trim() || !facultyId}
-            >
+            </Button>
+            <Button type="submit" disabled={submitting || !name.trim() || !facultyId}>
               {submitting ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" /> Creating...
+                  <Loader2 className="size-4 animate-spin" /> Creating...
                 </>
               ) : (
                 "Create group"
               )}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

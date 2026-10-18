@@ -5,13 +5,24 @@ import Link from "next/link";
 import { CalendarDays, FileUp, GitBranchPlus, Search, ShieldCheck } from "lucide-react";
 
 import DocumentTree, { buildDocumentTree, buildReviewMap } from "@/components/aegis/DocumentTree";
+import PageContainer from "@/components/aegis/PageContainer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getReviews } from "@aegis/api-client";
 import { isReviewOverdue, submissionStatusLabel } from "@aegis/domain";
 import { useFetch } from "@/hooks/useFetch";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useAuth } from "@/lib/auth-context";
+import { cn } from "cn";
 
 type SortKey = "updated" | "name";
+
+const METRIC_TONE: Record<string, string> = {
+  green: "bg-success/10 text-success",
+  amber: "bg-warning/15 text-warning",
+  blue: "bg-info/10 text-info",
+};
 
 export default function SubmissionsPage() {
   const { user } = useAuth();
@@ -104,113 +115,140 @@ export default function SubmissionsPage() {
     };
   }, [myReviews, myDocIds, treeDocs]);
 
+  const metrics = [
+    { label: "Documents", note: "Submitted", value: counts.total, icon: FileUp, tone: "green" },
+    {
+      label: "Under review",
+      note: "With reviewers",
+      value: counts.underReview,
+      icon: Search,
+      tone: "amber",
+    },
+    {
+      label: "Approved",
+      note: "Review closed",
+      value: counts.approved,
+      icon: ShieldCheck,
+      tone: "green",
+    },
+    {
+      label: "New versions",
+      note: "History",
+      value: counts.versions,
+      icon: GitBranchPlus,
+      tone: "blue",
+    },
+  ];
+
   return (
-    <div className="page-container submissions-page">
-      <div className="page-heading page-heading--split">
-        <div className="page-heading__start">
-          <span className="page-heading__icon page-heading__icon--green">
-            <FileUp size={22} />
+    <PageContainer>
+      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+        <div className="flex items-start gap-4">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success">
+            <FileUp className="size-5" />
           </span>
           <div>
             <p className="eyebrow">Research objects</p>
-            <h1>My submissions</h1>
-            <p>
+            <h1 className="mt-1">My submissions</h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               Documents you have submitted for review, with every version nested underneath. Track
               whether each version is submitted, under review, or approved.
             </p>
           </div>
         </div>
-        <div className="heading-actions">
-          <Link className="button button--primary" href="/groups">
-            <GitBranchPlus size={16} />
-            Submit a document
-          </Link>
+        <div className="flex flex-wrap gap-2.5">
+          <Button asChild>
+            <Link href="/groups">
+              <GitBranchPlus className="size-4" />
+              Submit a document
+            </Link>
+          </Button>
         </div>
       </div>
 
-      <section className="metrics-grid metrics-grid--4" aria-label="Submission summary">
-        <article className="metric-card">
-          <div className="metric-card__icon metric-card__icon--green">
-            <FileUp size={21} />
-          </div>
-          <span className="metric-card__note">Submitted</span>
-          <strong>{counts.total}</strong>
-          <p>Documents</p>
-        </article>
-        <article className="metric-card">
-          <div className="metric-card__icon metric-card__icon--amber">
-            <Search size={21} />
-          </div>
-          <span className="metric-card__note">With reviewers</span>
-          <strong>{counts.underReview}</strong>
-          <p>Under review</p>
-        </article>
-        <article className="metric-card">
-          <div className="metric-card__icon metric-card__icon--green">
-            <ShieldCheck size={21} />
-          </div>
-          <span className="metric-card__note">Review closed</span>
-          <strong>{counts.approved}</strong>
-          <p>Approved</p>
-        </article>
-        <article className="metric-card">
-          <div className="metric-card__icon metric-card__icon--blue">
-            <GitBranchPlus size={21} />
-          </div>
-          <span className="metric-card__note">History</span>
-          <strong>{counts.versions}</strong>
-          <p>New versions</p>
-        </article>
+      <section
+        className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        aria-label="Submission summary"
+      >
+        {metrics.map(({ label, note, value, icon: Icon, tone }) => (
+          <article key={label} className="relative rounded-xl border bg-card p-5 shadow-sm">
+            <span className="absolute top-5 right-5 rounded bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+              {note}
+            </span>
+            <div
+              className={cn(
+                "flex size-10 items-center justify-center rounded-lg",
+                METRIC_TONE[tone],
+              )}
+            >
+              <Icon className="size-5" />
+            </div>
+            <strong className="font-heading mt-5 block text-3xl leading-none font-bold">
+              {value}
+            </strong>
+            <p className="mt-2 text-sm font-semibold text-muted-foreground">{label}</p>
+          </article>
+        ))}
       </section>
 
-      <div className="doc-toolbar">
-        <label className="search-field">
-          <Search size={17} aria-hidden="true" />
-          <input
+      <div className="mt-6 mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <label className="relative flex w-full max-w-xs items-center">
+          <Search className="pointer-events-none absolute left-3 size-4 text-muted-foreground" />
+          <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter submissions..."
             aria-label="Filter submissions by name"
+            className="pl-9"
           />
         </label>
-        <div className="sort-toggle" role="group" aria-label="Sort submissions">
-          <button
-            type="button"
-            className={sort === "updated" ? "is-active" : ""}
-            onClick={() => setSort("updated")}
-          >
-            Recently updated
-          </button>
-          <button
-            type="button"
-            className={sort === "name" ? "is-active" : ""}
-            onClick={() => setSort("name")}
-          >
-            Name
-          </button>
+        <div
+          className="inline-flex gap-0.5 rounded-lg border bg-card p-0.5 sm:ml-auto"
+          role="group"
+          aria-label="Sort submissions"
+        >
+          {(
+            [
+              { key: "updated", label: "Recently updated" },
+              { key: "name", label: "Name" },
+            ] as const
+          ).map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSort(key)}
+              className={cn(
+                "rounded-md px-3 py-1.5 text-sm font-semibold transition-colors",
+                sort === key
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
       {error && (
-        <div className="list-error" role="alert">
+        <div
+          className="mb-5 flex items-center justify-between gap-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          role="alert"
+        >
           <p>{error}</p>
-          <button
-            className="button button--secondary button--sm"
-            type="button"
-            onClick={() => setNonce((n) => n + 1)}
-          >
+          <Button variant="outline" size="sm" type="button" onClick={() => setNonce((n) => n + 1)}>
             Retry
-          </button>
+          </Button>
         </div>
       )}
 
       {loading ? (
-        <div aria-busy="true" aria-label="Loading submissions">
+        <div className="grid gap-3" aria-busy="true" aria-label="Loading submissions">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div className="skeleton-card" key={i}>
-              <div className="skeleton skeleton-line skeleton-line--sm" />
-              <div className="skeleton skeleton-line skeleton-line--lg" />
-              <div className="skeleton skeleton-line" />
+            <div key={i} className="grid gap-3 rounded-lg border bg-card p-5">
+              <Skeleton className="h-2.5 w-2/5" />
+              <Skeleton className="h-5 w-4/5" />
+              <Skeleton className="h-3.5 w-full" />
             </div>
           ))}
         </div>
@@ -223,32 +261,34 @@ export default function SubmissionsPage() {
           statusLabel={submissionStatusLabel}
         />
       ) : (
-        <div className="empty-state">
-          <FileUp size={28} />
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-11 text-center text-muted-foreground">
+          <FileUp className="size-7" />
           {q ? (
-            <p>No submissions match &ldquo;{q}&rdquo;.</p>
+            <p className="text-sm">No submissions match &ldquo;{q}&rdquo;.</p>
           ) : (
             <>
-              <strong>No submissions yet</strong>
-              <p>
+              <strong className="text-foreground">No submissions yet</strong>
+              <p className="max-w-md text-sm">
                 Upload a document to start your first review round. Each new version you upload is
                 nested under the previous one.
               </p>
-              <Link className="button button--primary" href="/groups">
-                <FileUp size={16} />
-                Submit a document
-              </Link>
+              <Button asChild className="mt-2">
+                <Link href="/groups">
+                  <FileUp className="size-4" />
+                  Submit a document
+                </Link>
+              </Button>
             </>
           )}
         </div>
       )}
 
       {!loading && myReviews.some((r) => isReviewOverdue(r)) && (
-        <p className="submissions-note">
-          <CalendarDays size={15} />
+        <p className="mt-5 flex items-center justify-center gap-2 text-sm font-semibold text-warning">
+          <CalendarDays className="size-4" />
           Some of your submissions are past their review due date.
         </p>
       )}
-    </div>
+    </PageContainer>
   );
 }

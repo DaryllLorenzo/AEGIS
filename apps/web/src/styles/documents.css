@@ -1,6 +1,0 @@
-/* Document cards are rendered by the tree view (tree.css).
-   This sheet keeps shared document-page helpers. */
-
-.muted {
-  color: var(--muted);
-}

@@ -28,8 +28,10 @@ import {
   initialsFromName,
 } from "@aegis/domain";
 import type { Review, DocumentDto } from "@aegis/domain";
+import { Button } from "@/components/ui/button";
 import { useFetch } from "@/hooks/useFetch";
 import { useAuth } from "@/lib/auth-context";
+import { cn } from "cn";
 
 import Brand from "./Brand";
 import PdfAnnotator from "../pdf-annotator/PdfAnnotator";
@@ -135,11 +137,16 @@ export default function ReviewWorkspace({ reviewId }: Props) {
 
   function renderMiniPreview(a: Annotation) {
     if (a.type === "highlight") {
-      return <span className="annotation-card__highlight" />;
+      return (
+        <span
+          className="h-2 w-10 rounded-sm opacity-50"
+          style={{ background: getAnnotationColor(a) }}
+        />
+      );
     }
     if (a.type === "rectangle") {
       return (
-        <svg viewBox="0 0 24 16" className="annotation-card__svg">
+        <svg viewBox="0 0 24 16" className="h-full w-auto" style={{ color: getAnnotationColor(a) }}>
           <rect
             x="1"
             y="1"
@@ -155,14 +162,14 @@ export default function ReviewWorkspace({ reviewId }: Props) {
     }
     if (a.type === "circle") {
       return (
-        <svg viewBox="0 0 24 24" className="annotation-card__svg">
+        <svg viewBox="0 0 24 24" className="h-full w-auto" style={{ color: getAnnotationColor(a) }}>
           <circle cx="12" cy="12" r="10" stroke="currentColor" fill="none" strokeWidth="2" />
         </svg>
       );
     }
     if (a.type === "ellipse") {
       return (
-        <svg viewBox="0 0 24 16" className="annotation-card__svg">
+        <svg viewBox="0 0 24 16" className="h-full w-auto" style={{ color: getAnnotationColor(a) }}>
           <ellipse
             cx="12"
             cy="8"
@@ -246,35 +253,39 @@ export default function ReviewWorkspace({ reviewId }: Props) {
     }
   }
 
+  const statusPill = (
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold whitespace-nowrap",
+        isCompleted ? "border-success/40 bg-success/10" : "border-warning/40 bg-warning/15",
+      )}
+      aria-live="polite"
+    >
+      <i className={cn("size-2 rounded-full", isCompleted ? "bg-success" : "bg-warning")} />
+      {isCompleted
+        ? "Your review · Completed"
+        : `Review · ${review ? reviewStatusLabel(review.status) : "Loading"}`}
+    </span>
+  );
+
   return (
-    <main className="workspace">
-      <header className="workspace-header">
-        <Link
-          className="icon-button"
-          href={doc ? `/groups/${doc.groupId}` : "/groups"}
-          aria-label="Back to group"
-        >
-          <ArrowLeft size={22} />
-        </Link>
-        <span className="workspace-header__divider" />
+    <main className="flex h-screen flex-col overflow-hidden bg-muted/60">
+      <header className="relative z-50 flex h-[68px] shrink-0 items-center gap-3 border-b bg-card px-6">
+        <Button asChild variant="ghost" size="icon" className="rounded-full">
+          <Link href={doc ? `/groups/${doc.groupId}` : "/groups"} aria-label="Back to group">
+            <ArrowLeft className="size-5" />
+          </Link>
+        </Button>
+        <span className="h-7 w-px bg-border" />
         <Brand compact />
-        <div className="workspace-header__title">
-          <span>{review?.kind ?? "Review"}</span>
-          <strong>{review?.title ?? "Loading..."}</strong>
+        <div className="flex min-w-0 flex-col">
+          <span className="text-xs text-muted-foreground">{review?.kind ?? "Review"}</span>
+          <strong className="max-w-[390px] truncate">{review?.title ?? "Loading..."}</strong>
         </div>
-        <div className="workspace-header__right">
-          <span
-            className={`workspace-status${isCompleted ? " workspace-status--complete" : ""}`}
-            aria-live="polite"
-          >
-            <i />
-            {isCompleted
-              ? "Your review · Completed"
-              : `Review · ${review ? reviewStatusLabel(review.status) : "Loading"}`}
-          </span>
+        <div className="ml-auto flex items-center gap-3">
+          {statusPill}
           {nextAction ? (
-            <button
-              className="button button--primary"
+            <Button
               type="button"
               onClick={handleAdvance}
               disabled={
@@ -291,120 +302,146 @@ export default function ReviewWorkspace({ reviewId }: Props) {
                     : nextAction.hint
               }
             >
-              {nextAction.verb === "start" ? <Play size={17} /> : <CheckCircle2 size={17} />}
+              {nextAction.verb === "start" ? (
+                <Play className="size-4" />
+              ) : (
+                <CheckCircle2 className="size-4" />
+              )}
               {saving ? "Saving..." : nextAction.label}
-            </button>
+            </Button>
           ) : (
             isCompleted && (
-              <span className="workspace-status workspace-status--complete">
-                <CheckCircle2 size={16} />
+              <span className="inline-flex items-center gap-2 rounded-full border border-success/40 bg-success/10 px-3 py-1.5 text-xs font-semibold whitespace-nowrap">
+                <CheckCircle2 className="size-4" />
                 Review round closed
               </span>
             )
           )}
           {isCompleted && doc && (
-            <Link
-              className="button button--primary"
-              href={`/groups/${doc.groupId}/documents/new?parentId=${doc.id}`}
-            >
-              <FileText size={16} />
-              New version
-            </Link>
+            <Button asChild>
+              <Link href={`/groups/${doc.groupId}/documents/new?parentId=${doc.id}`}>
+                <FileText className="size-4" />
+                New version
+              </Link>
+            </Button>
           )}
-          <button
-            className="icon-button"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
             type="button"
             aria-label="Download document"
             title="Download document"
             onClick={handleDownload}
             disabled={!doc || downloading}
           >
-            <Download size={19} />
-          </button>
-          <button
-            className="icon-button workspace-panel-toggle"
+            <Download className="size-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full max-[1180px]:inline-flex hidden"
             type="button"
             aria-label="Open review panel"
             onClick={() => setRightPanelOpen(true)}
           >
-            <Menu size={20} />
-          </button>
+            <Menu className="size-5" />
+          </Button>
         </div>
       </header>
 
       {error && (
-        <div className="workspace-error" role="alert">
+        <div
+          className="flex items-center justify-center gap-3.5 border-b border-destructive/30 bg-destructive/10 px-5 py-3.5 text-sm text-destructive"
+          role="alert"
+        >
           <p>{error}</p>
-          <Link
-            className="button button--secondary"
-            href={doc ? `/groups/${doc.groupId}` : "/groups"}
-          >
-            Back to group
-          </Link>
+          <Button asChild variant="secondary" size="sm">
+            <Link href={doc ? `/groups/${doc.groupId}` : "/groups"}>Back to group</Link>
+          </Button>
         </div>
       )}
 
       {statusError && (
-        <div className="workspace-error" role="alert">
+        <div
+          className="flex items-center justify-center gap-3.5 border-b border-destructive/30 bg-destructive/10 px-5 py-3.5 text-sm text-destructive"
+          role="alert"
+        >
           <p>{statusError}</p>
-          <div className="workspace-error__actions">
-            <button
-              className="button button--secondary button--sm"
-              type="button"
-              onClick={handleAdvance}
-              disabled={saving}
-            >
-              Try again
-            </button>
-            <button className="text-button" type="button" onClick={() => setStatusError(null)}>
-              Dismiss
-            </button>
-          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            type="button"
+            onClick={handleAdvance}
+            disabled={saving}
+          >
+            Try again
+          </Button>
+          <Button variant="link" size="sm" type="button" onClick={() => setStatusError(null)}>
+            Dismiss
+          </Button>
         </div>
       )}
 
-      <div className="workspace-body">
-        <section className="document-stage">
-          {loading && !error && <div className="annotator-status">Loading document...</div>}
-          {!loading && !error && pdfFile && (
-            <PdfAnnotator
-              documentId={review?.documentId}
-              file={pdfFile}
-              onAnnotationsChange={setAnnotations}
-              readOnly={!canAnnotate}
-            />
-          )}
+      <div className="grid min-h-0 flex-1 grid-cols-1 min-[1180px]:grid-cols-[minmax(0,4fr)_1fr]">
+        <section className="relative flex min-w-0 flex-1 overflow-hidden">
+          <div className="flex w-full items-start justify-center overflow-auto p-8 pb-32 max-md:px-4">
+            {loading && !error && (
+              <div className="p-10 text-center text-muted-foreground">Loading document...</div>
+            )}
+            {!loading && !error && pdfFile && (
+              <PdfAnnotator
+                documentId={review?.documentId}
+                file={pdfFile}
+                onAnnotationsChange={setAnnotations}
+                readOnly={!canAnnotate}
+              />
+            )}
+          </div>
           {!canAnnotate && !loading && !error && (
-            <div className="annotator-lock" role="status">
-              <Lock size={15} aria-hidden="true" />
-              {isCompleted
-                ? "Review round closed — annotations are read-only. Start a new version to continue."
-                : reviewIsInProgress && !groupHasReviewer
-                  ? "Only Reviewers in this group can edit annotations."
-                  : "Start the review to annotate this document."}
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center px-4"
+              role="status"
+            >
+              <span className="flex items-center gap-2 rounded-full border bg-card/95 px-3.5 py-2 text-xs font-semibold text-muted-foreground shadow-md backdrop-blur">
+                <Lock className="size-4" aria-hidden="true" />
+                {isCompleted
+                  ? "Review round closed — annotations are read-only. Start a new version to continue."
+                  : reviewIsInProgress && !groupHasReviewer
+                    ? "Only Reviewers in this group can edit annotations."
+                    : "Start the review to annotate this document."}
+              </span>
             </div>
           )}
         </section>
 
         {rightPanelOpen && (
           <button
-            className="review-panel-backdrop"
+            className="fixed inset-x-0 top-[68px] bottom-0 z-40 bg-foreground/25 min-[1180px]:hidden"
             type="button"
             aria-label="Close review panel"
             onClick={() => setRightPanelOpen(false)}
           />
         )}
-        <aside className={`review-panel${rightPanelOpen ? " review-panel--open" : ""}`}>
-          <div className="review-panel__header">
-            <h2>Annotations ({annotations.length})</h2>
+        <aside
+          className={cn(
+            "fixed top-[68px] right-0 bottom-0 z-40 flex w-[340px] flex-col overflow-hidden border-l bg-card shadow-2xl transition-transform duration-200",
+            "min-[1180px]:static min-[1180px]:z-auto min-[1180px]:w-auto min-[1180px]:translate-x-0 min-[1180px]:shadow-none",
+            rightPanelOpen ? "translate-x-0" : "translate-x-[105%]",
+          )}
+        >
+          <div className="flex h-[58px] flex-none items-center justify-between border-b px-4">
+            <h2 className="text-sm font-semibold">Annotations ({annotations.length})</h2>
           </div>
 
-          <div className="comments-list">
+          <div className="grid min-h-0 flex-1 content-start gap-3.5 overflow-y-auto p-4">
             {annotations.length === 0 ? (
-              <div className="annotation-empty">
-                <MessageSquarePlus size={24} />
-                <p>No annotations yet</p>
-                <small>Use the toolbar to draw shapes or highlight text.</small>
+              <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-5 text-center text-muted-foreground">
+                <MessageSquarePlus className="size-6" />
+                <p className="text-xs font-semibold">No annotations yet</p>
+                <small className="text-[0.72rem]">
+                  Use the toolbar to draw shapes or highlight text.
+                </small>
               </div>
             ) : (
               [...annotations]
@@ -412,16 +449,26 @@ export default function ReviewWorkspace({ reviewId }: Props) {
                 .map((a) => (
                   <article
                     key={a.id}
-                    className="annotation-card"
-                    style={{ "--annotation-color": getAnnotationColor(a) } as React.CSSProperties}
+                    className="flex flex-col gap-2 rounded-lg border border-l-4 bg-card p-3"
+                    style={{ borderLeftColor: getAnnotationColor(a) }}
                   >
-                    <div className="annotation-card__header">
-                      <span className="annotation-card__type">{getAnnotationIcon(a)}</span>
-                      <span className="annotation-card__page">Page {a.page}</span>
-                    </div>
-                    <div className="annotation-card__author">
+                    <div className="flex items-center gap-2">
                       <span
-                        className="annotation-card__avatar"
+                        className="flex size-5 items-center justify-center rounded text-sm font-bold"
+                        style={{
+                          background: `${getAnnotationColor(a)}26`,
+                          color: getAnnotationColor(a),
+                        }}
+                      >
+                        {getAnnotationIcon(a)}
+                      </span>
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        Page {a.page}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="flex size-5 items-center justify-center rounded-full border text-[0.62rem] font-bold"
                         style={{
                           background: `${authorChipColor(a.authorName)}1a`,
                           borderColor: `${authorChipColor(a.authorName)}55`,
@@ -430,14 +477,20 @@ export default function ReviewWorkspace({ reviewId }: Props) {
                       >
                         {initialsFromName(a.authorName ?? "?")}
                       </span>
-                      <span className="annotation-card__author-name">
+                      <span className="text-xs font-semibold">
                         {a.authorName ?? "Unknown author"}
                       </span>
                     </div>
                     {a.geometry && (
-                      <div className="annotation-card__preview">{renderMiniPreview(a)}</div>
+                      <div className="flex h-7 items-center justify-center opacity-60">
+                        {renderMiniPreview(a)}
+                      </div>
                     )}
-                    {a.content ? <p className="annotation-card__comment">{a.content}</p> : null}
+                    {a.content ? (
+                      <p className="rounded border bg-muted/50 px-2.5 py-2 text-[0.74rem] leading-relaxed whitespace-pre-wrap break-words">
+                        {a.content}
+                      </p>
+                    ) : null}
                   </article>
                 ))
             )}

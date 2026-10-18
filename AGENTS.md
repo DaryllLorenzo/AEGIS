@@ -122,7 +122,12 @@ npm run build -w @aegis/web
 
 ## Web conventions (`apps/web/src`)
 
-- Routes: `(auth)` group = signed-in AppShell; `/login/*` public; `reviews/[id]/workspace` is a full-screen page.
+- Routes: `(auth)` group = signed-in AppShell; `/login/*` public;
+  `(auth)/groups/[id]/reviews/[reviewId]/workspace` is a full-screen page.
+- **Styling**: Tailwind CSS v4 + shadcn/ui primitives in `src/components/ui/` (import `cn` from
+  the `cn` package — there is no `@/lib/utils`). The only stylesheet is `src/app/globals.css`
+  (design tokens + base layer); compose utilities in JSX (`PageContainer` is the centered column).
+  Don't reintroduce CSS modules / `src/styles/`.
 - **Shared packages**: DTO types + `review-machine` + display utils come from `@aegis/domain`;
   `fetch`/auth-token plumbing and endpoint functions from `@aegis/api-client` (source-only —
   they are wired through `transpilePackages` in `next.config.ts`; never import them via a

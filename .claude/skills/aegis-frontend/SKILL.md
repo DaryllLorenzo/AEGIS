@@ -16,6 +16,21 @@ description: Use when adding or changing UI code in apps/web or the shared packa
 - No tests exist. The gates, from the repo root: `npm run typecheck`, `npm run lint`,
   `npm run format:check`, `npm run build -w @aegis/web`.
 
+## Styling
+
+Tailwind CSS v4 + shadcn/ui. Compose utility classes in JSX.
+
+- The **only** stylesheet is `src/app/globals.css` (design tokens + `@theme inline` + base layer).
+  Do not add CSS modules or a `src/styles/` folder.
+- Primitives live in `src/components/ui/` (add more with `npx shadcn@latest add <name> -y`; the
+  `-y` flag is required or the CLI hangs). Import `cn` from the `cn` package — there is no
+  `@/lib/utils`. `cn` is also exported by `cn` for conditional classes.
+- Wrap page content in `PageContainer` (centered column); use kitchen-sink utilities otherwise.
+- Colors come from tokens (`bg-card`, `text-muted-foreground`, `text-destructive`, `bg-success/10`,
+  `border-warning/40`, ...). Don't hardcode hex values in JSX.
+- `apps/web/components.json` holds the shadcn config; `postcss.config.mjs` registers
+  `@tailwindcss/postcss`.
+
 ## Enum normalization
 
 Backend serializes enums as numbers. Add a `normalize*` like `normalizeReviewStatus`

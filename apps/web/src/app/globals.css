@@ -1,19 +1,189 @@
-@import "../styles/variables.css";
-@import "../styles/reset.css";
-@import "../styles/buttons.css";
-@import "../styles/forms.css";
-@import "../styles/tree.css";
-@import "../styles/shell.css";
-@import "../styles/login.css";
-@import "../styles/layout.css";
-@import "../styles/components.css";
-@import "../styles/lists.css";
-@import "../styles/groups.css";
-@import "../styles/documents.css";
-@import "../styles/reviews.css";
-@import "../styles/workspace.css";
-@import "../styles/annotations.css";
-@import "../styles/navigation.css";
-@import "../styles/session-warning.css";
-@import "../styles/responsive.css";
-@import "../styles/compact.css";
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* AEGIS design tokens — green academic palette, modern neutrals. */
+:root {
+  --radius: 0.625rem;
+
+  --background: #f3f6f8;
+  --foreground: #171b1e;
+
+  --card: #ffffff;
+  --card-foreground: #171b1e;
+
+  --popover: #ffffff;
+  --popover-foreground: #171b1e;
+
+  --primary: #005134;
+  --primary-foreground: #ffffff;
+
+  --secondary: #edf3ef;
+  --secondary-foreground: #073b28;
+
+  --muted: #eef1f0;
+  --muted-foreground: #5b646c;
+
+  --accent: #eff8f4;
+  --accent-foreground: #073b28;
+
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+
+  --border: #dce3df;
+  --input: #c8d2cc;
+  --ring: #005134;
+
+  --success: #14a95d;
+  --success-foreground: #ffffff;
+  --warning: #d99a00;
+  --warning-foreground: #3d2b00;
+  --info: #2563eb;
+  --info-foreground: #ffffff;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #4f565b;
+  --sidebar-primary: #005134;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #edf1f2;
+  --sidebar-accent-foreground: #073b28;
+  --sidebar-border: #dce3df;
+  --sidebar-ring: #005134;
+}
+
+.dark {
+  --background: #0e1512;
+  --foreground: #eef2f0;
+
+  --card: #151d19;
+  --card-foreground: #eef2f0;
+
+  --popover: #151d19;
+  --popover-foreground: #eef2f0;
+
+  --primary: #2fbc7f;
+  --primary-foreground: #052018;
+
+  --secondary: #1c2621;
+  --secondary-foreground: #d9e5df;
+
+  --muted: #1a231e;
+  --muted-foreground: #9aa8a1;
+
+  --accent: #1c2621;
+  --accent-foreground: #d9e5df;
+
+  --destructive: #f97066;
+  --destructive-foreground: #2a0a06;
+
+  --border: #26332c;
+  --input: #2f3f37;
+  --ring: #2fbc7f;
+
+  --success: #2fbc7f;
+  --warning: #e0b74a;
+  --info: #6b9bff;
+
+  --sidebar: #121a16;
+  --sidebar-foreground: #b7c3bd;
+  --sidebar-primary: #2fbc7f;
+  --sidebar-primary-foreground: #052018;
+  --sidebar-accent: #1c2621;
+  --sidebar-accent-foreground: #d9e5df;
+  --sidebar-border: #26332c;
+  --sidebar-ring: #2fbc7f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: "Aptos", "Inter", "Segoe UI", Arial, sans-serif;
+  --font-heading: "Aptos Display", "Segoe UI", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply bg-background;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-heading text-balance;
+  }
+
+  h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  h2 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-lg font-semibold;
+  }
+
+  code {
+    @apply font-mono rounded border bg-muted px-1.5 py-0.5 text-[0.85em];
+  }
+
+  ::selection {
+    @apply bg-primary/20;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply text-xs font-bold uppercase tracking-wide text-primary;
+  }
+}

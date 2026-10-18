@@ -2,20 +2,22 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  FileText,
-  GraduationCap,
-  Home,
-  LogOut,
-  Menu,
-  Search,
-  SlidersHorizontal,
-  UserCog,
-  Users,
-  X,
-} from "lucide-react";
+import { FileText, GraduationCap, Home, LogOut, Menu, Search, UserCog, Users } from "lucide-react";
 import { useState } from "react";
 
+import { initialsFromName } from "@aegis/domain";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "cn";
 import Brand from "./Brand";
 import { useAuth } from "@/lib/auth-context";
 
@@ -41,10 +43,8 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
   const { user, logout } = useAuth();
   const navItems = user?.isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems;
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [optionsOpen, setOptionsOpen] = useState(false);
 
   function handleLogout() {
-    setOptionsOpen(false);
     logout();
     router.push("/login");
   }
@@ -54,89 +54,103 @@ export default function AppShell({ children, searchPlaceholder = "Search..." }: 
     return pathname.startsWith(href);
   }
 
-  return (
-    <div className="app-shell">
-      <button
-        className="mobile-menu-button icon-button"
-        type="button"
-        aria-label="Open navigation"
-        onClick={() => setMobileOpen(true)}
-      >
-        <Menu size={21} />
-      </button>
-
-      {mobileOpen && (
-        <button
-          className="nav-backdrop"
-          aria-label="Close navigation"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      <aside className={`sidebar${mobileOpen ? " sidebar--open" : ""}`}>
-        <div className="sidebar__header">
-          <Brand />
-          <button
-            className="sidebar__close icon-button"
-            type="button"
-            aria-label="Close navigation"
+  const nav = (
+    <nav className="grid gap-1">
+      {navItems.map(({ href, label, icon: Icon }) => {
+        const active = isActive(href);
+        return (
+          <Link
+            key={href}
+            href={href}
             onClick={() => setMobileOpen(false)}
+            className={cn(
+              "flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+              active
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+            )}
           >
-            <X size={20} />
-          </button>
-        </div>
+            <Icon className="size-5" strokeWidth={1.8} />
+            <span>{label}</span>
+            {active && <span className="ml-auto h-5 w-1 rounded-full bg-sidebar-primary" />}
+          </Link>
+        );
+      })}
+    </nav>
+  );
 
-        <nav className="sidebar__nav" aria-label="Main navigation">
-          {navItems.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`nav-item${isActive(href) ? " nav-item--active" : ""}`}
-              onClick={() => setMobileOpen(false)}
-            >
-              <Icon size={19} strokeWidth={1.8} />
-              <span>{label}</span>
-            </Link>
-          ))}
-        </nav>
+  const initials = initialsFromName(user?.displayName ?? "?");
+
+  return (
+    <div className="min-h-screen">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r bg-card px-4 py-6 md:flex">
+        <Brand />
+        <div className="mt-8">{nav}</div>
       </aside>
 
-      <div className="app-frame">
-        <header className="topbar">
-          <label className="search-field">
-            <Search size={18} aria-hidden="true" />
-            <input aria-label={searchPlaceholder} placeholder={searchPlaceholder} />
-          </label>
-          <div className="topbar__actions">
-            <div className="shell-options-wrap">
-              <button
-                className={`icon-button shell-options-button${optionsOpen ? " is-active" : ""}`}
-                type="button"
-                aria-label="Open account options"
-                aria-expanded={optionsOpen}
-                onClick={() => setOptionsOpen((value) => !value)}
+      <div className="flex min-h-screen flex-col md:pl-64">
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur md:px-8">
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                aria-label="Open navigation"
               >
-                <SlidersHorizontal size={19} />
-              </button>
-              {optionsOpen && (
-                <nav className="shell-options" aria-label="Account options">
-                  <div className="shell-options__title">
-                    <span>Options</span>
-                    <small>
-                      {user?.displayName ?? "Guest"}
-                      {user?.isAdmin ? " · Administrator" : ""}
-                    </small>
-                  </div>
-                  <button type="button" onClick={handleLogout} className="shell-options__logout">
-                    <LogOut size={17} />
-                    <span>Sign out</span>
-                  </button>
-                </nav>
-              )}
-            </div>
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 px-4 py-6">
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <Brand />
+              <div className="mt-8">{nav}</div>
+            </SheetContent>
+          </Sheet>
+
+          <label className="flex h-10 w-full max-w-xs items-center gap-2 rounded-full border bg-card px-4 transition-colors focus-within:border-primary focus-within:ring-[3px] focus-within:ring-ring/20">
+            <Search className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+            <input
+              aria-label={searchPlaceholder}
+              placeholder={searchPlaceholder}
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+          </label>
+
+          <div className="ml-auto flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full"
+                  aria-label="Account options"
+                >
+                  <Avatar className="size-8">
+                    <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-60">
+                <DropdownMenuLabel className="flex flex-col gap-0.5">
+                  <span className="text-sm font-semibold">{user?.displayName ?? "Guest"}</span>
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {user?.isAdmin ? "Administrator" : "Member"}
+                  </span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onSelect={handleLogout}>
+                  <LogOut className="size-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
-        <main className="app-main">{children}</main>
+
+        <main className="flex-1">{children}</main>
       </div>
     </div>
   );

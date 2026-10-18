@@ -6,8 +6,11 @@ import { useParams } from "next/navigation";
 import { ArrowUpRight, FileUp } from "lucide-react";
 
 import DocumentTree, { buildDocumentTree, buildReviewMap } from "@/components/aegis/DocumentTree";
+import PageContainer from "@/components/aegis/PageContainer";
 import StatusPill from "@/components/aegis/StatusPill";
 import TypeBadge from "@/components/aegis/TypeBadge";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useGroup } from "@/hooks/useGroup";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useReviews } from "@/hooks/useReviews";
@@ -15,6 +18,24 @@ import { useFetch } from "@/hooks/useFetch";
 import { getGroupMembers } from "@aegis/api-client";
 import { initialsFromName, reviewStatusLabel } from "@aegis/domain";
 import type { GroupMember } from "@aegis/domain";
+import { cn } from "cn";
+
+const ROLE_TONES: Record<string, string> = {
+  creator: "border-warning/40 bg-warning/15 text-warning",
+  submitter: "border-info/30 bg-info/10 text-info",
+  reviewer: "border-violet-300 bg-violet-500/10 text-violet-600",
+};
+
+const panel = "rounded-xl border bg-card p-6 shadow-sm";
+
+function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <div className="mb-4">
+      <p className="eyebrow">{eyebrow}</p>
+      <h2 className="mt-1 text-base font-semibold">{title}</h2>
+    </div>
+  );
+}
 
 export default function GroupOverviewPage() {
   const params = useParams();
@@ -58,84 +79,83 @@ export default function GroupOverviewPage() {
 
   if (error) {
     return (
-      <div className="page-container">
-        <p>{error}</p>
-        <Link href="/groups">Back to groups</Link>
-      </div>
+      <PageContainer>
+        <p className="text-sm text-destructive">{error}</p>
+        <Link href="/groups" className="text-sm font-semibold text-primary hover:underline">
+          Back to groups
+        </Link>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="page-container group-page">
-      <div className="breadcrumb">
-        <Link href="/groups">Groups</Link>
+    <PageContainer>
+      <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/groups" className="hover:text-primary">
+          Groups
+        </Link>
         <span>/</span>
         <span>{group?.name ?? "Loading..."}</span>
       </div>
-      <div className="page-heading">
+
+      <div className="mb-7">
         <p className="eyebrow">Research group</p>
-        <h1 className="serif-title">{group?.name ?? "Loading..."}</h1>
-        <p>{group?.description ?? " "}</p>
+        <h1 className="font-heading mt-1">{group?.name ?? "Loading..."}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{group?.description ?? " "}</p>
       </div>
 
-      <div className="group-layout">
-        <div className="group-layout__main">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_310px]">
+        <div className="grid gap-5">
           {documents.length === 0 ? (
-            <section className="content-panel">
-              <div className="empty-state">
-                <FileUp size={28} />
-                <strong>No document in review yet in this group.</strong>
-                <p>Upload a PDF to start the first review round in this group.</p>
-                <Link className="button button--primary" href={`/groups/${groupId}/documents/new`}>
-                  <FileUp size={16} />
-                  Upload document
-                </Link>
+            <section className={panel}>
+              <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-11 text-center text-muted-foreground">
+                <FileUp className="size-7" />
+                <strong className="text-foreground">
+                  No document in review yet in this group.
+                </strong>
+                <p className="text-sm">
+                  Upload a PDF to start the first review round in this group.
+                </p>
+                <Button asChild className="mt-2">
+                  <Link href={`/groups/${groupId}/documents/new`}>
+                    <FileUp className="size-4" />
+                    Upload document
+                  </Link>
+                </Button>
               </div>
             </section>
           ) : (
             <>
-              <section className="content-panel">
-                <div className="section-heading section-heading--compact">
-                  <div>
-                    <p className="eyebrow">Document</p>
-                    <h2>Current version</h2>
-                  </div>
-                </div>
-                <div className="doc-tree-title">
-                  <strong>{primaryDoc?.name}</strong>
-                  {primaryDoc && <code className="doc-tree-version">v{primaryDoc.version}</code>}
+              <section className={panel}>
+                <SectionHeading eyebrow="Document" title="Current version" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <strong className="text-sm font-semibold">{primaryDoc?.name}</strong>
+                  {primaryDoc && (
+                    <code className="rounded border bg-muted px-1.5 py-0.5 text-xs">
+                      v{primaryDoc.version}
+                    </code>
+                  )}
                   {primaryDoc && <TypeBadge type={primaryDoc.type} />}
                   {latestReview && <StatusPill status={reviewStatusLabel(latestReview.status)} />}
                 </div>
-                <div className="detail-hint">
-                  {reviews.filter((r) => r.status !== "Completed").length} open review(s);{" "}
-                  {completedCount} completed.
-                </div>
+                <p className="mt-2.5 text-sm text-muted-foreground">
+                  {openCount} open review(s); {completedCount} completed.
+                </p>
               </section>
 
-              <section className="content-panel">
-                <div className="section-heading section-heading--compact">
-                  <div>
-                    <p className="eyebrow">Versioning</p>
-                    <h2>Document versions</h2>
-                  </div>
-                </div>
+              <section className={panel}>
+                <SectionHeading eyebrow="Versioning" title="Document versions" />
                 <DocumentTree nodes={nodes} reviewsByDocument={reviewsByDocument} />
               </section>
 
-              <section className="content-panel">
-                <div className="section-heading section-heading--compact">
-                  <div>
-                    <p className="eyebrow">Review rounds</p>
-                    <h2>Reviews for this document</h2>
-                  </div>
-                </div>
+              <section className={panel}>
+                <SectionHeading eyebrow="Review rounds" title="Reviews for this document" />
                 {reviews.length === 0 ? (
-                  <p className="muted">
+                  <p className="text-sm text-muted-foreground">
                     No review rounds yet. Each uploaded version can start one.
                   </p>
                 ) : (
-                  <ul className="review-list">
+                  <ul className="grid gap-1">
                     {reviews
                       .slice()
                       .sort(
@@ -144,24 +164,26 @@ export default function GroupOverviewPage() {
                       .map((review) => {
                         const rDoc = docById.get(review.documentId);
                         return (
-                          <li key={review.id} className="review-list__row">
+                          <li
+                            key={review.id}
+                            className="flex flex-wrap items-center gap-3 rounded-lg px-2 py-2 transition hover:bg-muted/60"
+                          >
                             <Link
-                              className="review-list__main"
+                              className="grid flex-1 gap-0.5"
                               href={`/groups/${groupId}/reviews/${review.id}/workspace`}
                             >
-                              <strong>{review.title}</strong>
-                              <small>
+                              <strong className="text-sm font-semibold">{review.title}</strong>
+                              <small className="text-xs text-muted-foreground">
                                 {rDoc?.name ?? "Document"} · v{rDoc?.version ?? "?"} ·{" "}
                                 {review.assigneeName ?? "Unassigned"}
                               </small>
                             </Link>
                             <StatusPill status={reviewStatusLabel(review.status)} />
-                            <Link
-                              className="button button--secondary button--sm"
-                              href={`/groups/${groupId}/reviews/${review.id}/workspace`}
-                            >
-                              Open review
-                            </Link>
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/groups/${groupId}/reviews/${review.id}/workspace`}>
+                                Open review
+                              </Link>
+                            </Button>
                           </li>
                         );
                       })}
@@ -172,55 +194,68 @@ export default function GroupOverviewPage() {
           )}
         </div>
 
-        <aside className="group-layout__aside">
-          <section className="content-panel stats-panel">
-            <h2>Group stats</h2>
-            <div>
-              <span>
-                <strong>{documents.length}</strong>
-                Documents
-              </span>
-              <span>
-                <strong>{versionsCount}</strong>
-                Versions
-              </span>
-              <span>
-                <strong>{members.length}</strong>
-                Participants
-              </span>
-              <span>
-                <strong>{openCount}</strong>
-                Open reviews
-              </span>
-              <span>
-                <strong>{completedCount}</strong>
+        <aside className="grid content-start gap-5 max-lg:grid-cols-2 max-md:grid-cols-1">
+          <section className={cn(panel, "max-lg:col-span-2 max-md:col-span-1")}>
+            <h2 className="text-base font-semibold">Group stats</h2>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {[
+                { label: "Documents", value: documents.length },
+                { label: "Versions", value: versionsCount },
+                { label: "Participants", value: members.length },
+                { label: "Open reviews", value: openCount },
+              ].map((s) => (
+                <span
+                  key={s.label}
+                  className="flex flex-col items-center gap-0.5 rounded-lg border bg-muted/40 px-2 py-3.5 text-center text-xs text-muted-foreground"
+                >
+                  <strong className="font-heading text-2xl font-bold text-primary">
+                    {s.value}
+                  </strong>
+                  {s.label}
+                </span>
+              ))}
+              <span className="col-span-2 flex flex-row items-baseline justify-center gap-2 rounded-lg border bg-muted/40 px-2 py-3.5 text-xs text-muted-foreground">
+                <strong className="font-heading text-xl font-bold text-primary">
+                  {completedCount}
+                </strong>
                 Completed
               </span>
             </div>
           </section>
 
-          <section className="content-panel">
-            <div className="section-heading section-heading--compact">
-              <div>
-                <p className="eyebrow">Membership</p>
-                <h2>Participants</h2>
-              </div>
-            </div>
+          <section className={panel}>
+            <SectionHeading eyebrow="Membership" title="Participants" />
             {members.length === 0 ? (
-              <p className="muted">No participants linked to this group yet.</p>
+              <p className="text-sm text-muted-foreground">
+                No participants linked to this group yet.
+              </p>
             ) : (
-              <ul className="member-list">
+              <ul className="grid gap-1">
                 {members.map((m) => (
-                  <li key={m.id} className="member-list__row">
-                    <span className="member-list__avatar" aria-hidden="true">
+                  <li
+                    key={m.id}
+                    className="flex items-center gap-2.5 rounded-lg px-1 py-1.5 transition hover:bg-muted/60"
+                  >
+                    <span
+                      className="flex size-7 items-center justify-center rounded-full border border-info/30 bg-info/10 text-[0.68rem] font-bold text-info"
+                      aria-hidden="true"
+                    >
                       {initialsFromName(m.displayName)}
                     </span>
-                    <span className="member-list__name">{m.displayName}</span>
-                    <span className="member-list__roles">
+                    <span className="text-sm">{m.displayName}</span>
+                    <span className="ml-auto flex flex-wrap gap-1">
                       {m.roles.map((role) => (
-                        <span key={role} className={`role-badge role-badge--${role.toLowerCase()}`}>
+                        <Badge
+                          key={role}
+                          variant="outline"
+                          className={cn(
+                            "font-bold uppercase",
+                            ROLE_TONES[role.toLowerCase()] ??
+                              "border-border bg-muted text-muted-foreground",
+                          )}
+                        >
                           {role}
-                        </span>
+                        </Badge>
                       ))}
                     </span>
                   </li>
@@ -231,30 +266,28 @@ export default function GroupOverviewPage() {
 
           {latestReview && (
             <Link
-              className="content-panel latest-review"
+              className={cn(panel, "grid gap-2 transition hover:border-primary/40 hover:shadow-md")}
               href={`/groups/${groupId}/reviews/${latestReview.id}/workspace`}
             >
-              <div className="section-heading section-heading--compact">
+              <div className="flex items-center justify-between">
                 <div>
                   <p className="eyebrow">Latest activity</p>
-                  <h2>Most recent review</h2>
+                  <h2 className="mt-1 text-base font-semibold">Most recent review</h2>
                 </div>
-                <ArrowUpRight size={17} />
+                <ArrowUpRight className="size-4 text-muted-foreground" />
               </div>
-              <strong>{latestReview.title}</strong>
-              <p>
+              <strong className="text-sm font-semibold break-words">{latestReview.title}</strong>
+              <p className="text-sm text-muted-foreground">
                 {docById.get(latestReview.documentId)?.name ?? "Document"}
                 {docById.get(latestReview.documentId)?.version
                   ? ` · v${docById.get(latestReview.documentId)!.version}`
                   : ""}
               </p>
-              <span className={`status-pill status-pill--${latestReview.status.toLowerCase()}`}>
-                {reviewStatusLabel(latestReview.status)}
-              </span>
+              <StatusPill status={reviewStatusLabel(latestReview.status)} />
             </Link>
           )}
         </aside>
       </div>
-    </div>
+    </PageContainer>
   );
 }

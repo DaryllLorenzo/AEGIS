@@ -23,8 +23,8 @@ file storage.
 │   │   ├── Dockerfile                # Multi-stage build, context = repository root
 │   │   └── Program.cs                # Composition root (DI, CORS, JWT, seeding)
 │   └── web/                          # Next.js App Router frontend
-│       └── src/                      # app/ (auth group + public login), components/,
-│                                     # hooks/, lib/, styles/
+│       └── src/                      # app/ (auth group + public login), components/
+│                                     # (aegis/, pdf-annotator/, ui/), hooks/, lib/
 ├── packages/
 │   ├── dotnet/                       # Class libraries composed by apps/api
 │   │   ├── Aegis.Common/             # Paging + Selection (PaginatedList<T>, SieveRequest)

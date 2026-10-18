@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 
 import { reviewStatusLabel } from "@aegis/domain";
 import type { DocumentDto, Review } from "@aegis/domain";
+import { cn } from "cn";
 
 type VersionChainProps = {
   docs: DocumentDto[];
@@ -47,43 +48,64 @@ export default function VersionChain({
   if (chain.length < 2) return null;
 
   return (
-    <ol className="lineage lineage--compact" aria-label="Version history">
+    <ol className="flex flex-wrap items-center gap-1.5" aria-label="Version history">
       {chain.map((doc) => {
         const version = doc.version;
         const review = reviewByDoc.get(doc.id);
         const isCurrent = doc.id === currentDocId;
 
+        const chipClass = cn(
+          "inline-flex flex-wrap items-center gap-1.5 rounded-lg border bg-card px-2.5 py-1.5 text-xs transition",
+          isCurrent && "border-primary ring-2 ring-primary/15",
+        );
+
         return (
           <Fragment key={doc.id}>
             {chain.indexOf(doc) > 0 && (
-              <ArrowRight className="lineage-sep" size={12} aria-hidden="true" />
+              <ArrowRight className="size-3 shrink-0 text-muted-foreground" aria-hidden="true" />
             )}
             <li>
               {review ? (
                 <Link
-                  className={`lineage-chip${isCurrent ? " lineage-chip--current" : ""}`}
+                  className={cn(chipClass, "hover:border-primary hover:shadow-sm")}
                   href={`/groups/${doc.groupId}/reviews/${review.id}/workspace`}
                   title={`Version ${version} — ${doc.name} (${reviewStatusLabel(review.status)})`}
                 >
-                  <code>v{version}</code>
-                  {showNames && <span>{doc.name}</span>}
+                  <code className="rounded border bg-muted px-1.5 py-0.5 text-primary">
+                    v{version}
+                  </code>
+                  {showNames && (
+                    <span className="max-w-[180px] truncate font-semibold">{doc.name}</span>
+                  )}
                   {review.status !== "Completed" && (
                     <em
-                      className={`lineage-chip__status lineage-chip__status--${review.status.toLowerCase()}`}
+                      className={cn(
+                        "text-[0.68rem] font-bold uppercase not-italic",
+                        review.status === "InProgress" ? "text-warning" : "text-info",
+                      )}
                     >
                       {reviewStatusLabel(review.status)}
                     </em>
                   )}
-                  {isCurrent && <em className="lineage-chip__current">Current</em>}
+                  {isCurrent && (
+                    <em className="rounded bg-primary px-1.5 py-0.5 text-[0.64rem] font-bold tracking-wide text-primary-foreground uppercase not-italic">
+                      Current
+                    </em>
+                  )}
                 </Link>
               ) : (
-                <span
-                  className={`lineage-chip lineage-chip--plain${isCurrent ? " lineage-chip--current" : ""}`}
-                  title={`Version ${version} — ${doc.name}`}
-                >
-                  <code>v{version}</code>
-                  {showNames && <span>{doc.name}</span>}
-                  {isCurrent && <em className="lineage-chip__current">Current</em>}
+                <span className={chipClass} title={`Version ${version} — ${doc.name}`}>
+                  <code className="rounded border bg-muted px-1.5 py-0.5 text-primary">
+                    v{version}
+                  </code>
+                  {showNames && (
+                    <span className="max-w-[180px] truncate font-semibold">{doc.name}</span>
+                  )}
+                  {isCurrent && (
+                    <em className="rounded bg-primary px-1.5 py-0.5 text-[0.64rem] font-bold tracking-wide text-primary-foreground uppercase not-italic">
+                      Current
+                    </em>
+                  )}
                 </span>
               )}
             </li>

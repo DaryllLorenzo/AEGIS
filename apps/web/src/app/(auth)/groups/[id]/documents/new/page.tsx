@@ -14,6 +14,52 @@ import {
   getUserSelect,
 } from "@aegis/api-client";
 import type { GroupDto, DocumentDto, DocumentType, SelectItem } from "@aegis/domain";
+import PageContainer from "@/components/aegis/PageContainer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem as SelectOption,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "cn";
+
+const NONE = "__none__";
+
+function StepCard({
+  number,
+  icon,
+  title,
+  description,
+  children,
+}: {
+  number: string;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="overflow-hidden rounded-xl border bg-card">
+      <header className="flex items-center gap-3.5 border-b bg-muted/40 px-4 py-3.5">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+          {number}
+        </span>
+        <div>
+          <h2 className="flex items-center gap-2 text-base font-semibold">
+            <span className="text-primary">{icon}</span>
+            {title}
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+        </div>
+      </header>
+      <div className="grid gap-4 p-4">{children}</div>
+    </section>
+  );
+}
 
 function NewReviewForm() {
   const router = useRouter();
@@ -28,7 +74,7 @@ function NewReviewForm() {
   const [dueDate, setDueDate] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
-  const [groupId, setGroupId] = useState(groupIdParam);
+  const [groupId] = useState(groupIdParam);
   const [documentId, setDocumentId] = useState("");
   const [docType, setDocType] = useState<DocumentType>("Thesis");
   const [mode, setMode] = useState<"upload" | "existing">("upload");
@@ -127,8 +173,8 @@ function NewReviewForm() {
     if (!title.trim()) return;
     if (fileError) return;
 
-    const needsUpload = isVersion || mode === "upload";
-    if (needsUpload && (!file || !groupId)) return;
+    const needsUploadCheck = isVersion || mode === "upload";
+    if (needsUploadCheck && (!file || !groupId)) return;
     if (!isVersion && mode === "existing" && !documentId) return;
 
     setSubmitting(true);
@@ -137,7 +183,7 @@ function NewReviewForm() {
     try {
       let docId = documentId;
 
-      if (needsUpload && file && groupId) {
+      if (needsUploadCheck && file && groupId) {
         const doc = await uploadDocument(
           file,
           title,
@@ -172,10 +218,13 @@ function NewReviewForm() {
     (needsUpload ? !!file && !!groupId : !!documentId);
 
   return (
-    <form className="form-panel" onSubmit={handleSubmit}>
+    <form className="grid max-w-3xl gap-5" onSubmit={handleSubmit}>
       {isVersion && (
-        <div className="banner banner--success" role="status">
-          <Info size={16} />
+        <div
+          className="flex items-start gap-2.5 rounded-lg border border-success/30 bg-success/10 px-3.5 py-3 text-sm text-primary"
+          role="status"
+        >
+          <Info className="mt-0.5 size-4 shrink-0 text-success" />
           <p>
             Creating a new version. A fresh PDF is required — the new document inherits its
             parent&apos;s name and the next version number.
@@ -183,273 +232,280 @@ function NewReviewForm() {
         </div>
       )}
 
-      <section className="form-step">
-        <header className="form-step__header">
-          <span className="form-step__number">1</span>
-          <div>
-            <h2>
-              <FolderTree size={18} /> Choose a group
-            </h2>
-            <p>Groups keep documents, versions, and reviews together.</p>
-          </div>
-        </header>
-        <div className="form-step__body">
-          <div className="field">
-            <label htmlFor="review-group">Group</label>
-            <select
-              id="review-group"
-              value={groupId}
-              onChange={(e) => setGroupId(e.target.value)}
-              required
-              disabled
-            >
-              <option value="">Select a group</option>
+      <StepCard
+        number="1"
+        icon={<FolderTree className="size-4" />}
+        title="Choose a group"
+        description="Groups keep documents, versions, and reviews together."
+      >
+        <div className="grid gap-2">
+          <Label htmlFor="review-group">Group</Label>
+          <Select value={groupId} disabled>
+            <SelectTrigger id="review-group" className="w-full">
+              <SelectValue placeholder="Select a group" />
+            </SelectTrigger>
+            <SelectContent>
               {groups.map((g) => (
-                <option key={g.id} value={g.id}>
+                <SelectOption key={g.id} value={g.id}>
                   {g.name}
-                </option>
+                </SelectOption>
               ))}
-            </select>
-            {selectedGroup && (
-              <p className="field__hint">
-                Being created in {selectedGroup.name}; members are validated for this group.
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="form-step">
-        <header className="form-step__header">
-          <span className="form-step__number">2</span>
-          <div>
-            <h2>
-              <FileUp size={18} /> Add the document
-            </h2>
-            <p>
-              {isVersion
-                ? "Upload the new PDF for this version."
-                : "Upload a new PDF or review a document that already exists in the group."}
+            </SelectContent>
+          </Select>
+          {selectedGroup && (
+            <p className="text-xs text-muted-foreground">
+              Being created in {selectedGroup.name}; members are validated for this group.
             </p>
-          </div>
-        </header>
-        <div className="form-step__body">
-          {isVersion ? (
-            <>
-              <div className="field">
-                <label htmlFor="review-file">
-                  PDF file <span className="field__required">Required</span>
-                </label>
-                <input
-                  id="review-file"
-                  type="file"
-                  accept="application/pdf"
-                  onChange={handleFileChange}
-                  required
-                />
-                {fileError ? (
-                  <p className="field__error" role="alert">
-                    {fileError}
-                  </p>
-                ) : (
-                  file && <p className="field__hint">{file.name}</p>
-                )}
-              </div>
-              {parent && (
-                <div className="field__row">
-                  <div className="field">
-                    <label>Document name</label>
-                    <p className="field__static">{parent.name}</p>
-                    <p className="field__hint">Inherited from v{parent.version}</p>
-                  </div>
-                  <div className="field">
-                    <label>Version</label>
-                    <p className="field__static">v{parent.version + 1}</p>
-                    <p className="field__hint">Auto-incremented, not editable</p>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="segmented" role="group" aria-label="Document source">
-                <button
-                  type="button"
-                  className={mode === "upload" ? "is-active" : ""}
-                  onClick={() => setMode("upload")}
-                >
-                  <Upload size={15} />
-                  Upload new file
-                </button>
-                <button
-                  type="button"
-                  className={mode === "existing" ? "is-active" : ""}
-                  onClick={() => setMode("existing")}
-                >
-                  <FileUp size={15} />
-                  Use existing document
-                </button>
-              </div>
-
-              {mode === "upload" && (
-                <>
-                  <div className="field">
-                    <label htmlFor="review-file">PDF file</label>
-                    <input
-                      id="review-file"
-                      type="file"
-                      accept="application/pdf"
-                      onChange={handleFileChange}
-                      required
-                    />
-                    {fileError && (
-                      <p className="field__error" role="alert">
-                        {fileError}
-                      </p>
-                    )}
-                  </div>
-                  <div className="field">
-                    <label htmlFor="review-type">Document type</label>
-                    <select
-                      id="review-type"
-                      value={docType}
-                      onChange={(e) => setDocType(e.target.value as DocumentType)}
-                    >
-                      <option value="Thesis">Thesis</option>
-                      <option value="Article">Article</option>
-                    </select>
-                  </div>
-                </>
-              )}
-
-              {mode === "existing" && (
-                <div className="field">
-                  <label htmlFor="review-document">Document</label>
-                  <select
-                    id="review-document"
-                    value={documentId}
-                    onChange={(e) => setDocumentId(e.target.value)}
-                    required
-                    disabled={!groupId}
-                  >
-                    <option value="">Select a document</option>
-                    {documents.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} (v{d.version})
-                      </option>
-                    ))}
-                  </select>
-                  {!groupId && (
-                    <p className="field__hint">Choose a group first to see its documents.</p>
-                  )}
-                </div>
-              )}
-            </>
           )}
         </div>
-      </section>
+      </StepCard>
 
-      <section className="form-step">
-        <header className="form-step__header">
-          <span className="form-step__number">{isVersion ? "3" : "3"}</span>
-          <div>
-            <h2>
-              <Tag size={18} /> Review details
-            </h2>
-            <p>Name the review round and set expectations for the reviewer.</p>
-          </div>
-        </header>
-        <div className="form-step__body">
-          <div className="field">
-            <label htmlFor="review-title">Document title</label>
-            <input
-              id="review-title"
-              placeholder="e.g. Adaptive Learning Thesis"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
+      <StepCard
+        number="2"
+        icon={<FileUp className="size-4" />}
+        title="Add the document"
+        description={
+          isVersion
+            ? "Upload the new PDF for this version."
+            : "Upload a new PDF or review a document that already exists in the group."
+        }
+      >
+        {isVersion ? (
+          <>
+            <div className="grid gap-2">
+              <Label htmlFor="review-file">
+                PDF file <span className="text-destructive">Required</span>
+              </Label>
+              <Input
+                id="review-file"
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileChange}
+                required
+                className="h-auto py-2 file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-semibold"
+              />
+              {fileError ? (
+                <p className="text-xs text-destructive" role="alert">
+                  {fileError}
+                </p>
+              ) : (
+                file && <p className="text-xs text-muted-foreground">{file.name}</p>
+              )}
+            </div>
+            {parent && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label>Document name</Label>
+                  <p className="rounded-md bg-muted px-3 py-2 text-sm font-semibold">
+                    {parent.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Inherited from v{parent.version}</p>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Version</Label>
+                  <p className="rounded-md bg-muted px-3 py-2 text-sm font-semibold">
+                    v{parent.version + 1}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Auto-incremented, not editable</p>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div
+              className="inline-flex w-full gap-1 rounded-lg bg-muted p-1"
+              role="group"
+              aria-label="Document source"
+            >
+              {(
+                [
+                  { key: "upload", label: "Upload new file", icon: Upload },
+                  { key: "existing", label: "Use existing document", icon: FileUp },
+                ] as const
+              ).map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setMode(key)}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-2 rounded-md px-2.5 py-1.5 text-sm font-semibold transition-colors",
+                    mode === key
+                      ? "bg-card text-primary shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <Icon className="size-4" />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {mode === "upload" && (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="review-file">PDF file</Label>
+                  <Input
+                    id="review-file"
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleFileChange}
+                    required
+                    className="h-auto py-2 file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-semibold"
+                  />
+                  {fileError && (
+                    <p className="text-xs text-destructive" role="alert">
+                      {fileError}
+                    </p>
+                  )}
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="review-type">Document type</Label>
+                  <Select value={docType} onValueChange={(v) => setDocType(v as DocumentType)}>
+                    <SelectTrigger id="review-type" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectOption value="Thesis">Thesis</SelectOption>
+                      <SelectOption value="Article">Article</SelectOption>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
+            {mode === "existing" && (
+              <div className="grid gap-2">
+                <Label htmlFor="review-document">Document</Label>
+                <Select value={documentId} onValueChange={setDocumentId} disabled={!groupId}>
+                  <SelectTrigger id="review-document" className="w-full">
+                    <SelectValue placeholder="Select a document" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {documents.map((d) => (
+                      <SelectOption key={d.id} value={d.id}>
+                        {d.name} (v{d.version})
+                      </SelectOption>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!groupId && (
+                  <p className="text-xs text-muted-foreground">
+                    Choose a group first to see its documents.
+                  </p>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </StepCard>
+
+      <StepCard
+        number="3"
+        icon={<Tag className="size-4" />}
+        title="Review details"
+        description="Name the review round and set expectations for the reviewer."
+      >
+        <div className="grid gap-2">
+          <Label htmlFor="review-title">Document title</Label>
+          <Input
+            id="review-title"
+            placeholder="e.g. Adaptive Learning Thesis"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+          {isVersion && (
+            <p className="text-xs text-muted-foreground">
+              Names the review round. The document keeps its inherited name.
+            </p>
+          )}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="review-kind">
+              Kind <span className="font-normal text-muted-foreground">Optional</span>
+            </Label>
+            <Input
+              id="review-kind"
+              placeholder="e.g. Initial review, revision..."
+              value={kind}
+              onChange={(e) => setKind(e.target.value)}
             />
-            {isVersion && (
-              <p className="field__hint">
-                Names the review round. The document keeps its inherited name.
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="review-assignee">Assignee</Label>
+            <Select
+              value={assigneeId || NONE}
+              onValueChange={(v) => setAssigneeId(v === NONE ? "" : v)}
+              disabled={!groupId}
+            >
+              <SelectTrigger id="review-assignee" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectOption value={NONE}>Unassigned</SelectOption>
+                {assigneeOptions.map((u) => (
+                  <SelectOption key={u.id} value={u.id}>
+                    {u.label}
+                  </SelectOption>
+                ))}
+              </SelectContent>
+            </Select>
+            {!groupId ? (
+              <p className="text-xs text-muted-foreground">
+                Choose a group first to assign a reviewer.
+              </p>
+            ) : (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <UserRound className="size-3.5" /> Only members of this group can be assigned.
               </p>
             )}
           </div>
-          <div className="field__row">
-            <div className="field">
-              <label htmlFor="review-kind">
-                Kind <span className="field__optional">Optional</span>
-              </label>
-              <input
-                id="review-kind"
-                placeholder="e.g. Initial review, revision..."
-                value={kind}
-                onChange={(e) => setKind(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="review-assignee">Assignee</label>
-              <select
-                id="review-assignee"
-                value={assigneeId}
-                onChange={(e) => setAssigneeId(e.target.value)}
-                disabled={!groupId}
-              >
-                <option value="">Unassigned</option>
-                {assigneeOptions.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.label}
-                  </option>
-                ))}
-              </select>
-              {!groupId ? (
-                <p className="field__hint">Choose a group first to assign a reviewer.</p>
-              ) : (
-                <p className="field__hint">
-                  <UserRound size={13} /> Only members of this group can be assigned.
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="field__row">
-            <div className="field">
-              <label htmlFor="review-due">Due date</label>
-              <input
-                id="review-due"
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-              />
-            </div>
-          </div>
         </div>
-      </section>
+
+        <div className="grid gap-2 sm:max-w-[50%]">
+          <Label htmlFor="review-due">Due date</Label>
+          <Input
+            id="review-due"
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+          />
+        </div>
+      </StepCard>
 
       {error && (
-        <p className="form-error" role="alert">
+        <p
+          role="alert"
+          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+        >
           {error}
         </p>
       )}
 
-      <div className="form-actions">
-        <Link className="button button--secondary" href={`/groups/${groupId}`}>
-          <ArrowLeft size={16} /> Cancel
-        </Link>
-        <button className="button button--primary" type="submit" disabled={!canSubmit}>
+      <div className="flex flex-wrap justify-end gap-2.5">
+        <Button variant="outline" asChild>
+          <Link href={`/groups/${groupId}`}>
+            <ArrowLeft className="size-4" /> Cancel
+          </Link>
+        </Button>
+        <Button type="submit" disabled={!canSubmit}>
           {submitting ? (
             <>
-              <Loader2 size={16} className="animate-spin" /> Creating...
+              <Loader2 className="size-4 animate-spin" /> Creating...
             </>
           ) : isVersion ? (
             <>
-              <Upload size={16} /> Create new version
+              <Upload className="size-4" /> Create new version
             </>
           ) : (
             <>
-              <Upload size={16} /> Create document
+              <Upload className="size-4" /> Create document
             </>
           )}
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -457,22 +513,24 @@ function NewReviewForm() {
 
 export default function NewReviewPage() {
   return (
-    <div className="page-container">
-      <div className="breadcrumb">
-        <Link href="/groups">My Groups</Link>
+    <PageContainer>
+      <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/groups" className="hover:text-primary">
+          My Groups
+        </Link>
         <span>/</span>
         <span>New document</span>
       </div>
-      <div className="page-heading">
+      <div className="mb-7">
         <p className="eyebrow">Create document</p>
-        <h1>New document</h1>
-        <p>
+        <h1 className="mt-1">New document</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
           Upload a document or select an existing one inside this group to start a review round.
         </p>
       </div>
-      <Suspense fallback={<p className="muted">Loading...</p>}>
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading...</p>}>
         <NewReviewForm />
       </Suspense>
-    </div>
+    </PageContainer>
   );
 }

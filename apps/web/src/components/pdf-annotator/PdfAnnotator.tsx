@@ -8,9 +8,6 @@ import type Konva from "konva";
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 
-import "./annotator.css";
-import "./toolbar.css";
-
 import type {
   Tool,
   Annotation,
@@ -551,12 +548,15 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
     : null;
 
   return (
-    <main className="annotator">
+    <main className="w-full">
       {/* Header (standalone mode only) */}
       {!documentId && (
-        <div className="annotator-header">
+        <div className="mb-5 flex items-center gap-4">
           <h1>PDF Annotation POC</h1>
-          <button className="btn" onClick={() => fileInputRef.current?.click()}>
+          <button
+            className="inline-flex items-center rounded-md border bg-card px-3.5 py-2 text-sm font-semibold transition hover:bg-muted"
+            onClick={() => fileInputRef.current?.click()}
+          >
             Load PDF
           </button>
           <input
@@ -588,24 +588,25 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
 
       {/* Empty state */}
       {!file && (
-        <div className="annotator-empty">
+        <div className="flex h-96 flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card text-center">
           <h2>Load a PDF</h2>
-          <p>Then draw annotations on top of it.</p>
+          <p className="mt-1 text-muted-foreground">Then draw annotations on top of it.</p>
         </div>
       )}
 
       {/* PDF + annotations */}
       {file && (
-        <div className="annotator-body">
-          <div className="annotator-canvas-wrapper" ref={pageContainerRef}>
+        <div className="flex w-full items-start gap-6">
+          <div
+            className="relative min-w-0 flex-1 overflow-hidden rounded bg-background shadow-xl"
+            ref={pageContainerRef}
+          >
             <Document
               file={file}
               onLoadSuccess={handleDocumentLoadSuccess}
-              loading={<div className="annotator-status">Loading PDF...</div>}
+              loading={<div className="p-10 text-center text-muted-foreground">Loading PDF...</div>}
               error={
-                <div className="annotator-status annotator-status--error">
-                  Could not load the PDF.
-                </div>
+                <div className="p-10 text-center text-destructive">Could not load the PDF.</div>
               }
             >
               <Page
@@ -618,7 +619,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
             </Document>
 
             {/* Konva annotation layer */}
-            <div className="annotator-overlay" style={{ pointerEvents: "auto" }}>
+            <div className="absolute inset-0" style={{ pointerEvents: "auto" }}>
               <Stage
                 width={800}
                 height={scaledHeight}
@@ -720,14 +721,14 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, Props>(function PdfAnnotator
               {/* Comment overlay for selected annotation */}
               {selectedAnnotation && selectedAnnotationBounds && (
                 <div
-                  className="annotation-comment-overlay"
+                  className="absolute z-10"
                   style={{
                     top: selectedAnnotationBounds.y + selectedAnnotationBounds.height + 6,
                     left: selectedAnnotationBounds.x,
                   }}
                 >
                   <textarea
-                    className="annotation-comment-input"
+                    className="max-h-[300px] min-h-[48px] w-[280px] min-w-[140px] max-w-[500px] resize overflow-auto rounded border border-info bg-white/95 p-1.5 font-sans text-xs leading-snug text-neutral-900 shadow-md backdrop-blur-sm outline-none focus:border-info focus:ring-2 focus:ring-info/25"
                     placeholder="Add a comment..."
                     value={selectedAnnotation.content ?? ""}
                     onChange={(e) => {

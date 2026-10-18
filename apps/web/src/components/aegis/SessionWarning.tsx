@@ -1,7 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/lib/auth-context";
 
 function getTokenExpiry(token: string): number | null {
@@ -36,48 +47,32 @@ export default function SessionWarning() {
     const interval = setInterval(() => {
       const remaining = expiry - Date.now();
       setTimeLeft(remaining);
-
-      // Show warning when less than 5 minutes remain
-      if (remaining > 0 && remaining < 5 * 60 * 1000) {
-        setShow(true);
-      } else {
-        setShow(false);
-      }
-    }, 10000); // Check every 10 seconds
+      setShow(remaining > 0 && remaining < 5 * 60 * 1000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [token]);
 
-  if (!show || timeLeft <= 0) return null;
+  if (timeLeft <= 0) return null;
 
   return (
-    <div
-      className="session-warning-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Session expiring"
-    >
-      <div className="session-warning-modal">
-        <div className="session-warning-icon">
-          <AlertTriangle size={24} />
-        </div>
-        <h3>Session expiring soon</h3>
-        <p>
-          Your session will expire in <strong>{formatTimeRemaining(timeLeft)}</strong>. Save any
-          unsaved work before you are signed out.
-        </p>
-        <div className="session-warning-actions">
-          <button className="button button--secondary" onClick={() => setShow(false)}>
-            Dismiss
-          </button>
-          <button className="button button--primary" onClick={logout}>
-            Sign out now
-          </button>
-        </div>
-        <button className="session-warning-close" onClick={() => setShow(false)} aria-label="Close">
-          <X size={18} />
-        </button>
-      </div>
-    </div>
+    <AlertDialog open={show} onOpenChange={setShow}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <span className="mb-1 flex size-11 items-center justify-center rounded-full bg-warning/15 text-warning">
+            <AlertTriangle className="size-6" />
+          </span>
+          <AlertDialogTitle className="font-heading">Session expiring soon</AlertDialogTitle>
+          <AlertDialogDescription>
+            Your session will expire in <strong>{formatTimeRemaining(timeLeft)}</strong>. Save any
+            unsaved work before you are signed out.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Dismiss</AlertDialogCancel>
+          <AlertDialogAction onClick={logout}>Sign out now</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

@@ -1,10 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Plus, Trash2, X, Check } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { createUser, deleteUser, getUsers, updateUser } from "@aegis/api-client";
 import type { UserDto } from "@aegis/domain";
+import PageContainer from "@/components/aegis/PageContainer";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useFetch } from "@/hooks/useFetch";
 import { useAuth } from "@/lib/auth-context";
 
@@ -29,12 +42,14 @@ export default function AdminUsersPage() {
 
   if (user && !user.isAdmin) {
     return (
-      <div className="page-container">
-        <div className="page-heading">
-          <h1 className="serif-title">User management</h1>
-          <p>Administrador required to manage users.</p>
+      <PageContainer>
+        <div>
+          <h1 className="font-heading">User management</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Administrador required to manage users.
+          </p>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -89,130 +104,150 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="page-container admin-page">
-      <div className="breadcrumb">
+    <PageContainer>
+      <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
         <span>Admin</span>
         <span>/</span>
         <span>Users</span>
       </div>
-      <div className="page-heading">
+      <div className="mb-7">
         <p className="eyebrow">Administration</p>
-        <h1 className="serif-title">User management</h1>
-        <p>Create, update and deactivate accounts.</p>
+        <h1 className="font-heading mt-1">User management</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Create, update and deactivate accounts.
+        </p>
       </div>
 
-      <section className="content-panel">
-        <h2>People</h2>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Display name</th>
-              <th>Email</th>
-              <th>Status</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id}>
-                {editing?.id === u.id ? (
-                  <>
-                    <td>
-                      <input
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        aria-label="Display name"
-                        required
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="email"
-                        value={editEmail}
-                        onChange={(e) => setEditEmail(e.target.value)}
-                        aria-label="Email"
-                        required
-                      />
-                    </td>
-                    <td>
-                      {u.isAdmin ? (
-                        <span className="role-badge role-badge--creator">Admin</span>
-                      ) : (
-                        "Member"
-                      )}
-                    </td>
-                    <td>
-                      <button className="icon-button" onClick={handleUpdate} aria-label="Save">
-                        <Check size={16} />
-                      </button>
-                      <button
-                        className="icon-button"
-                        onClick={() => setEditing(null)}
-                        aria-label="Cancel"
-                      >
-                        <X size={16} />
-                      </button>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td>
-                      {u.displayName}
-                      {u.isAdmin ? " · Admin" : ""}
-                    </td>
-                    <td>{u.email}</td>
-                    <td>{u.isActive ? "Active" : "Inactive"}</td>
-                    <td>
-                      <button
-                        className="icon-button"
-                        aria-label={`Edit ${u.displayName}`}
-                        onClick={() => {
-                          setEditing(u);
-                          setEditName(u.displayName);
-                          setEditEmail(u.email);
-                        }}
-                      >
-                        <Pencil size={15} />
-                      </button>
-                      <button
-                        className="icon-button"
-                        aria-label={`Delete ${u.displayName}`}
-                        onClick={() => handleDelete(u.id)}
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </td>
-                  </>
-                )}
-              </tr>
-            ))}
-            {users.length === 0 && (
-              <tr>
-                <td colSpan={4} className="muted">
-                  No users found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <section className="rounded-xl border bg-card p-6 shadow-sm">
+        <h2 className="mb-4 text-base font-semibold">People</h2>
+        <div className="rounded-lg border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Display name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-24 text-right">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map((u) => (
+                <TableRow key={u.id}>
+                  {editing?.id === u.id ? (
+                    <>
+                      <TableCell>
+                        <Input
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          aria-label="Display name"
+                          required
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="email"
+                          value={editEmail}
+                          onChange={(e) => setEditEmail(e.target.value)}
+                          aria-label="Email"
+                          required
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {u.isAdmin ? (
+                          <Badge
+                            variant="outline"
+                            className="border-warning/40 bg-warning/15 font-bold text-warning uppercase"
+                          >
+                            Admin
+                          </Badge>
+                        ) : (
+                          "Member"
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleUpdate}
+                          aria-label="Save"
+                        >
+                          <Check className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditing(null)}
+                          aria-label="Cancel"
+                        >
+                          <X className="size-4" />
+                        </Button>
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell>
+                        {u.displayName}
+                        {u.isAdmin ? " · Admin" : ""}
+                      </TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell>{u.isActive ? "Active" : "Inactive"}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Edit ${u.displayName}`}
+                          onClick={() => {
+                            setEditing(u);
+                            setEditName(u.displayName);
+                            setEditEmail(u.email);
+                          }}
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Delete ${u.displayName}`}
+                          onClick={() => handleDelete(u.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </TableCell>
+                    </>
+                  )}
+                </TableRow>
+              ))}
+              {users.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-muted-foreground">
+                    No users found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </section>
 
-      <section className="content-panel">
-        <h2>Create a user</h2>
-        <form className="form-panel" onSubmit={handleCreate}>
-          <div className="field__row">
-            <div className="field">
-              <label htmlFor="new-user-name">Display name</label>
-              <input
+      <section className="mt-6 rounded-xl border bg-card p-6 shadow-sm">
+        <h2 className="mb-4 text-base font-semibold">Create a user</h2>
+        <form className="grid gap-4" onSubmit={handleCreate}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="new-user-name">Display name</Label>
+              <Input
                 id="new-user-name"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 required
               />
             </div>
-            <div className="field">
-              <label htmlFor="new-user-email">Email</label>
-              <input
+            <div className="grid gap-2">
+              <Label htmlFor="new-user-email">Email</Label>
+              <Input
                 id="new-user-email"
                 type="email"
                 value={newEmail}
@@ -221,9 +256,9 @@ export default function AdminUsersPage() {
               />
             </div>
           </div>
-          <div className="field">
-            <label htmlFor="new-user-password">Temporary password</label>
-            <input
+          <div className="grid gap-2">
+            <Label htmlFor="new-user-password">Temporary password</Label>
+            <Input
               id="new-user-password"
               type="password"
               value={newPassword}
@@ -233,17 +268,20 @@ export default function AdminUsersPage() {
             />
           </div>
           {formError && (
-            <p className="form-error" role="alert">
+            <p
+              role="alert"
+              className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+            >
               {formError}
             </p>
           )}
-          <div className="form-actions">
-            <button className="button button--primary" type="submit" disabled={busy}>
-              <Plus size={16} /> Create user
-            </button>
+          <div className="flex justify-end">
+            <Button type="submit" disabled={busy}>
+              <Plus className="size-4" /> Create user
+            </Button>
           </div>
         </form>
       </section>
-    </div>
+    </PageContainer>
   );
 }
