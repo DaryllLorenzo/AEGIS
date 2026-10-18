@@ -4,13 +4,14 @@ using System.Text;
 using Aegis.Api.Modules.Users.Data;
 using Aegis.Api.Modules.Users.Services;
 using Aegis.Api.Tests.Fixtures;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Aegis.Api.Tests.Modules.Users.Services;
 
 public sealed class JwtTokenServiceTests
 {
-    private readonly JwtTokenService _service = new(TestConfig.Create());
+    private readonly JwtTokenService _service = new(Options.Create(TestConfig.JwtOptions()));
 
     [Fact]
     public void GenerateToken_CarriesUserClaims()

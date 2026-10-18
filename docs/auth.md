@@ -12,8 +12,11 @@ AEGIS uses JWT (JSON Web Tokens) with refresh tokens for authentication. The acc
 
 | Token         | Lifetime | Storage                     | Purpose                       |
 | ------------- | -------- | --------------------------- | ----------------------------- |
-| Access Token  | 24 hours | localStorage (FE)           | Authenticate each API request |
-| Refresh Token | 7 days   | localStorage (FE) + DB (BE) | Renew the access token        |
+| Access Token  | 24 hours | localStorage (FE)                    | Authenticate each API request |
+| Refresh Token | 7 days   | localStorage (FE) + DB (BE, hashed) | Renew the access token        |
+
+The JWT signing key comes from configuration (`Jwt:Key`, exposed as the `JWT_KEY` / `Jwt__Key`
+environment variable) and is validated at startup — there is no default key in `appsettings.json`.
 
 ### Authentication endpoints
 
@@ -100,7 +103,7 @@ The refresh token is marked as revoked in the database and cannot be used again.
 ```
 Id          GUID (PK)
 UserId      GUID (FK -> Users)
-Token       VARCHAR(500) UNIQUE
+Token       VARCHAR(500) UNIQUE -- SHA-256 hash of the issued token (raw value never stored)
 ExpiresAt   TIMESTAMP
 IsRevoked   BOOLEAN
 CreatedAt   TIMESTAMP
@@ -113,11 +116,11 @@ Login
   |-- Validate credentials (email + bcrypt)
   |-- Generate access token (JwtTokenService)
   |-- Generate refresh token (RefreshTokenService)
-  |-- Save refresh token to DB
+  |-- Save hashed refresh token to DB (raw value only returned to the client)
   |-- Return both tokens
 
 Refresh
-  |-- Look up refresh token in DB
+  |-- Look up refresh token hash in DB
   |-- Verify it is not revoked or expired
   |-- Revoke the previous refresh token (rotation)
   |-- Generate new access token

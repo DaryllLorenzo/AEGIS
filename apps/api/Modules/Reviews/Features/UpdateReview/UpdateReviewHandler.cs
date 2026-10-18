@@ -1,5 +1,6 @@
-using System.Security.Claims;
+using Aegis.Api.Common.Authz;
 using Aegis.Api.Data;
+using Aegis.Api.Modules.Documents.Data;
 using Aegis.Api.Modules.Groups.Data;
 using Aegis.Api.Modules.Reviews.Data;
 using Aegis.Api.Modules.Reviews.Dtos;
@@ -36,6 +37,15 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
             return Error.Validation("status", "This review is completed and cannot be modified.");
         }
 
+        // Loaded at most once and reused by the transition and reassignment checks below.
+        Document? document = null;
+
+        async Task<Document?> GetDocumentAsync()
+        {
+            document ??= await _db.Documents.FindAsync([review.DocumentId], cancellationToken);
+            return document;
+        }
+
         var newStatus = request.Status;
         if (newStatus != review.Status)
         {
@@ -52,9 +62,9 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
             //  - Complete (InProgress -> Completed): needs to be the review's
             //    assignee. No one else can complete a review.
             var me = CurrentUserId();
-            var document = await _db.Documents.FindAsync([review.DocumentId], cancellationToken);
+            var doc = await GetDocumentAsync();
 
-            if (document is null)
+            if (doc is null)
             {
                 // Orphaned review (document deleted): same as before, a server error.
                 return Error.Failure("Review.DocumentMissing", $"Document '{review.DocumentId}' was not found.");
@@ -62,7 +72,7 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
 
             if (newStatus == ReviewStatus.InProgress && me.HasValue)
             {
-                var roles = await GroupRoles.RolesOfUserAsync(_db, me.Value, document.GroupId, cancellationToken);
+                var roles = await GroupRoles.RolesOfUserAsync(_db, me.Value, doc.GroupId, cancellationToken);
                 if (!roles.Contains(GroupRoles.Reviewer))
                 {
                     return Error.Forbidden("Review.Permission", "Only Reviewers in this group can start a review.");
@@ -89,21 +99,21 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
         {
             if (request.AssigneeId.HasValue)
             {
-                var document = await _db.Documents.FindAsync([review.DocumentId], cancellationToken);
+                var doc = await GetDocumentAsync();
 
-                if (document is null)
+                if (doc is null)
                 {
                     return Error.Failure("Review.DocumentMissing", $"Document '{review.DocumentId}' was not found.");
                 }
 
                 var isGroupMember = await _db.UserRoles.AnyAsync(
-                    ur => ur.UserId == request.AssigneeId.Value && ur.GroupId == document.GroupId, cancellationToken);
+                    ur => ur.UserId == request.AssigneeId.Value && ur.GroupId == doc.GroupId, cancellationToken);
 
                 if (!isGroupMember)
                 {
                     return Error.Validation(
                         "assigneeId",
-                        $"User '{request.AssigneeId.Value}' is not a member of group '{document.GroupId}' and cannot be assigned.");
+                        $"User '{request.AssigneeId.Value}' is not a member of group '{doc.GroupId}' and cannot be assigned.");
                 }
             }
 
@@ -117,14 +127,5 @@ public sealed class UpdateReviewHandler : IRequestHandler<UpdateReviewRequest, R
         return review.ToDto();
     }
 
-    private Guid? CurrentUserId()
-    {
-        if (_httpContextAccessor.HttpContext?.User
-                .FindFirstValue(ClaimTypes.NameIdentifier) is { } parsed
-            && Guid.TryParse(parsed, out var guid))
-        {
-            return guid;
-        }
-        return null;
-    }
+    private Guid? CurrentUserId() => _httpContextAccessor.HttpContext?.User.GetUserId();
 }

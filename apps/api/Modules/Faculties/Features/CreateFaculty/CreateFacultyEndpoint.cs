@@ -1,4 +1,5 @@
 using Aegis.Api.Common.Authz;
+using Aegis.Api.Common.Results;
 using Aegis.Api.Modules.Faculties.Dtos;
 using FluentValidation;
 using MediatR;
@@ -20,7 +21,7 @@ internal static class CreateFacultyEndpoint
             .RequireAuthorization()
             .RequireAdmin();
 
-        static async Task<Results<Created<FacultyDto>, ValidationProblem>> Handle(
+        static async Task<Results<Created<FacultyDto>, ValidationProblem, ProblemHttpResult>> Handle(
             CreateFacultyRequest request,
             ISender sender,
             IValidator<CreateFacultyRequest> validator,
@@ -35,9 +36,7 @@ internal static class CreateFacultyEndpoint
 
             var result = await sender.Send(request, cancellationToken);
 
-            return TypedResults.Created(
-                $"/api/faculties/{result.Id}",
-                result);
+            return result.ToCreatedOrValidationOrConflict(f => $"/api/faculties/{f.Id}");
         }
     }
 }

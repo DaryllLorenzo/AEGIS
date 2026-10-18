@@ -21,7 +21,7 @@ internal static class UpdateUserEndpoint
             .RequireAuthorization()
             .RequireAdmin();
 
-        static async Task<Results<Ok<UserDto>, NotFound, ValidationProblem>> Handle(
+        static async Task<Results<Ok<UserDto>, NotFound, ValidationProblem, ProblemHttpResult>> Handle(
             Guid id,
             UpdateUserBody body,
             ISender sender,
@@ -38,7 +38,7 @@ internal static class UpdateUserEndpoint
             }
 
             var result = await sender.Send(request, cancellationToken);
-            return result.ToOkNotFoundOrValidation();
+            return result.ToOkNotFoundValidationOrConflict();
         }
     }
 }

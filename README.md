@@ -37,6 +37,8 @@ file storage.
 │       └── api-client/               # @aegis/api-client — typed fetch + endpoint modules
 ├── aspire/
 │   └── Aegis.AppHost/                # Dev orchestration only — never deployed
+├── tests/
+│   └── Aegis.Api.Tests/              # xUnit unit tests (mirrors the API namespaces)
 ├── infra/postgres/init/              # One-shot DB bootstrap SQL (extension creation)
 ├── AEGIS.slnx                        # Solution
 ├── Directory.Build.props             # Shared MSBuild properties
@@ -77,6 +79,7 @@ Day-to-day:
 dotnet aspire run                    # everything, attached to the terminal
 dotnet aspire logs <resource>        # tail one resource
 dotnet build AEGIS.slnx              # build all .NET projects
+dotnet test                          # run the unit tests (xUnit, tests/)
 npm run typecheck                    # type-check every node workspace
 npm run lint && npm run format       # ESLint + Prettier on the frontend
 dotnet ef migrations add <Name> --project apps/api   # new migration (no DB needed)

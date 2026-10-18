@@ -73,7 +73,8 @@ public static class ScalarConfiguration
 
         // Scalar fetches the document from the browser, so it has to be reachable as well.
         // Served at /openapi/v1.json, which is the route pattern Scalar expects by default.
-        app.MapOpenApi();
+        // Both opt out of the authenticated-by-default fallback so the UI is usable before login.
+        app.MapOpenApi().AllowAnonymous();
 
         app.MapScalarApiReference(options.RoutePrefix, scalar =>
         {
@@ -91,7 +92,7 @@ public static class ScalarConfiguration
             {
                 scalar.EnablePersistentAuthentication();
             }
-        });
+        }).AllowAnonymous();
 
         return app;
     }

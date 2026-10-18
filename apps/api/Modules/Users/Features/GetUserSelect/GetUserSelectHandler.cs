@@ -5,15 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aegis.Api.Modules.Users.Features.GetUserSelect;
 
-public sealed record GetUserSelectRequest : IRequest<List<SelectItemDto>>
-{
-    /// <summary>When set, only members of this group are returned.</summary>
-    public Guid? GroupId { get; init; }
-
-    /// <summary>Optional case-insensitive search over DisplayName and Email.</summary>
-    public string? Search { get; init; }
-}
-
 public sealed class GetUserSelectHandler : IRequestHandler<GetUserSelectRequest, List<SelectItemDto>>
 {
     private const int MaxResults = 25;

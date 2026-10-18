@@ -100,12 +100,12 @@ public static class ServiceDefaultsExtensions
         // readiness. "/alive" only covers liveness so a slow dependency does not restart us.
         // Both are unauthenticated; put them behind the ingress or add auth before exposing
         // them publicly. See https://aka.ms/aspire/healthchecks
-        app.MapHealthChecks(HealthEndpointPath);
+        app.MapHealthChecks(HealthEndpointPath).AllowAnonymous();
 
         app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions
         {
             Predicate = registration => registration.Tags.Contains("live")
-        });
+        }).AllowAnonymous();
 
         return app;
     }

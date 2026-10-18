@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Aegis.Email;
 
 public sealed class EmailOptions
@@ -11,7 +9,7 @@ public sealed class EmailOptions
 
     public int Port { get; init; } = 25;
 
-    [Required]
+    /// <summary>From address. Only required when <see cref="Host"/> is configured.</summary>
     public required string From { get; init; }
 
     public bool EnableSsl { get; init; }

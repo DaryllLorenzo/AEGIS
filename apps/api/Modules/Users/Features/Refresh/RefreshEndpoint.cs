@@ -15,7 +15,8 @@ internal static class RefreshEndpoint
             .MapPost("/refresh", Handle)
             .WithTags(UsersConfigurations.Tag)
             .WithName(Name)
-            .WithSummary("Refreshes an access token using a valid refresh token.");
+            .WithSummary("Refreshes an access token using a valid refresh token.")
+            .AllowAnonymous();
 
         static async Task<Results<Ok<RefreshResponse>, UnauthorizedHttpResult, ValidationProblem>> Handle(
             RefreshRequest request,

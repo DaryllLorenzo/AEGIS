@@ -3,6 +3,7 @@ using Aegis.Api.Modules.Users.Dtos;
 using Aegis.Api.Modules.Users.Mappings;
 using Aegis.Common.Result;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aegis.Api.Modules.Users.Features.UpdateUser;
 
@@ -21,7 +22,17 @@ public sealed class UpdateUserHandler : IRequestHandler<UpdateUserRequest, Resul
             return Error.NotFound("User.NotFound", $"User with ID '{request.Id}' was not found.");
         }
 
-        user.Email = request.Email;
+        var email = request.Email.Trim();
+
+        var emailTaken = await _db.Users
+            .AnyAsync(u => u.Email == email && u.Id != user.Id, cancellationToken);
+
+        if (emailTaken)
+        {
+            return Error.Conflict("User.EmailExists", $"A user with email '{email}' already exists.");
+        }
+
+        user.Email = email;
         user.DisplayName = request.DisplayName;
         user.UpdatedAt = DateTimeOffset.UtcNow;
 

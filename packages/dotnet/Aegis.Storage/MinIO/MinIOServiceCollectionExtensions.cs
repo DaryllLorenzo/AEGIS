@@ -10,7 +10,14 @@ public static partial class MinIOServiceCollectionExtensions
 {
     public static IServiceCollection AddMinIOStorage(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<MinIOOptions>(configuration.GetSection(MinIOOptions.SectionName));
+        services.AddOptions<MinIOOptions>()
+            .Bind(configuration.GetSection(MinIOOptions.SectionName))
+            .Validate(
+                o => !string.IsNullOrWhiteSpace(o.Endpoint)
+                    && !string.IsNullOrWhiteSpace(o.AccessKey)
+                    && !string.IsNullOrWhiteSpace(o.SecretKey),
+                "Storage:MinIO requires Endpoint, AccessKey and SecretKey.")
+            .ValidateOnStart();
 
         services.AddSingleton<IMinioClient>(sp =>
         {
@@ -23,7 +30,7 @@ public static partial class MinIOServiceCollectionExtensions
                 endpoint = uri.IsDefaultPort ? uri.Host : $"{uri.Host}:{uri.Port}";
             }
 
-            LogBuildingClient(logger, endpoint, opts.AccessKey, opts.UseSsl);
+            LogBuildingClient(logger, endpoint, opts.UseSsl);
 
             var clientBuilder = new MinioClient()
                 .WithEndpoint(endpoint)
@@ -43,6 +50,6 @@ public static partial class MinIOServiceCollectionExtensions
         return services;
     }
 
-    [LoggerMessage(1, LogLevel.Information, "Building MinIO client — Endpoint: {Endpoint}, AccessKey: {AccessKey}, UseSsl: {UseSsl}")]
-    private static partial void LogBuildingClient(ILogger logger, string endpoint, string accessKey, bool useSsl);
+    [LoggerMessage(1, LogLevel.Information, "Building MinIO client — Endpoint: {Endpoint}, UseSsl: {UseSsl}")]
+    private static partial void LogBuildingClient(ILogger logger, string endpoint, bool useSsl);
 }

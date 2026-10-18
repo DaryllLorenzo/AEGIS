@@ -72,7 +72,7 @@ internal static class ResultHttpExtensions
         };
     }
 
-    internal static Results<Created<T>, ValidationProblem> ToCreatedOrValidation<T>(
+    internal static Results<Created<T>, ValidationProblem, UnauthorizedHttpResult> ToCreatedOrValidation<T>(
         this Result<T> result,
         Func<T, string> location)
     {
@@ -84,13 +84,15 @@ internal static class ResultHttpExtensions
         return result.Error.Type switch
         {
             ErrorType.Validation => TypedResults.ValidationProblem(result.Error.ToFieldErrors()),
+            ErrorType.Unauthorized => TypedResults.Unauthorized(),
             _ => throw Unhandled(result.Error),
         };
     }
 
-    internal static Results<Created<T>, NotFound, ValidationProblem> ToCreatedNotFoundOrValidation<T>(
-        this Result<T> result,
-        Func<T, string> location)
+    internal static Results<Created<T>, NotFound, ValidationProblem, UnauthorizedHttpResult>
+        ToCreatedNotFoundOrValidation<T>(
+            this Result<T> result,
+            Func<T, string> location)
     {
         if (result.IsSuccess)
         {
@@ -107,7 +109,46 @@ internal static class ResultHttpExtensions
             return TypedResults.ValidationProblem(result.Error.ToFieldErrors());
         }
 
+        if (result.Error.Type == ErrorType.Unauthorized)
+        {
+            return TypedResults.Unauthorized();
+        }
+
         throw Unhandled(result.Error);
+    }
+
+    internal static Results<Created<T>, ValidationProblem, ProblemHttpResult> ToCreatedOrValidationOrConflict<T>(
+        this Result<T> result,
+        Func<T, string> location)
+    {
+        if (result.IsSuccess)
+        {
+            return TypedResults.Created(location(result.Value), result.Value);
+        }
+
+        return result.Error.Type switch
+        {
+            ErrorType.Validation => TypedResults.ValidationProblem(result.Error.ToFieldErrors()),
+            ErrorType.Conflict => TypedResults.Problem(statusCode: 409, detail: result.Error.Message),
+            _ => throw Unhandled(result.Error),
+        };
+    }
+
+    internal static Results<Ok<T>, NotFound, ValidationProblem, ProblemHttpResult> ToOkNotFoundValidationOrConflict<T>(
+        this Result<T> result)
+    {
+        if (result.IsSuccess)
+        {
+            return TypedResults.Ok(result.Value);
+        }
+
+        return result.Error.Type switch
+        {
+            ErrorType.NotFound => TypedResults.NotFound(),
+            ErrorType.Validation => TypedResults.ValidationProblem(result.Error.ToFieldErrors()),
+            ErrorType.Conflict => TypedResults.Problem(statusCode: 409, detail: result.Error.Message),
+            _ => throw Unhandled(result.Error),
+        };
     }
 
     internal static Results<Ok<T>, ValidationProblem, ProblemHttpResult> ToOkValidationOrForbidden<T>(this Result<T> result)

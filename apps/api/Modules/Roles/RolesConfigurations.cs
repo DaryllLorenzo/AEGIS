@@ -2,7 +2,6 @@ using Aegis.Api.Modules.Roles.Features.CreateRole;
 using Aegis.Api.Modules.Roles.Features.GetRoleById;
 using Aegis.Api.Modules.Roles.Features.GetRoles;
 using Aegis.Api.Modules.Roles.Services;
-using FluentValidation;
 
 namespace Aegis.Api.Modules.Roles;
 
@@ -14,9 +13,6 @@ internal static class RolesConfigurations
     internal static WebApplicationBuilder AddRolesModuleServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<RoleSieveProcessor>();
-        builder.Services.AddValidatorsFromAssemblyContaining<CreateRoleValidator>();
-        builder.Services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssemblyContaining<GetRolesRequest>());
         return builder;
     }
 

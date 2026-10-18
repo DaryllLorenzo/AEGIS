@@ -5,11 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aegis.Api.Modules.Groups.Features.GetGroupMembers;
 
-public sealed record GetGroupMembersRequest : IRequest<List<GroupMemberDto>>
-{
-    public Guid GroupId { get; init; }
-}
-
 public sealed class GetGroupMembersHandler : IRequestHandler<GetGroupMembersRequest, List<GroupMemberDto>>
 {
     private readonly AegisDbContext _db;
@@ -48,7 +43,8 @@ public sealed class GetGroupMembersHandler : IRequestHandler<GetGroupMembersRequ
                 UpdatedAt = u.UpdatedAt,
                 Roles = rows
                     .Where(ur => ur.UserId == u.Id)
-                    .Select(ur => roleNames.GetValueOrDefault(ur.RoleId, "Student"))
+                    .Select(ur => roleNames.GetValueOrDefault(ur.RoleId))
+                    .OfType<string>()
                     .ToList(),
             })
             .ToList();

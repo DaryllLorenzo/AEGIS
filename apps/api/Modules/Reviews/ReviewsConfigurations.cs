@@ -4,7 +4,6 @@ using Aegis.Api.Modules.Reviews.Features.GetReviewById;
 using Aegis.Api.Modules.Reviews.Features.GetReviews;
 using Aegis.Api.Modules.Reviews.Features.UpdateReview;
 using Aegis.Api.Modules.Reviews.Services;
-using FluentValidation;
 
 namespace Aegis.Api.Modules.Reviews;
 
@@ -16,9 +15,6 @@ internal static class ReviewsConfigurations
     internal static WebApplicationBuilder AddReviewsModuleServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<ReviewSieveProcessor>();
-        builder.Services.AddValidatorsFromAssemblyContaining<CreateReviewValidator>();
-        builder.Services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssemblyContaining<GetReviewsRequest>());
         return builder;
     }
 

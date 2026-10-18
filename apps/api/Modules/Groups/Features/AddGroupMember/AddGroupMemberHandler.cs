@@ -10,14 +10,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aegis.Api.Modules.Groups.Features.AddGroupMember;
 
-public sealed record AddGroupMemberRequest : IRequest<Result<GroupDto>>
-{
-    public Guid GroupId { get; init; }
-    public Guid UserId { get; init; }
-    /// <summary>"Submitter" or "Reviewer". Defaults to "Submitter" when omitted.</summary>
-    public string? Role { get; init; }
-}
-
 public sealed class AddGroupMemberHandler : IRequestHandler<AddGroupMemberRequest, Result<GroupDto>>
 {
     private readonly AegisDbContext _db;

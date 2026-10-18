@@ -21,7 +21,9 @@ public sealed class GetReviewsHandler : IRequestHandler<GetReviewsRequest, Pagin
 
     public async Task<PaginatedList<ReviewDto>> Handle(GetReviewsRequest request, CancellationToken cancellationToken)
     {
-        var query = _db.Reviews.AsQueryable();
+        var query = _db.Reviews
+            .Include(r => r.AssigneeUser)
+            .AsQueryable();
 
         if (request.GroupId.HasValue)
         {

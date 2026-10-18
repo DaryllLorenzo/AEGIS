@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using Aegis.Api.Common.Authz;
 using Aegis.Api.Data;
 using Aegis.Api.Modules.Reviews.Data;
 using Aegis.Api.Modules.Reviews.Dtos;
@@ -23,7 +23,12 @@ public sealed class CreateReviewHandler : IRequestHandler<CreateReviewRequest, R
 
     public async Task<Result<ReviewDto>> Handle(CreateReviewRequest request, CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(_httpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+
+        if (userId is null)
+        {
+            return Error.Unauthorized("Auth.NoUser", "The current user could not be resolved.");
+        }
 
         var document = await _db.Documents.FindAsync([request.DocumentId], cancellationToken);
 
@@ -50,7 +55,7 @@ public sealed class CreateReviewHandler : IRequestHandler<CreateReviewRequest, R
         {
             Id = Guid.NewGuid(),
             DocumentId = request.DocumentId,
-            UserId = userId,
+            UserId = userId.Value,
             Title = request.Title,
             Kind = request.Kind,
             Version = request.Version,

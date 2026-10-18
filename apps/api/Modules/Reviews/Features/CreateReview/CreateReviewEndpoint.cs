@@ -19,7 +19,7 @@ internal static class CreateReviewEndpoint
             .WithSummary("Creates a new review for a document.")
             .RequireAuthorization();
 
-        static async Task<Results<Created<ReviewDto>, ValidationProblem>> Handle(
+        static async Task<Results<Created<ReviewDto>, ValidationProblem, UnauthorizedHttpResult>> Handle(
             CreateReviewBody body,
             ISender sender,
             IValidator<CreateReviewRequest> validator,

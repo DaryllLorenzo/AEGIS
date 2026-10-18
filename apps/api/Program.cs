@@ -10,7 +10,10 @@ using Aegis.Api.Modules.Roles;
 using Aegis.Api.Modules.Users;
 using Aegis.Email;
 using Aegis.Storage.MinIO;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Sieve.Models;
@@ -26,8 +29,16 @@ builder.AddNpgsqlDbContext<AegisDbContext>("aegisdb");
 
 builder.Services.AddProblemDetails();
 
-// JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"]!;
+// Bound once and validated at startup: a missing or too-short key fails fast.
+builder.Services
+    .AddOptions<JwtOptions>()
+    .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
+    ?? throw new InvalidOperationException("The 'Jwt' configuration section is missing.");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -37,12 +48,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ValidIssuer = jwt.Issuer,
+            ValidAudience = jwt.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
         };
     });
-builder.Services.AddAuthorization();
+
+// Secure by default: every endpoint requires auth unless it opts out with AllowAnonymous.
+builder.Services.AddAuthorization(options =>
+    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 builder.Services.AddHttpContextAccessor();
 
 // OpenAPI document + Scalar reference UI. See Configuration/ScalarConfiguration.cs.
@@ -57,6 +71,10 @@ builder.AddUsersModuleServices();
 builder.AddRolesModuleServices();
 builder.AddGroupsModuleServices();
 builder.Services.Configure<SieveOptions>(builder.Configuration.GetSection("Sieve"));
+
+// Handlers and validators live in one assembly; register them once.
+builder.Services.AddValidatorsFromAssemblyContaining<AegisDbContext>();
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<AegisDbContext>());
 
 // Object storage — MinIO (Aegis.Storage package).
 builder.Services.AddMinIOStorage(builder.Configuration);

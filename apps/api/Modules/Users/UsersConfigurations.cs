@@ -10,7 +10,6 @@ using Aegis.Api.Modules.Users.Features.Refresh;
 using Aegis.Api.Modules.Users.Features.UpdateUser;
 using Aegis.Api.Modules.Users.Features.WhoAmI;
 using Aegis.Api.Modules.Users.Services;
-using FluentValidation;
 
 namespace Aegis.Api.Modules.Users;
 
@@ -25,13 +24,8 @@ internal static class UsersConfigurations
         builder.Services.AddScoped<JwtTokenService>();
         builder.Services.AddScoped<RefreshTokenService>();
 
-        builder.Services.AddValidatorsFromAssemblyContaining<CreateUserValidator>();
-        builder.Services.AddValidatorsFromAssemblyContaining<LoginValidator>();
-        builder.Services.AddValidatorsFromAssemblyContaining<RefreshValidator>();
-        builder.Services.AddValidatorsFromAssemblyContaining<LogoutValidator>();
-
-        builder.Services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssemblyContaining<GetUsersRequest>());
+        // Periodic cleanup of expired refresh tokens (the table would grow forever otherwise).
+        builder.Services.AddHostedService<RefreshTokenCleanupService>();
 
         return builder;
     }

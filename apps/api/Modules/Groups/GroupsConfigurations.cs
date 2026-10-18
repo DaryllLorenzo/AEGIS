@@ -5,7 +5,6 @@ using Aegis.Api.Modules.Groups.Features.GetGroupMembers;
 using Aegis.Api.Modules.Groups.Features.GetGroups;
 using Aegis.Api.Modules.Groups.Features.RemoveGroupMember;
 using Aegis.Api.Modules.Groups.Services;
-using FluentValidation;
 
 namespace Aegis.Api.Modules.Groups;
 
@@ -17,9 +16,6 @@ internal static class GroupsConfigurations
     internal static WebApplicationBuilder AddGroupsModuleServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<GroupSieveProcessor>();
-        builder.Services.AddValidatorsFromAssemblyContaining<CreateGroupValidator>();
-        builder.Services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssemblyContaining<GetGroupsRequest>());
         return builder;
     }
 

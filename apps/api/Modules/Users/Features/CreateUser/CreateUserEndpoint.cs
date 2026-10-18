@@ -1,4 +1,5 @@
 using Aegis.Api.Common.Authz;
+using Aegis.Api.Common.Results;
 using Aegis.Api.Modules.Users.Dtos;
 using FluentValidation;
 using MediatR;
@@ -20,7 +21,7 @@ internal static class CreateUserEndpoint
             .RequireAuthorization()
             .RequireAdmin();
 
-        static async Task<Results<Created<UserDto>, ValidationProblem>> Handle(
+        static async Task<Results<Created<UserDto>, ValidationProblem, ProblemHttpResult>> Handle(
             CreateUserRequest request,
             ISender sender,
             IValidator<CreateUserRequest> validator,
@@ -35,9 +36,7 @@ internal static class CreateUserEndpoint
 
             var result = await sender.Send(request, cancellationToken);
 
-            return TypedResults.Created(
-                $"/api/users/{result.Id}",
-                result);
+            return result.ToCreatedOrValidationOrConflict(u => $"/api/users/{u.Id}");
         }
     }
 }

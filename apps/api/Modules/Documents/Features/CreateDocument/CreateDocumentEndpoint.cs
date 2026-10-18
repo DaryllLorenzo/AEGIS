@@ -22,7 +22,7 @@ internal static class CreateDocumentEndpoint
             .RequireAuthorization()
             .DisableAntiforgery();
 
-        static async Task<Results<Created<DocumentDto>, NotFound, ValidationProblem>> Handle(
+        static async Task<Results<Created<DocumentDto>, NotFound, ValidationProblem, UnauthorizedHttpResult>> Handle(
             IFormFile file,
             [FromForm] Guid groupId,
             [FromForm] string name,

@@ -40,13 +40,13 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, Result<LoginRes
             .ToListAsync(cancellationToken);
 
         var token = _jwt.GenerateToken(user, roles);
-        var expiresAt = DateTime.UtcNow.AddHours(24);
-        var refreshToken = await _refreshToken.GenerateRefreshTokenAsync(user.Id, cancellationToken);
+        var expiresAt = DateTime.UtcNow.Add(_jwt.AccessTokenLifetime);
+        var (_, refreshToken) = await _refreshToken.GenerateRefreshTokenAsync(user.Id, cancellationToken);
 
         return new LoginResponse
         {
             Token = token,
-            RefreshToken = refreshToken.Token,
+            RefreshToken = refreshToken,
             Email = user.Email,
             DisplayName = user.DisplayName,
             ExpiresAt = expiresAt,

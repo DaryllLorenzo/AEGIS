@@ -15,7 +15,8 @@ internal static class LoginEndpoint
             .MapPost("/login", Handle)
             .WithTags(UsersConfigurations.Tag)
             .WithName(Name)
-            .WithSummary("Authenticates a user and returns a JWT token.");
+            .WithSummary("Authenticates a user and returns a JWT token.")
+            .AllowAnonymous();
 
         static async Task<Results<Ok<LoginResponse>, UnauthorizedHttpResult, ValidationProblem>> Handle(
             LoginRequest request,

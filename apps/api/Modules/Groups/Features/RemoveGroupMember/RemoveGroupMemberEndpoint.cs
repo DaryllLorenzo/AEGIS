@@ -18,7 +18,7 @@ internal static class RemoveGroupMemberEndpoint
             .WithSummary("Removes a user from a group.")
             .RequireAuthorization();
 
-        static async Task<Results<Ok<GroupDto>, NotFound>> Handle(
+        static async Task<Results<Ok<GroupDto>, NotFound, ValidationProblem>> Handle(
             Guid id,
             Guid userId,
             ISender sender,
@@ -27,7 +27,7 @@ internal static class RemoveGroupMemberEndpoint
             var result = await sender.Send(
                 new RemoveGroupMemberRequest { GroupId = id, UserId = userId },
                 cancellationToken);
-            return result.ToOkOrNotFound();
+            return result.ToOkNotFoundOrValidation();
         }
     }
 }

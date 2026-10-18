@@ -1,6 +1,5 @@
 using Aegis.Api.Modules.Annotations.Features.BulkUpdateAnnotations;
 using Aegis.Api.Modules.Annotations.Features.GetAnnotationsByDocumentId;
-using FluentValidation;
 
 namespace Aegis.Api.Modules.Annotations;
 
@@ -11,9 +10,6 @@ internal static class AnnotationsConfigurations
 
     internal static WebApplicationBuilder AddAnnotationsModuleServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddValidatorsFromAssemblyContaining<BulkUpdateAnnotationsValidator>();
-        builder.Services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssemblyContaining<GetAnnotationsByDocumentIdRequest>());
         return builder;
     }
 

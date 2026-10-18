@@ -3,6 +3,7 @@ using Aegis.Api.Modules.Users.Features.Refresh;
 using Aegis.Api.Modules.Users.Services;
 using Aegis.Api.Tests.Fixtures;
 using Aegis.Common.Result;
+using Microsoft.Extensions.Options;
 
 namespace Aegis.Api.Tests.Modules.Users.Features.Refresh;
 
@@ -76,17 +77,17 @@ public sealed class RefreshHandlerTests : IDisposable
         Assert.NotEqual(oldToken, result.Value.RefreshToken);
         Assert.False(string.IsNullOrEmpty(result.Value.Token));
         Assert.True(
-            _db.Db.RefreshTokens.First(rt => rt.Token == oldToken).IsRevoked,
+            _db.Db.RefreshTokens.First(rt => rt.Token == RefreshTokenService.HashToken(oldToken)).IsRevoked,
             "old refresh token must be revoked after rotation");
     }
 
     private RefreshHandler CreateHandler()
     {
-        var config = TestConfig.Create();
+        var options = Options.Create(TestConfig.JwtOptions());
         return new RefreshHandler(
             _db.Db,
-            new JwtTokenService(config),
-            new RefreshTokenService(_db.Db, config));
+            new JwtTokenService(options),
+            new RefreshTokenService(_db.Db, options));
     }
 
     private Guid SeedUser(bool isActive)
@@ -110,17 +111,20 @@ public sealed class RefreshHandlerTests : IDisposable
         bool revoked = false,
         DateTime? expiresAt = null)
     {
+        // Seeded rows store the hash, exactly like the service persists them.
+        var rawToken = $"refresh-{Guid.NewGuid()}";
+
         var refresh = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = userId,
-            Token = $"refresh-{Guid.NewGuid()}",
+            Token = RefreshTokenService.HashToken(rawToken),
             ExpiresAt = expiresAt ?? DateTime.UtcNow.AddDays(7),
             IsRevoked = revoked,
             CreatedAt = DateTimeOffset.UtcNow,
         };
         _db.Db.RefreshTokens.Add(refresh);
         _db.Db.SaveChanges();
-        return refresh.Token;
+        return rawToken;
     }
 }

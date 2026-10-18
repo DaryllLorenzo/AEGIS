@@ -4,6 +4,7 @@ using Aegis.Api.Modules.Users.Features.Login;
 using Aegis.Api.Modules.Users.Services;
 using Aegis.Api.Tests.Fixtures;
 using Aegis.Common.Result;
+using Microsoft.Extensions.Options;
 
 namespace Aegis.Api.Tests.Modules.Users.Features.Login;
 
@@ -65,16 +66,21 @@ public sealed class LoginHandlerTests : IDisposable
         Assert.False(string.IsNullOrEmpty(result.Value.Token));
         Assert.False(string.IsNullOrEmpty(result.Value.RefreshToken));
         Assert.Equal("user@aegis.dev", result.Value.Email);
-        Assert.Equal(1, _db.Db.RefreshTokens.Count(rt => rt.Token == result.Value.RefreshToken));
+
+        // Only the hash of the refresh token is persisted, never the raw value.
+        var rawToken = result.Value.RefreshToken;
+        var storedHash = RefreshTokenService.HashToken(rawToken);
+        Assert.Equal(1, _db.Db.RefreshTokens.Count(rt => rt.Token == storedHash));
+        Assert.Equal(0, _db.Db.RefreshTokens.Count(rt => rt.Token == rawToken));
     }
 
     private LoginHandler CreateHandler()
     {
-        var config = TestConfig.Create();
+        var options = Options.Create(TestConfig.JwtOptions());
         return new LoginHandler(
             _db.Db,
-            new JwtTokenService(config),
-            new RefreshTokenService(_db.Db, config));
+            new JwtTokenService(options),
+            new RefreshTokenService(_db.Db, options));
     }
 
     private Guid SeedUser(string email, string passwordHash, bool isActive = true)

@@ -1,4 +1,5 @@
 using Aegis.Api.Data;
+using Aegis.Api.Modules.Documents.Data;
 using Aegis.Api.Modules.Documents.Dtos;
 using Aegis.Api.Modules.Documents.Mappings;
 using Aegis.Api.Modules.Reviews.Data;
@@ -41,9 +42,27 @@ public sealed class UpdateDocumentHandler : IRequestHandler<UpdateDocumentReques
 
         document.Name = request.Name;
 
-        if (request.ParentId.HasValue)
+        // Re-parenting is only allowed to a document in the same group that is not the
+        // document itself nor one of its descendants (which would create a cycle).
+        // A new parent also restarts the lineage version at parent.Version + 1.
+        if (request.ParentId.HasValue && request.ParentId != document.ParentId)
         {
-            document.ParentId = request.ParentId;
+            var parent = await _db.Documents.FindAsync([request.ParentId.Value], cancellationToken);
+
+            if (parent is null || parent.GroupId != document.GroupId)
+            {
+                return Error.Validation(
+                    "parentId",
+                    $"Parent document '{request.ParentId.Value}' was not found in this group.");
+            }
+
+            if (parent.Id == document.Id || await IsDescendantOfAsync(parent, document.Id, cancellationToken))
+            {
+                return Error.Validation("parentId", "A document cannot be its own ancestor.");
+            }
+
+            document.ParentId = parent.Id;
+            document.Version = parent.Version + 1;
         }
 
         if (request.TotalPages.HasValue)
@@ -77,5 +96,30 @@ public sealed class UpdateDocumentHandler : IRequestHandler<UpdateDocumentReques
         await _db.SaveChangesAsync(cancellationToken);
 
         return document.ToDto();
+    }
+
+    // Walks up the parent chain from candidate, looking for ancestorId.
+    private async Task<bool> IsDescendantOfAsync(Document candidate, Guid ancestorId, CancellationToken ct)
+    {
+        var current = candidate;
+
+        while (current.ParentId.HasValue)
+        {
+            if (current.ParentId.Value == ancestorId)
+            {
+                return true;
+            }
+
+            var next = await _db.Documents.FindAsync([current.ParentId.Value], ct);
+
+            if (next is null)
+            {
+                break;
+            }
+
+            current = next;
+        }
+
+        return false;
     }
 }

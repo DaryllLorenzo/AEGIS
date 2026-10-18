@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using Aegis.Api.Common.Authz;
 using Aegis.Api.Data;
 using Aegis.Api.Modules.Annotations.Data;
 using Aegis.Api.Modules.Annotations.Dtos;
@@ -26,13 +26,7 @@ public sealed class BulkUpdateAnnotationsHandler
         BulkUpdateAnnotationsRequest request,
         CancellationToken cancellationToken)
     {
-        Guid? currentUserId = null;
-        if (_httpContextAccessor.HttpContext?.User
-                .FindFirstValue(ClaimTypes.NameIdentifier) is { } parsed
-            && Guid.TryParse(parsed, out var parsedGuid))
-        {
-            currentUserId = parsedGuid;
-        }
+        var currentUserId = _httpContextAccessor.HttpContext?.User.GetUserId();
 
         // Annotations are editable only while the document's active
         // (most recent) review round is in progress: read-only before
@@ -51,24 +45,24 @@ public sealed class BulkUpdateAnnotationsHandler
 
         // Only Reviewers in the document's group may write annotations
         // (Submitters and creator-submitters are read-only).
-        if (currentUserId.HasValue)
+        var document = await _db.Documents.FindAsync([request.DocumentId], cancellationToken);
+
+        if (document is null)
         {
-            var document = await _db.Documents.FindAsync([request.DocumentId], cancellationToken);
+            return Error.Validation(
+                "documentId",
+                $"Annotations for document '{request.DocumentId}' can only be edited while a review of that document is in progress.");
+        }
 
-            if (document is null)
-            {
-                return Error.Validation(
-                    "documentId",
-                    $"Annotations for document '{request.DocumentId}' can only be edited while a review of that document is in progress.");
-            }
+        var myRoles = currentUserId.HasValue
+            ? await GroupRoles.RolesOfUserAsync(_db, currentUserId.Value, document.GroupId, cancellationToken)
+            : [];
 
-            var myRoles = await GroupRoles.RolesOfUserAsync(_db, currentUserId.Value, document.GroupId, cancellationToken);
-            if (!myRoles.Contains(GroupRoles.Reviewer))
-            {
-                return Error.Forbidden(
-                    "Annotations.Permission",
-                    $"Only Reviewers in this group can edit annotations for document '{request.DocumentId}'.");
-            }
+        if (!currentUserId.HasValue || !myRoles.Contains(GroupRoles.Reviewer))
+        {
+            return Error.Forbidden(
+                "Annotations.Permission",
+                $"Only Reviewers in this group can edit annotations for document '{request.DocumentId}'.");
         }
 
         var existing = await _db.Annotations

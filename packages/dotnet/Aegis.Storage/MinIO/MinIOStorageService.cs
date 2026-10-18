@@ -1,3 +1,4 @@
+using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -68,21 +69,55 @@ public sealed partial class MinIOStorageService : IStorageService
         };
     }
 
-    public async Task<Stream> DownloadAsync(
+    public Task<Stream> DownloadAsync(
         string bucketName,
         string objectKey,
         CancellationToken cancellationToken = default)
     {
-        var buffer = new MemoryStream();
+        // Stream straight through a pipe instead of buffering the whole object in memory.
+        var pipe = new Pipe();
+        var completed = 0;
+
+        async Task CompleteAsync(Exception? error)
+        {
+            // Guard against completing twice (callback and outer task can both fail).
+            if (Interlocked.Exchange(ref completed, 1) == 0)
+            {
+                await pipe.Writer.CompleteAsync(error);
+            }
+        }
 
         var getArgs = new GetObjectArgs()
             .WithBucket(bucketName)
             .WithObject(objectKey)
-            .WithCallbackStream((stream, ct) => stream.CopyToAsync(buffer, ct));
+            .WithCallbackStream(async (stream, ct) =>
+            {
+                try
+                {
+                    await stream.CopyToAsync(pipe.Writer.AsStream(), ct);
+                    await CompleteAsync(null);
+                }
+                catch (Exception ex)
+                {
+                    await CompleteAsync(ex);
+                }
+            });
 
-        await _client.GetObjectAsync(getArgs, cancellationToken);
-        buffer.Position = 0;
-        return buffer;
+        _ = Task.Run(
+            async () =>
+            {
+                try
+                {
+                    await _client.GetObjectAsync(getArgs, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    await CompleteAsync(ex);
+                }
+            },
+            CancellationToken.None);
+
+        return Task.FromResult<Stream>(pipe.Reader.AsStream());
     }
 
     public async Task<StoredObject?> StatAsync(

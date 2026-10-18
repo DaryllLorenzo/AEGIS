@@ -12,7 +12,13 @@ public static class EmailServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddEmail(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.AddOptions<EmailOptions>()
+            .Bind(configuration.GetSection(EmailOptions.SectionName))
+            .Validate(
+                o => string.IsNullOrWhiteSpace(o.Host) || !string.IsNullOrWhiteSpace(o.From),
+                "Email:Smtp:From is required when Email:Smtp:Host is configured.")
+            .ValidateOnStart();
+
         services.AddScoped<IEmailSender, SmtpEmailSender>();
         return services;
     }

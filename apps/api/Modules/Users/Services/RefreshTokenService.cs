@@ -1,30 +1,37 @@
 using System.Security.Cryptography;
+using System.Text;
+using Aegis.Api.Configuration;
 using Aegis.Api.Data;
 using Aegis.Api.Modules.Users.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Aegis.Api.Modules.Users.Services;
 
 public sealed class RefreshTokenService
 {
     private readonly AegisDbContext _db;
-    private readonly IConfiguration _configuration;
+    private readonly JwtOptions _options;
 
-    public RefreshTokenService(AegisDbContext db, IConfiguration configuration)
+    public RefreshTokenService(AegisDbContext db, IOptions<JwtOptions> options)
     {
         _db = db;
-        _configuration = configuration;
+        _options = options.Value;
     }
 
-    public async Task<RefreshToken> GenerateRefreshTokenAsync(Guid userId, CancellationToken ct = default)
+    /// <summary>Persists a new refresh token (hash only); returns the row and the raw token.</summary>
+    public async Task<(RefreshToken Token, string RawToken)> GenerateRefreshTokenAsync(
+        Guid userId,
+        CancellationToken ct = default)
     {
+        var rawToken = GenerateRandomToken();
+
         var refreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = userId,
-            Token = GenerateRandomToken(),
-            ExpiresAt = DateTime.UtcNow.AddDays(
-                double.Parse(_configuration["Jwt:RefreshExpiresInDays"] ?? "7")),
+            Token = HashToken(rawToken),
+            ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshExpiresInDays),
             IsRevoked = false,
             CreatedAt = DateTimeOffset.UtcNow,
         };
@@ -32,13 +39,15 @@ public sealed class RefreshTokenService
         _db.RefreshTokens.Add(refreshToken);
         await _db.SaveChangesAsync(ct);
 
-        return refreshToken;
+        return (refreshToken, rawToken);
     }
 
     public async Task<RefreshToken?> ValidateRefreshTokenAsync(string token, CancellationToken ct = default)
     {
+        var hash = HashToken(token);
+
         var refreshToken = await _db.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.Token == token && !rt.IsRevoked, ct);
+            .FirstOrDefaultAsync(rt => rt.Token == hash && !rt.IsRevoked, ct);
 
         if (refreshToken is null || refreshToken.ExpiresAt < DateTime.UtcNow)
         {
@@ -50,8 +59,10 @@ public sealed class RefreshTokenService
 
     public async Task RevokeRefreshTokenAsync(string token, CancellationToken ct = default)
     {
+        var hash = HashToken(token);
+
         var refreshToken = await _db.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.Token == token, ct);
+            .FirstOrDefaultAsync(rt => rt.Token == hash, ct);
 
         if (refreshToken is not null)
         {
@@ -83,6 +94,10 @@ public sealed class RefreshTokenService
         _db.RefreshTokens.RemoveRange(expired);
         await _db.SaveChangesAsync(ct);
     }
+
+    /// <summary>SHA-256 of the raw token, stored in place of the token itself.</summary>
+    public static string HashToken(string token) =>
+        Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
 
     private static string GenerateRandomToken()
     {

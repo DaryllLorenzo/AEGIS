@@ -164,3 +164,4 @@ npm run build -w @aegis/web
 - `aegis-backend` — add a new backend feature/endpoint in the existing vertical-slice style.
 - `aegis-migrations` — safe EF migration workflow for this repo, including the pitfalls above.
 - `aegis-frontend` — add/modify web client code with the repo's conventions.
+- `aegis-tests` — unit tests for a backend slice: what deserves tests, fixtures, patterns, gate.

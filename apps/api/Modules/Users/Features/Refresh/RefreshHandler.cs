@@ -47,13 +47,13 @@ public sealed class RefreshHandler : IRequestHandler<RefreshRequest, Result<Refr
 
         // Generate new tokens
         var newAccessToken = _jwt.GenerateToken(user, roles);
-        var newRefreshToken = await _refreshToken.GenerateRefreshTokenAsync(user.Id, cancellationToken);
-        var expiresAt = DateTime.UtcNow.AddHours(24);
+        var (_, newRefreshToken) = await _refreshToken.GenerateRefreshTokenAsync(user.Id, cancellationToken);
+        var expiresAt = DateTime.UtcNow.Add(_jwt.AccessTokenLifetime);
 
         return new RefreshResponse
         {
             Token = newAccessToken,
-            RefreshToken = newRefreshToken.Token,
+            RefreshToken = newRefreshToken,
             ExpiresAt = expiresAt,
         };
     }

@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using Aegis.Api.Common.Authz;
 using Aegis.Api.Data;
 using Aegis.Api.Modules.Documents.Data;
 using Aegis.Api.Modules.Documents.Dtos;
@@ -29,10 +29,15 @@ public sealed class CreateDocumentHandler : IRequestHandler<CreateDocumentReques
 
     public async Task<Result<DocumentDto>> Handle(CreateDocumentRequest request, CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(_httpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+
+        if (userId is null)
+        {
+            return Error.Unauthorized("Auth.NoUser", "The current user could not be resolved.");
+        }
 
         var isMember = await _db.UserRoles.AnyAsync(
-            ur => ur.UserId == userId && ur.GroupId == request.GroupId, cancellationToken);
+            ur => ur.UserId == userId.Value && ur.GroupId == request.GroupId, cancellationToken);
 
         if (!isMember)
         {

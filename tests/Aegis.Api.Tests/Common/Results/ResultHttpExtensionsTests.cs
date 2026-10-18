@@ -55,13 +55,15 @@ public sealed class ResultHttpExtensionsTests
     }
 
     [Fact]
-    public void ToCreatedOrValidation_MapsBothBranches()
+    public void ToCreatedOrValidation_MapsAllBranches()
     {
         Result<string> created = "value";
         Result<string> invalid = Error.Validation("name", "Name is required.");
+        Result<string> anonymous = Error.Unauthorized("Auth.NoUser", "no user");
 
         Assert.Equal(201, StatusCodeOf(created.ToCreatedOrValidation(_ => "/api/docs/1")));
         Assert.IsType<ValidationProblem>(InnerOf(invalid.ToCreatedOrValidation(_ => "/api/docs/1")));
+        Assert.IsType<UnauthorizedHttpResult>(InnerOf(anonymous.ToCreatedOrValidation(_ => "/api/docs/1")));
     }
 
     [Fact]
@@ -70,10 +72,38 @@ public sealed class ResultHttpExtensionsTests
         Result<string> created = "value";
         Result<string> missing = Error.NotFound("Doc.NotFound", "missing");
         Result<string> invalid = Error.Validation("name", "Name is required.");
+        Result<string> anonymous = Error.Unauthorized("Auth.NoUser", "no user");
 
         Assert.Equal(201, StatusCodeOf(created.ToCreatedNotFoundOrValidation(_ => "/api/docs/1")));
         Assert.IsType<NotFound>(InnerOf(missing.ToCreatedNotFoundOrValidation(_ => "/api/docs/1")));
         Assert.IsType<ValidationProblem>(InnerOf(invalid.ToCreatedNotFoundOrValidation(_ => "/api/docs/1")));
+        Assert.IsType<UnauthorizedHttpResult>(InnerOf(anonymous.ToCreatedNotFoundOrValidation(_ => "/api/docs/1")));
+    }
+
+    [Fact]
+    public void ToCreatedOrValidationOrConflict_MapsAllBranches()
+    {
+        Result<string> created = "value";
+        Result<string> invalid = Error.Validation("name", "Name is required.");
+        Result<string> conflict = Error.Conflict("User.EmailExists", "taken");
+
+        Assert.Equal(201, StatusCodeOf(created.ToCreatedOrValidationOrConflict(_ => "/api/users/1")));
+        Assert.IsType<ValidationProblem>(InnerOf(invalid.ToCreatedOrValidationOrConflict(_ => "/api/users/1")));
+        Assert.Equal(409, StatusCodeOf(conflict.ToCreatedOrValidationOrConflict(_ => "/api/users/1")));
+    }
+
+    [Fact]
+    public void ToOkNotFoundValidationOrConflict_MapsAllBranches()
+    {
+        Result<string> found = "value";
+        Result<string> missing = Error.NotFound("User.NotFound", "missing");
+        Result<string> invalid = Error.Validation("email", "Email is required.");
+        Result<string> conflict = Error.Conflict("User.EmailExists", "taken");
+
+        Assert.Equal(200, StatusCodeOf(found.ToOkNotFoundValidationOrConflict()));
+        Assert.IsType<NotFound>(InnerOf(missing.ToOkNotFoundValidationOrConflict()));
+        Assert.IsType<ValidationProblem>(InnerOf(invalid.ToOkNotFoundValidationOrConflict()));
+        Assert.Equal(409, StatusCodeOf(conflict.ToOkNotFoundValidationOrConflict()));
     }
 
     [Fact]

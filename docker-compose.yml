@@ -43,6 +43,8 @@ services:
       ConnectionStrings__aegisdb: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       # Origin the browser loads the frontend from, needed for CORS.
       Cors__AllowedOrigins__0: ${WEB_PUBLIC_URL:-http://localhost:3000}
+      # JWT signing key. Required and at least 32 characters; the API refuses to start without it.
+      Jwt__Key: ${JWT_KEY:?set JWT_KEY in .env}
     ports:
       - "${API_PORT:-8080}:8080"
     healthcheck:

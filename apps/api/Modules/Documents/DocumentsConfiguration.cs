@@ -4,7 +4,6 @@ using Aegis.Api.Modules.Documents.Features.GetDocumentById;
 using Aegis.Api.Modules.Documents.Features.GetDocuments;
 using Aegis.Api.Modules.Documents.Features.UpdateDocument;
 using Aegis.Api.Modules.Documents.Services;
-using FluentValidation;
 
 namespace Aegis.Api.Modules.Documents;
 
@@ -16,11 +15,6 @@ internal static class DocumentsConfiguration
     internal static WebApplicationBuilder AddDocumentsModuleServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<DocumentSieveProcessor>();
-
-        builder.Services.AddValidatorsFromAssemblyContaining<CreateDocumentValidator>();
-
-        builder.Services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssemblyContaining<GetDocumentsRequest>());
 
         return builder;
     }

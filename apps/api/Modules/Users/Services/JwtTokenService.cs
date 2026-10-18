@@ -1,24 +1,28 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Aegis.Api.Configuration;
 using Aegis.Api.Modules.Users.Data;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Aegis.Api.Modules.Users.Services;
 
 public sealed class JwtTokenService
 {
-    private readonly IConfiguration _configuration;
+    private readonly JwtOptions _options;
 
-    public JwtTokenService(IConfiguration configuration)
+    public JwtTokenService(IOptions<JwtOptions> options)
     {
-        _configuration = configuration;
+        _options = options.Value;
     }
+
+    /// <summary>Access-token lifetime, so callers report the same expiry the token carries.</summary>
+    public TimeSpan AccessTokenLifetime => TimeSpan.FromHours(_options.ExpiresInHours);
 
     public string GenerateToken(User user, IEnumerable<string> roles)
     {
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
 
         var claims = new List<Claim>
         {
@@ -32,12 +36,11 @@ public sealed class JwtTokenService
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
-        var expires = DateTime.UtcNow.AddHours(
-            double.Parse(_configuration["Jwt:ExpiresInHours"] ?? "24"));
+        var expires = DateTime.UtcNow.Add(AccessTokenLifetime);
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
+            issuer: _options.Issuer,
+            audience: _options.Audience,
             claims: claims,
             expires: expires,
             signingCredentials: new SigningCredentials(

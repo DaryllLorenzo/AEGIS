@@ -1,3 +1,5 @@
+using Aegis.Api.Common.Authz;
+using Aegis.Api.Common.Results;
 using Aegis.Api.Modules.Roles.Dtos;
 using FluentValidation;
 using MediatR;
@@ -15,9 +17,11 @@ internal static class CreateRoleEndpoint
             .MapPost("/", Handle)
             .WithTags(RolesConfigurations.RolesTag)
             .WithName(Name)
-            .WithSummary("Creates a new role.");
+            .WithSummary("Creates a new role.")
+            .RequireAuthorization()
+            .RequireAdmin();
 
-        static async Task<Results<Created<RoleDto>, ValidationProblem>> Handle(
+        static async Task<Results<Created<RoleDto>, ValidationProblem, ProblemHttpResult>> Handle(
             CreateRoleRequest request,
             ISender sender,
             IValidator<CreateRoleRequest> validator,
@@ -32,9 +36,7 @@ internal static class CreateRoleEndpoint
 
             var result = await sender.Send(request, cancellationToken);
 
-            return TypedResults.Created(
-                $"/api/roles/{result.Id}",
-                result);
+            return result.ToCreatedOrValidationOrConflict(r => $"/api/roles/{r.Id}");
         }
     }
 }
